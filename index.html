@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Héritiers">
 <title>Héritiers de l'Aube</title>
 <style>
   :root { --bg:#161a24; --panel:#232a38; --panel2:#2c3446; --text:#ece6d6; --muted:#a59f8f; --gold:#e8b94a; --pa:#4aa3ff; --pm:#5ad16a; --red:#e2554a; }
@@ -134,6 +136,12 @@
   .feat { display:flex; gap:10px; align-items:center; background:var(--panel2); border:2px solid #3a4459; border-radius:8px; padding:6px 10px; opacity:.6; }
   .feat.got { opacity:1; border-color:#f4c84a99; } .feat.got b { color:var(--gold); } .feat .txt { flex:1; } .feat small { display:block; font-size:12px; }
   .feat .pts { font-weight:700; color:var(--gold); } .fbar { height:5px; background:#222a38; border-radius:3px; margin-top:3px; } .fbar div { height:100%; background:var(--pm); border-radius:3px; }
+  /* tactile (iPad) : pas de zoom au double toucher, pas de loupe ni de surbrillance */
+  html { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+  body.touch { -webkit-user-select:none; -webkit-touch-callout:none; }
+  body.touch input, body.touch textarea { -webkit-user-select:text; user-select:text; }
+  body.touch .btn.sm { min-height:30px; }
+  #tapTip { position:fixed; left:50%; top:12px; transform:translateX(-50%); z-index:99; max-width:min(560px,90vw); padding:8px 12px; background:#11151d; border:1px solid var(--gold); border-radius:8px; color:var(--text); font-size:14px; pointer-events:none; opacity:0; transition:opacity .2s; }
 </style>
 </head>
 <body>
@@ -366,7 +374,7 @@ const SPRITES = {
 };
 const $ = s => document.querySelector(s);
 const cv = $('#cv'), ctx = cv.getContext('2d');
-const W = 13, H = 13, TW = 60, TH = 30, OX = 450, OY = 108;
+let W = 13, H = 13, OX = 450, OY = 108; const TW = 60, TH = 30; // W, H, OX, OY changent dans les scènes d'exploration (setBoard)
 const DIRS = [[1,0],[-1,0],[0,1],[0,-1]];
 const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
 let SPEED = 1; try { SPEED = +localStorage.getItem('chroniques-plaine-speed') || 1; } catch (e) {}
@@ -834,15 +842,16 @@ function dungeonRoom(z, n) {
   const pool = z.foes.length > 1 ? z.foes.slice(1) : z.foes;
   return { ...z, icon:'room', name:`${z.name} · Salle ${n}/${DUNGEON_ROOMS}`, foes:[0,1,2].map(i => pool[(i + n - 1) % pool.length]) };
 }
-function startFight(zoneId, room) {
+function startFight(zoneId, room, group) {
   G.lastSale = null; // la dernière vente ne s'annule plus après un combat
   G.token++;
   const token = G.token;
   applyPhases();
   const base = zoneById(zoneId), carry = G.dungeon && G.dungeon.id===zoneId && room > 1 ? G.dungeon.hp : null;
-  G.dungeon = base.icon==='boss' ? { id:zoneId, room: room || 1, hp:carry } : null;
-  const f = G.dungeon && G.dungeon.room <= DUNGEON_ROOMS ? dungeonRoom(base, G.dungeon.room) : G.dungeon ? { ...base, name:`${base.name} · Salle du boss` } : base;
+  G.dungeon = base.icon==='boss' && !group ? { id:zoneId, room: room || 1, hp:carry } : null;
+  const f = group ? { ...base, icon:'fight', foes:group, extra:true } : G.dungeon && G.dungeon.room <= DUNGEON_ROOMS ? dungeonRoom(base, G.dungeon.room) : G.dungeon ? { ...base, name:`${base.name} · Salle du boss` } : base;
   G.zone = f; G.seed = rnd(1,1e6); G.mode = 'fight'; document.body.classList.remove('map'); setTimeout(renderDbg);
+  setBoard(...FIGHT_BOARD); G.bgSize = null;
   G.grid = genMap();
   const st = heroStats(G.profile), c = CLASSES[G.profile.cls];
   jobFightStart(room);
@@ -1361,7 +1370,8 @@ const isNorth = () => G.zone && (G.zone.region===2 || G.zone.region===4);
 const isVolcano = () => G.zone && G.zone.region===6;
 
 function buildBg() {
-  const L = document.createElement('canvas'); L.width = Math.ceil(cv.width/PX); L.height = Math.ceil(cv.height/PX);
+  const [BW, BH] = G.bgSize || [cv.width, cv.height], LOX = OX/PX, LOY = OY/PX;
+  const L = document.createElement('canvas'); L.width = Math.ceil(BW/PX); L.height = Math.ceil(BH/PX);
   const c = L.getContext('2d'), R = seeded(G.seed || 1);
   const px = (x,y,col) => { c.fillStyle=col; c.fillRect(x,y,1,1); };
   const bands = isVolcano() ? ['#1e1010','#261412','#2e1814','#361c16','#3e2018','#46241a'] : ['#1b2236','#1e263d','#212b45','#24304c','#273553','#2a3a5a'];
@@ -1381,7 +1391,9 @@ function buildBg() {
     for (let r=0;r<LTH;r++) for (let i=-hw(r); i<hw(r); i++) {
       let col;
       const v=R();
-      if (t===3) col = isVolcano() ? (v<.15 ? '#3a302c' : '#5a4a40') : isNorth() ? (v<.15 ? '#a8a49a' : '#c2bcae') : (v<.12 ? '#8a6a3e' : v<.2 ? '#c09a62' : '#a8834f');
+      if (t===5) col = r%3===0 ? '#b8952e' : v<.2 ? '#f0d878' : (alt ? '#e2c25a' : '#dcbb52');
+      else if (t===6) col = r===0 || i===-hw(r) ? (isVolcano() ? '#221c1a' : '#6d675f') : isVolcano() ? (v<.1 ? '#2a2422' : alt ? '#4a403c' : '#443a36') : isNorth() ? (v<.1 ? '#a8b0b8' : alt ? '#c8d0d8' : '#bcc4cc') : (v<.1 ? '#7d776f' : alt ? '#a29c92' : '#97918a');
+      else if (t===3) col = isVolcano() ? (v<.15 ? '#3a302c' : '#5a4a40') : isNorth() ? (v<.15 ? '#a8a49a' : '#c2bcae') : (v<.12 ? '#8a6a3e' : v<.2 ? '#c09a62' : '#a8834f');
       else if (isVolcano()) col = t===2 ? (v<.1 ? '#ffd04a' : v<.16 ? '#c8400a' : '#ff6a1a') : (v<.1 ? '#2a2422' : v<.17 ? '#6a5a52' : (alt ? '#4a3e38' : '#463a34'));
       else if (isNorth()) col = t===2 ? (v<.1 ? '#e2f4fd' : v<.16 ? '#8cc6e6' : '#b4def3') : (v<.1 ? '#c3d2dd' : v<.17 ? '#ffffff' : (alt ? '#e6eef4' : '#dde7ee'));
       else if (t===2) col = v<.1 ? '#4f9ad8' : v<.16 ? '#2f6dab' : '#3a80c2';
@@ -1389,13 +1401,15 @@ function buildBg() {
       px(tx+i, ty+r, col);
     }
     const v = hash(x,y);
-    if (t===2 && isVolcano()) { px(tx-3,ty+4,'#fff0a0'); px(tx-2,ty+4,'#fff0a0'); px(tx+3,ty+6,'#fff0a0'); }
+    if (t===5) { for (let k=0;k<3;k++) { const ox = tx-5+k*4+(v*9|0)%2, oy = ty+2+(k%2)*3; px(ox,oy,'#fff0a0'); px(ox,oy+1,'#8a6a20'); } }
+    else if (t===6) { if (v>.6) px(tx-2+(v*50|0)%5, ty+3+(v*70|0)%4, '#5f5a52'); }
+    else if (t===2 && isVolcano()) { px(tx-3,ty+4,'#fff0a0'); px(tx-2,ty+4,'#fff0a0'); px(tx+3,ty+6,'#fff0a0'); }
     else if (t===2) { px(tx-3,ty+4,'#a8d8f8'); px(tx-2,ty+4,'#a8d8f8'); px(tx-1,ty+4,'#a8d8f8'); px(tx+3,ty+6,'#a8d8f8'); px(tx+4,ty+6,'#a8d8f8'); }
     else if (v>.7 && isVolcano()) { px(tx-2,ty+3,'#7a6a62'); px(tx+2,ty+5,'#1e1a18'); }
     else if (v>.7) { const tc = isNorth() ? '#9fb2c0' : '#3b7428'; const ox = tx-4+(v*40|0)%8, oy = ty+3+(v*70|0)%4; px(ox,oy,tc); px(ox+1,oy-1,tc); px(ox+2,oy,tc); px(ox+3,oy-1,tc); }
     else if (v<.08 && !isNorth() && !isVolcano()) { const col = v<.04 ? '#f4e36b' : '#f07aa0'; const ox = tx-3+(v*400|0)%6, oy = ty+4; px(ox,oy,col); px(ox+1,oy+1,'#fff4c8'); }
   }
-  bg = document.createElement('canvas'); bg.width=cv.width; bg.height=cv.height;
+  bg = document.createElement('canvas'); bg.width=BW; bg.height=BH;
   const g = bg.getContext('2d'); g.imageSmoothingEnabled = false;
   g.drawImage(L, 0, 0, L.width*PX, L.height*PX);
 }
@@ -1567,9 +1581,11 @@ function updateUI() {
 }
 const SPELL_KEYS = ['&', 'é', '"', "'", '(', '§', 'è', '_', 'ç', 'à'];
 function markChip() { const o = G.hover && unitAt(...G.hover); [...$('#timeline').children].forEach((c,i) => c.classList.toggle('hov', !!o && G.units[i]===o)); }
-$('#timeline').addEventListener('mouseover', e => { const c = e.target.closest('.chip'); if (!c || G.mode!=='fight') return; const u = G.units[+c.dataset.i];
+$('#timeline').addEventListener('mouseover', e => { const c = e.target.closest('.chip'); if (!c || G.mode!=='fight' || touchUI) return; const u = G.units[+c.dataset.i];
   if (u && u.alive) { G.hover = [u.x,u.y]; dirty = true; hint(); } });
-$('#timeline').addEventListener('mouseleave', () => { if (G.mode==='fight') { G.hover = null; dirty = true; hint(); } });
+$('#timeline').addEventListener('click', e => { const c = e.target.closest('.chip'); if (!c || G.mode!=='fight' || !touchUI) return; const u = G.units[+c.dataset.i];
+  if (u && u.alive) { G.hover = [u.x,u.y]; dirty = true; hint(); } });
+$('#timeline').addEventListener('mouseleave', () => { if (G.mode==='fight' && !touchUI) { G.hover = null; dirty = true; hint(); } });
 function hint() {
   markChip();
   const h = G.hero; let t = '';
@@ -1578,10 +1594,10 @@ function hint() {
   if (G.sel) {
     const pv = dmgPreview();
     if (pv.length) t = pv.map(({t:o,r,c}) => `${o.name} : ${r[0]===r[1] ? r[0] : r[0]+' à '+r[1]} dégâts (critique ${c[0]} à ${c[1]}), ` + (r[0]>=o.hp ? 'vaincu à coup sûr' : r[1]>=o.hp ? `peut être vaincu (${o.hp} PV)` : c[1]>=o.hp ? `il restera ${o.hp-r[1]} à ${o.hp-r[0]} PV, vaincu sur un critique` : `il restera ${o.hp-r[1]} à ${o.hp-r[0]} PV`)).join(' · ') + '. ';
-    t += `${G.sel.name} : ${G.sel.desc}${critLine(G.sel, h)}` + (G.sel.self ? ' Clique sur ton personnage pour le lancer.' : '');
+    t += `${G.sel.name} : ${G.sel.desc}${critLine(G.sel, h)}` + (G.sel.self ? (touchUI ? ' Touche ton personnage deux fois pour le lancer.' : ' Clique sur ton personnage pour le lancer.') : (touchUI ? ' Touche une cible pour voir l\'effet, puis touche-la encore pour lancer. Touche à nouveau le sort pour l\'annuler.' : ''));
     if (G.hover && !canCast(h,G.sel,...G.hover)) { const d = man(h.x,h.y,...G.hover);
       t += (d<G.sel.minR||d>G.sel.maxR) ? ' (hors de portée)' : (G.grid[G.hover[1]][G.hover[0]]===1 ? '' : (G.sel.needEmpty && !walkable(...G.hover) ? ' (case occupée)' : ' (pas de ligne de vue)')); }
-  } else if (!t && isHeroTurn()) t = `Clique sur une case verte pour te déplacer, ou choisis un sort (touches ${SPELL_KEYS.slice(0, G.hero.spells.length).join(' ')}). Clic droit ou Échap pour annuler.`;
+  } else if (!t && isHeroTurn()) t = touchUI ? 'Touche une case verte pour voir le chemin, puis touche-la encore pour t\'y déplacer. Touche un ennemi pour voir ses sorts, ou choisis un sort.' : `Clique sur une case verte pour te déplacer, ou choisis un sort (touches ${SPELL_KEYS.slice(0, G.hero.spells.length).join(' ')}). Clic droit ou Échap pour annuler.`;
   $('#hint').textContent = t;
 }
 let bannerTimer;
@@ -1595,14 +1611,17 @@ function cellFromEvent(e) {
   const x = Math.floor((a+b)/2), y = Math.floor((b-a)/2);
   return inB(x,y) ? [x,y] : null;
 }
-cv.addEventListener('mousemove', e => { if (G.mode==='map') return mapMove(e); if (G.mode!=='fight') return; const c = cellFromEvent(e);
+cv.addEventListener('mousemove', e => { if (touchUI) return; if (G.mode==='map') return mapMove(e); if (G.mode!=='fight') return; const c = cellFromEvent(e);
   if (String(c)!==String(G.hover)) { G.hover = c; dirty = true; hint(); } });
-cv.addEventListener('mouseleave', () => { if (G.mode==='map') { G.mapHover = null; dirty = true; return; } G.hover = null; dirty = true; hint(); });
+cv.addEventListener('mouseleave', () => { if (touchUI) return; if (G.mode==='map') { G.mapHover = null; dirty = true; return; } G.hover = null; dirty = true; hint(); });
 cv.addEventListener('contextmenu', e => { e.preventDefault(); G.sel = null; dirty = true; updateUI(); hint(); });
 cv.addEventListener('click', e => {
-  if (G.mode==='map') return mapClick(e);
+  if (G.mode==='map') { if (touchUI) mapMove(e); return mapClick(e); }
+  const c = cellFromEvent(e);
+  if (touchUI && G.mode==='fight' && String(c)!==String(G.hover)) { G.hover = c; dirty = true; hint(); return; }
   if (!isHeroTurn()) return;
-  const c = cellFromEvent(e); if (!c) return;
+  if (!c) return;
+  if (touchUI) G.hover = null;
   const h = G.hero;
   if (G.sel) {
     const sp = G.sel;
@@ -1613,6 +1632,15 @@ cv.addEventListener('click', e => {
   }
   if (G.reach && G.reach.has(key(...c)) && G.reach.get(key(...c)).d>0) doHero(() => moveAlong(h, pathFrom(G.reach,...c)));
 });
+// iPad : le mode tactile suit le dernier appareil utilisé (doigt ou souris/trackpad)
+var touchUI = false, tapTipTimer;
+document.addEventListener('pointerdown', e => { const t = e.pointerType==='touch' || e.pointerType==='pen';
+  if (t!==touchUI) { touchUI = t; document.body.classList.toggle('touch', t); if (G.mode==='fight') hint(); } }, true);
+// au toucher, les textes d'aide normalement affichés au survol (attribut title) apparaissent quelques secondes
+document.addEventListener('click', e => { if (!touchUI) return; const el = e.target.closest && e.target.closest('[title]');
+  if (!el || el.closest('button, input, select, textarea')) return;
+  let tip = $('#tapTip'); if (!tip) { tip = document.createElement('div'); tip.id = 'tapTip'; document.body.appendChild(tip); }
+  tip.textContent = el.title; tip.style.opacity = 1; clearTimeout(tapTipTimer); tapTipTimer = setTimeout(() => tip.style.opacity = 0, 3500); }, true);
 document.addEventListener('keydown', e => {
   if (e.target.tagName==='INPUT') { if (e.key==='Enter' && e.target.id==='heroName' && $('#b1')) $('#b1').click(); return; }
   // la touche qui a ouvert un menu le referme
@@ -3656,19 +3684,20 @@ function showRoomCleared() {
 function showVictory() {
   if (G.dungeon && G.dungeon.room <= DUNGEON_ROOMS) return showRoomCleared();
   G.dungeon = null;
-  const z = G.zone, p = G.profile, first = !p.cleared.includes(z.id);
+  const z = G.zone, p = G.profile, first = !z.extra && !p.cleared.includes(z.id);
   if (first) p.cleared.push(z.id);
+  groupBeaten();
   const xp = Math.round(G.units.filter(u => u.team==='enemy' && !u.summoned).reduce((a,u) => a + MONSTERS[u.kind].xp, 0) * (1 + z.tier*0.15) * (first ? 1.5 : 1));
   const ups = addXp(xp);
   const loot = rollLoot(z, first), drops = rollDrops();
   hfFight(true);
-  const done = progressQuests({ kills: fightKills(), cleared: z.id });
+  const done = progressQuests({ kills: fightKills(), cleared: z.extra ? null : z.id });
   play(z.icon==='boss' ? 'victoireboss' : 'victoire'); if (ups.length) setTimeout(() => play('niveau'), z.icon==='boss' ? 3000 : 1000);
   renderDbg();
   p.shop = null; // le marchand renouvelle son stock
   save();
   const title = z.id===MAIN[MAIN.length-1].goal.zone && first ? 'Victoire totale !' : z.icon==='boss' && first ? 'Victoire éclatante !' : 'Victoire !';
-  const zn = zoneById(z.id).name, msg = first ? `${zn} est libérée !` : `${zn} : encore une victoire !`;
+  const zn = zoneById(z.id).name, msg = first ? `${zn} est libérée !` : z.extra && !isCleared(z.id) ? `Groupe vaincu ! Le chef de ${zn} t'attend encore.` : `${zn} : encore une victoire !`;
   overlay(`<h2>${title}</h2><p>${msg} <b>+${xp} XP</b>${first ? ' (bonus de première victoire)' : ''}</p>${levelUpHtml(ups)}
     ${done.length ? `<p class="goal">📜 Quête accomplie : <b>${done.map(q => q.title).join(', ')}</b>. Retourne sur la carte pour recevoir ta récompense.</p>` : ''}
     ${loot.items.some(it => it.boss) ? `<p class="goal" style="color:#ff5c8a">✨ Objet unique ! ${MONSTERS[z.foes[0]].name} a laissé tomber son trésor.</p>` : ''}
@@ -3684,11 +3713,11 @@ function showDefeat() {
   progressQuests({ kills: fightKills() });
   const dj = G.dungeon; G.dungeon = null;
   overlay(`<h2>Défaite…</h2><p>Les monstres ont eu raison de toi.${dj ? ' Tu ressors du donjon : il faudra recommencer à la salle 1.' : ''} Tu peux retenter ce combat ou retourner sur la carte pour t'équiper. Les monstres vaincus comptent quand même pour tes quêtes.</p><button class="btn" id="b1">Réessayer</button><button class="btn alt" id="b2">Reprendre l'exploration</button>`);
-  $('#b1').onclick = () => startFight(G.zone.id); $('#b2').onclick = openMap;
+  $('#b1').onclick = () => startFight(G.zone.id, null, G.zone.extra ? G.zone.foes : undefined); $('#b2').onclick = openMap;
 }
 
 // ---------- Exploration : chaque zone est une scène où le héros se déplace ----------
-// Chaque zone de ZONES devient une scène 13x13 générée à partir de son id, avec une sortie vers chaque zone voisine (LINKS).
+// Chaque zone de ZONES devient une grande scène générée à partir de son id (décor propre au lieu : SCENE_KIT), avec une sortie vers chaque zone voisine (LINKS).
 // Les PNJ s'y tiennent (« ! » = ils ont quelque chose à te dire), le marchand attend dans les villages
 // et les ennemis de la zone sont visibles : leur parler lance le combat. La carte du monde (M) sert au voyage rapide.
 // Lieu fixe de certains PNJ ; les autres (Lune, Garrick…) suivent l'histoire et attendent au village de la région de leur quête.
@@ -3717,75 +3746,152 @@ const FOE_TALK = { gobelin:"Hé hé ! Encore un voyageur tout seul… Donne-nous
 const FOE_AGAIN = 'Encore toi ?! Cette fois, on ne se laissera pas faire !';
 const hubOf = r => (ZONES.find(z => z.icon==='village' && regionOf(z.id)===r) || ZONES[0]).id;
 const strHash = s => { let h = 7; for (const ch of s) h = (Math.imul(h, 31) + ch.charCodeAt(0)) | 0; return (h >>> 0) % 2147483646 + 1; };
-const SC_C = [6,6]; // centre de la scène
+// Plateau : 13x13 pour les combats ; une scène d'exploration est plus grande et une caméra suit le héros
+const FIGHT_BOARD = [13, 13, 450, 108];
+function setBoard(w, h, ox, oy) { W = w; H = h; OX = ox; OY = oy; }
+const OPEN_T = new Set([0, 3, 5, 6]); // herbe, chemin, blé, dallage : on y marche
 const SCENES = {};
+// Décor propre à chaque lieu. n : taille de la scène ; tree : part d'arbres parmi les obstacles (le reste : rochers) ; dead : arbres morts ;
+// rocks : nombre d'obstacles ; ponds : mares (lave dans le Mont Brasier) ; lake : [dx, dy, rx, ry] grand lac ; wheat / floor : champs de blé, dallages ;
+// big : grands monuments 2x2 [genre, dx, dy] autour du centre ; props : petits éléments { genre: nombre }
+const SCENE_KIT = {
+  village: { n:19, tree:.75, rocks:10, wheat:2, props:{ well:1, fence:5, scarecrow:1 } },
+  lisiere: { n:21, tree:.8, rocks:26, ponds:1, props:{ fence:4 } },
+  champs: { n:23, tree:.5, rocks:12, wheat:7, props:{ scarecrow:3, fence:6, cart:1 } },
+  marais: { n:23, tree:.6, dead:1, rocks:14, ponds:9, props:{ deadtree:6, bones:2 } },
+  moulin: { n:23, tree:.6, rocks:14, wheat:4, big:[['mill',-3,-4]], props:{ fence:6, cart:1, scarecrow:1 } },
+  bois: { n:23, tree:.95, rocks:60, props:{ mushroom:3 } },
+  antre: { n:23, tree:.2, rocks:30, big:[['cave',-2,-5]], props:{ bones:5, fire:2, tent:2 } },
+  sanctuaire: { n:21, tree:.6, rocks:12, floor:1, props:{ pillar:6, statue:2 } },
+  camp: { n:19, tree:.7, rocks:10, props:{ tent:4, fire:2, cart:1 } },
+  col: { n:23, tree:.25, rocks:52, props:{ bones:2 } },
+  cimetiere: { n:23, tree:.5, dead:1, rocks:16, props:{ tomb:16, deadtree:5, fence:6 } },
+  lac: { n:23, tree:.7, rocks:16, lake:[-1,-5,6,3.6], props:{ deadtree:2 } },
+  forteresse: { n:23, tree:.3, rocks:14, floor:4, big:[['ruin',3,-5]], props:{ wall:14, pillar:6 } },
+  tour: { n:23, tree:.3, dead:1, rocks:14, floor:2, big:[['tower',-1,-6]], props:{ tomb:6, deadtree:4 } },
+  miroir: { n:23, tree:.3, rocks:18, floor:2, big:[['ruin',-2,-5]], props:{ pillar:5, mirror:1 } },
+  faille: { n:23, tree:.2, rocks:26, props:{ rift:10, bones:3 } },
+  ermitage: { n:19, tree:.8, rocks:14, props:{ pillar:3, well:1, fence:3 } },
+  entree: { n:23, tree:.6, rocks:16, floor:3, props:{ pillar:10, wall:6, statue:2 } },
+  bibliotheque: { n:23, tree:.5, rocks:10, ponds:6, floor:5, props:{ shelf:10, pillar:4 } },
+  temple: { n:23, tree:.5, rocks:8, floor:8, props:{ pillar:12, totem:4, altar:1, statue:2 } },
+  coeur: { n:23, tree:.4, rocks:10, floor:6, props:{ pillar:8, altar:1, rift:4 } },
+  pelerins: { n:19, tree:.7, rocks:10, props:{ statue:1, well:1, tent:2 } },
+  chemin: { n:23, tree:.5, rocks:30, props:{ statue:2, totem:2 } },
+  templeoublie: { n:23, tree:.5, rocks:12, floor:6, props:{ pillar:12, statue:3 } },
+  epreuves: { n:23, tree:.4, rocks:10, floor:8, props:{ statue:10, pillar:4 } },
+  forge: { n:23, tree:.4, rocks:12, floor:5, props:{ anvil:5, fire:3, pillar:4 } },
+  remparts: { n:23, tree:.4, rocks:12, floor:3, props:{ wall:18, totem:2 } },
+  fees: { n:19, tree:.95, rocks:14, big:[['bigtree',-3,-5]], props:{ mushroom:8 } },
+  oree: { n:23, tree:.95, rocks:40, props:{ mushroom:6 } },
+  bosquet: { n:23, tree:.95, rocks:30, props:{ totem:6 } },
+  boiscorrompus: { n:23, tree:.9, dead:1, rocks:40, props:{ deadtree:10 } },
+  licornes: { n:23, tree:.95, rocks:26, ponds:1, props:{ statue:1, mushroom:2 } },
+  racines: { n:23, tree:.9, rocks:24, big:[['bigtree',-2,-5]], props:{ totem:2, mushroom:4 } },
+  coeursylve: { n:23, tree:.9, rocks:26, big:[['bigtree',0,-6]], props:{ mushroom:4 } },
+  haltecendres: { n:19, rocks:12, props:{ tent:4, cart:2, fire:2 } },
+  plainescendres: { n:23, rocks:30, ponds:6, props:{ bones:3 } },
+  portes: { n:23, rocks:14, floor:4, props:{ wall:16, statue:2, fire:3 } },
+  tunnels: { n:23, rocks:40, ponds:6, props:{ totem:4 } },
+  grandeforge: { n:23, rocks:12, floor:8, props:{ anvil:6, fire:4, pillar:4 } },
+  forgeoubliee: { n:23, rocks:16, floor:5, ponds:4, props:{ anvil:4, statue:3 } },
+  cratere: { n:23, rocks:24, lake:[0,-5,6,3.6], props:{ bones:2 } },
+};
+const BIG_PROPS = ['mill', 'tower', 'ruin', 'bigtree', 'cave'];
+function sceneKit(z) {
+  const hub = z.icon==='village', portal = z.icon==='portal';
+  return Object.assign({ n: hub ? 19 : portal ? 17 : 23, tree:.6, rocks: hub ? 10 : portal ? 18 : 24, ponds:0, props:{} }, SCENE_KIT[z.id]);
+}
 // Case de bord dans la direction (dx,dy) de la carte du monde (le haut de l'écran est le nord)
-function edgeCell(dx, dy) {
+function edgeCell(dx, dy, N=13) {
   let a = Math.atan2(dy, dx) * 180 / Math.PI; if (a < -90) a += 360;
-  const t = k => Math.round(2 + 8*k);
+  const t = k => Math.round(2 + (N-5)*k);
   if (a < 0) return [t((a+90)/90), 0];
-  if (a < 90) return [W-1, t(a/90)];
-  if (a < 180) return [W-1-t((a-90)/90), H-1];
-  return [0, H-1-t((a-180)/90)];
+  if (a < 90) return [N-1, t(a/90)];
+  if (a < 180) return [N-1-t((a-90)/90), N-1];
+  return [0, N-1-t((a-180)/90)];
 }
 function sceneOf(id) {
   if (SCENES[id]) return SCENES[id];
-  const z = zoneById(id), R = seeded(strHash(id)), hub = z.icon==='village';
-  const g = Array.from({length:H}, () => Array(W).fill(0));
-  const exits = [], block = new Set(); // block : cases réservées aux PNJ, au marchand et aux ennemis
+  const z = zoneById(id), R = seeded(strHash(id)), hub = z.icon==='village', K = sceneKit(z), N = K.n, C = [N>>1, N>>1];
+  const inS = (x,y) => x>=0 && y>=0 && x<N && y<N, rc = (a=1) => a + (R()*(N-2*a)|0);
+  const g = Array.from({length:N}, () => Array(N).fill(0));
+  const exits = [], block = new Set(), props = []; // block : cases réservées (PNJ, marchand, groupes de monstres…)
   const addExit = (to, dx, dy, portal) => {
-    const [x,y] = edgeCell(dx, dy), alongX = y===0 || y===H-1;
-    for (const o of [0,2,-2,4,-4,6,-6,8,-8]) { const nx = alongX ? x+o : x, ny = alongX ? y : y+o, v = alongX ? nx : ny;
-      if (v<1 || v>W-2 || exits.some(e => man(e.x,e.y,nx,ny) < 3)) continue;
-      exits.push({ x:nx, y:ny, to, portal, ix: nx===0 ? 1 : nx===W-1 ? W-2 : nx, iy: ny===0 ? 1 : ny===H-1 ? H-2 : ny }); return; }
+    const [x,y] = edgeCell(dx, dy, N), alongX = y===0 || y===N-1;
+    for (const o of [0,2,-2,4,-4,6,-6,8,-8,10,-10]) { const nx = alongX ? x+o : x, ny = alongX ? y : y+o, v = alongX ? nx : ny;
+      if (v<1 || v>N-2 || exits.some(e => man(e.x,e.y,nx,ny) < 3)) continue;
+      exits.push({ x:nx, y:ny, to, portal, ix: nx===0 ? 1 : nx===N-1 ? N-2 : nx, iy: ny===0 ? 1 : ny===N-1 ? N-2 : ny }); return; }
   };
   for (const n of neighbors(id)) { const b = zoneById(n); addExit(n, b.x-z.x, b.y-z.y); }
   if (z.icon==='portal') addExit(z.to, z.x-450, z.y-280, true);
-  // chemins de terre de chaque sortie jusqu'au centre
-  for (const e of exits) { let x = e.x, y = e.y; g[y][x] = 3;
-    while (x!==SC_C[0] || y!==SC_C[1]) { const dx = SC_C[0]-x, dy = SC_C[1]-y;
-      if (dx && (!dy || R() < Math.abs(dx)/(Math.abs(dx)+Math.abs(dy)))) x += Math.sign(dx); else y += Math.sign(dy);
-      g[y][x] = 3; } }
-  if (hub) for (let y=3;y<=9;y++) for (let x=3;x<=9;x++) if (man(x,y,6,6)<=2) g[y][x] = 3;
-  const nearExit = (x,y) => exits.some(e => man(e.x,e.y,x,y) <= 1);
+  const nearExit = (x,y,d=1) => exits.some(e => man(e.x,e.y,x,y) <= d);
+  const cellOpen = (x,y) => OPEN_T.has(g[y][x]) && !block.has(key(x,y));
   const connected = () => {
-    let free = 0; for (let y=0;y<H;y++) for (let x=0;x<W;x++) if (cellOpen(x,y)) free++;
-    const seen = new Set([key(...SC_C)]), q = [SC_C];
-    while (q.length) { const [x,y] = q.pop(); for (const [a,b] of DIRS) { const nx=x+a, ny=y+b; if (inB(nx,ny) && cellOpen(nx,ny) && !seen.has(key(nx,ny))) { seen.add(key(nx,ny)); q.push([nx,ny]); } } }
+    let free = 0; for (let y=0;y<N;y++) for (let x=0;x<N;x++) if (cellOpen(x,y)) free++;
+    const seen = new Set([key(...C)]), q = [C];
+    while (q.length) { const [x,y] = q.pop(); for (const [a,b] of DIRS) { const nx=x+a, ny=y+b; if (inS(nx,ny) && cellOpen(nx,ny) && !seen.has(key(nx,ny))) { seen.add(key(nx,ny)); q.push([nx,ny]); } } }
     return seen.size === free;
   };
-  const cellOpen = (x,y) => (g[y][x]===0 || g[y][x]===3) && !block.has(key(x,y));
   // pose un élément s'il ne coupe aucun passage
-  const tryPut = (x,y,fn,undo) => { if (!inB(x,y) || !cellOpen(x,y) || nearExit(x,y) || man(x,y,...SC_C)<1) return false; fn(); if (connected()) return true; undo(); return false; };
+  const tryPut = (x,y,fn,undo,d=1) => { if (!inS(x,y) || !cellOpen(x,y) || nearExit(x,y,d) || man(x,y,...C)<1) return false; fn(); if (connected()) return true; undo(); return false; };
   const reserve = (x,y) => tryPut(x,y, () => block.add(key(x,y)), () => block.delete(key(x,y)));
   // pas de décor juste devant un personnage (il le cacherait)
   const nearBlock = (x,y) => [...block].some(k => { const [bx,by] = k.split(',').map(Number), dx = x-bx, dy = y-by; return dx>=-1 && dy>=-1 && dx<=2 && dy<=2; });
-  const putTile = (x,y,t) => g[y][x]===0 && !nearBlock(x,y) && tryPut(x,y, () => g[y][x] = t, () => g[y][x] = 0);
-  // emplacements des PNJ autour du centre, marchand, ennemis
+  const putTile = (x,y,t) => inS(x,y) && g[y][x]===0 && !nearBlock(x,y) && tryPut(x,y, () => g[y][x] = t, () => g[y][x] = 0);
+  const putProp = (x,y,kind) => putTile(x,y,7) && props.push({ kind, x, y, w:1 });
+  // 1) grands éléments : le lac, puis les monuments (2x2) près du centre
+  if (K.lake) { const [dx,dy,rx,ry] = K.lake, lx = C[0]+dx, ly = C[1]+dy;
+    for (let y=0;y<N;y++) for (let x=0;x<N;x++) { const d = ((x-lx)/rx)**2 + ((y-ly)/ry)**2;
+      if (d < 1 - R()*.25 && man(x,y,...C) > 2) tryPut(x,y, () => g[y][x] = 2, () => g[y][x] = 0, 2); } }
+  for (const [kind, dx, dy] of K.big || []) {
+    const spots = [[0,0],[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[2,0],[-2,0],[0,2],[0,-2]].map(([a,b]) => [C[0]+dx+a, C[1]+dy+b]);
+    for (const [x,y] of spots) { const cells = [[x,y],[x+1,y],[x,y+1],[x+1,y+1]];
+      if (!cells.every(([a,b]) => inS(a,b) && a>0 && b>0 && a<N-1 && b<N-1 && g[b][a]===0 && !nearExit(a,b,2) && man(a,b,...C) > 1)) continue;
+      cells.forEach(([a,b]) => g[b][a] = 7); if (connected()) { props.push({ kind, x, y, w:2 }); break; } cells.forEach(([a,b]) => g[b][a] = 0); } }
+  // 2) chemins de terre de chaque sortie jusqu'au centre, qui contournent lacs et monuments (un peu sinueux)
+  const cost = Array.from({length:N*N}, () => 1 + R()*2.5);
+  for (const e of exits) { const dist = new Map([[key(e.x,e.y), 0]]), prev = new Map(), done = new Set();
+    for (;;) { let best = null, bd = Infinity; for (const [k,d] of dist) if (!done.has(k) && d < bd) { bd = d; best = k; }
+      if (!best || best===key(...C)) break; done.add(best); const [x,y] = best.split(',').map(Number);
+      for (const [a,b] of DIRS) { const nx=x+a, ny=y+b; if (!inS(nx,ny) || !(g[ny][nx]===0 || g[ny][nx]===3)) continue;
+        const nd = bd + (g[ny][nx]===3 ? .6 : cost[ny*N+nx]); if (nd < (dist.get(key(nx,ny)) ?? Infinity)) { dist.set(key(nx,ny), nd); prev.set(key(nx,ny), best); } } }
+    for (let k = key(...C); k; k = prev.get(k)) { const [x,y] = k.split(',').map(Number); g[y][x] = 3; } }
+  if (hub) for (let y=0;y<N;y++) for (let x=0;x<N;x++) if (man(x,y,...C)<=2 && g[y][x]===0) g[y][x] = 3;
+  // 3) emplacements : PNJ autour du centre, marchand, Cristal, groupes de monstres, atelier, ressources
+  const at = l => l.map(([a,b]) => [C[0]+a, C[1]+b]);
   const slots = [];
-  const ring = hub ? [[4,4],[8,8],[8,4],[4,8],[3,6],[6,3],[9,6],[6,9],[3,3],[9,9]] : [[4,8],[8,4],[3,5],[5,3],[9,7],[7,9]];
-  let shop = null, foe = null, fol = null;
-  if (hub) for (const c of [[8,3],[9,4],[3,8],[4,9]]) if (reserve(...c)) { shop = c; break; }
-  let crystal = null; // socle du Cristal de la Plaine (village, sanctuaire, antre de l'Ogre)
-  if (CRYSTAL_ZONES.includes(id)) for (const c of [[6,4],[4,6],[7,4],[4,7],[5,8],[8,5]]) if (reserve(...c)) { crystal = c; break; }
+  const ring = at(hub ? [[-2,-2],[2,2],[2,-2],[-2,2],[-3,0],[0,-3],[3,0],[0,3],[-3,-3],[3,3]] : [[-2,2],[2,-2],[-3,-1],[-1,-3],[3,1],[1,3]]);
+  let shop = null, crystal = null;
+  if (hub) for (const c of at([[2,-3],[3,-2],[-3,2],[-2,3]])) if (reserve(...c)) { shop = c; break; }
+  if (CRYSTAL_ZONES.includes(id)) for (const c of at([[0,-2],[-2,0],[1,-2],[-2,1],[-1,2],[2,-1]])) if (reserve(...c)) { crystal = c; break; }
   for (const c of ring) if (slots.length < (hub ? 7 : 2) && reserve(...c)) slots.push(c);
-  if (z.foes) { const cand = [];
-    for (let y=1;y<H-1;y++) for (let x=1;x<W-1;x++) { const d = man(x,y,...SC_C); if (d>=2 && d<=4) cand.push([x,y, R()]); }
-    cand.sort((a,b) => a[2]-b[2]);
-    for (const [x,y] of cand) { if (!reserve(x,y)) continue;
-      const f = DIRS.map(([a,b]) => [x+a,y+b]).find(c => reserve(...c));
-      if (f) { foe = [x,y]; fol = f; break; } block.delete(key(x,y)); } }
-  // maisons dans les villages, puis eau et rochers / arbres
-  if (hub) for (const [x,y] of [[2,2],[10,2],[2,10],[10,10],[2,6],[10,6]]) putTile(x, y, 4);
-  const wet = /marais|lac|bibliotheque|tunnels|plainescendres|cratere/.test(id) ? 3 : R() < .4 ? 1 : 0;
-  for (let i=0;i<wet;i++) { const cx = 1+(R()*11|0), cy = 1+(R()*11|0); for (const [a,b] of [[0,0],...DIRS]) if (R()<.75) putTile(cx+a, cy+b, 2); }
-  const n = hub ? 9 : z.icon==='portal' ? 16 : 20;
-  for (let i=0, k=0; i<n && k<400; k++) { const x = R()*W|0, y = R()*H|0; if (putTile(x,y,1)) i++; }
-  // métiers, posés en dernier pour ne rien changer au reste de la scène : l'atelier dans les villages, une ressource par métier ailleurs
-  const bench = hub ? [[4,3],[3,4],[9,8],[8,9],[5,3],[3,5],[7,3],[3,7]].find(c => reserve(...c)) || null : null, nodes = [];
-  if (!hub) for (const job of JOB_IDS) for (let k=0; k<80; k++) { const x = 1+(R()*11|0), y = 1+(R()*11|0);
-    if (man(x,y,...SC_C) >= 2 && reserve(x,y)) { nodes.push({ x, y, job, t:Math.min(JOB_REQ.length-1, regionOf(id)-1) }); break; } }
-  return SCENES[id] = { id, grid:g, exits, slots, shop, foe, fol, crystal, bench, nodes };
+  // groupes de monstres : le chef de zone près du centre, deux groupes errants plus loin (loin des sorties et du centre)
+  const homes = [];
+  if (z.foes) {
+    const pick = (ok, tries=400) => { for (let k=0; k<tries; k++) { const x = rc(2), y = rc(2); if (ok(x,y) && reserve(x,y)) return [x,y]; } return null; };
+    const far = (x,y,d) => homes.every(h => man(x,y,...h) >= d);
+    const chief = pick((x,y) => { const d = man(x,y,...C); return d>=3 && d<=6; }) || pick((x,y) => man(x,y,...C)>=2);
+    if (chief) homes.push(chief);
+    for (let i=0; i<2; i++) { const h = pick((x,y) => man(x,y,...C)>=8 && !nearExit(x,y,6) && far(x,y,6)) || pick((x,y) => man(x,y,...C)>=5 && !nearExit(x,y,3) && far(x,y,4));
+      if (h) homes.push(h); }
+  }
+  const bench = hub ? at([[-2,-3],[-3,-2],[3,2],[2,3],[-1,-3],[-3,-1],[1,-3],[-3,1]]).find(c => reserve(...c)) || null : null, nodes = [];
+  if (!hub) for (const job of JOB_IDS) for (let k=0; k<80; k++) { const x = rc(), y = rc();
+    if (man(x,y,...C) >= 2 && reserve(x,y)) { nodes.push({ x, y, job, t:Math.min(JOB_REQ.length-1, regionOf(id)-1) }); break; } }
+  // 4) maisons dans les villages, champs de blé et dallages, mares, petits éléments du décor, puis rochers / arbres
+  if (hub) for (const [x,y] of at([[-4,-4],[4,-4],[-4,4],[4,4],[-4,0],[4,0],[0,-5],[-6,-2],[6,2],[-2,6],[2,-6]])) putTile(x, y, 4);
+  const patch = (t, w, h, x0, y0) => { for (let y=y0; y<y0+h; y++) for (let x=x0; x<x0+w; x++) if (inS(x,y) && g[y][x]===0 && !nearExit(x,y)) g[y][x] = t; };
+  for (let i=0; i<(K.floor||0); i++) i===0 ? patch(6, 5, 5, C[0]-2, C[1]-2) : patch(6, 3 + (R()*3|0), 3 + (R()*3|0), rc(2), rc(2));
+  for (let i=0; i<(K.wheat||0); i++) patch(5, 3 + (R()*3|0), 2 + (R()*3|0), rc(2), rc(2));
+  for (let i=0; i<K.ponds; i++) { const cx = rc(), cy = rc(); for (const [a,b] of [[0,0],...DIRS,[1,1],[-1,-1]]) if (R()<.7) putTile(cx+a, cy+b, 2); }
+  for (const [kind, n] of Object.entries(K.props)) for (let i=0, k=0; i<n && k<300; k++) {
+    if (kind!=='wall') { if (putProp(rc(), rc(), kind)) i++; continue; }
+    // les murs se posent en morceaux de 2 à 4 pierres alignées
+    let x = rc(), y = rc(); const [a,b] = R()<.5 ? [1,0] : [0,1], len = 2 + (R()*3|0);
+    for (let j=0; j<len && i<n; j++, x+=a, y+=b) if (putProp(x, y, kind)) i++; else break; }
+  for (let i=0, k=0, n=K.rocks; i<n && k<n*20; k++) { const x = R()*N|0, y = R()*N|0; if (putTile(x,y,1)) i++; }
+  return SCENES[id] = { id, n:N, c:C, grid:g, exits, slots, shop, crystal, bench, nodes, homes, props, tree: K.tree, dead: !!K.dead, foe: homes[0] || null };
 }
 // PNJ présents dans une zone : ceux qui ont une quête à te confier ici (« ! »), puis les habitués
 const sceneMet = n => QUESTS.some(q => q.npc===n && G.profile.quests[q.id]);
@@ -3806,17 +3912,63 @@ function sceneNpcs(id) {
   return npcCache.v;
 }
 const foeLeader = z => z.foes.reduce((a,k) => MONSTERS[k].xp > MONSTERS[a].xp ? k : a, z.foes[0]);
+// ---- groupes de monstres : le chef de zone (le combat de l'histoire) et deux groupes errants qui se promènent ----
+// Les groupes errants changent de taille selon ton niveau et réapparaissent un moment après leur défaite ; certains sont agressifs :
+// ils te foncent dessus si tu passes près d'eux et lancent le combat au contact (comme dans Dofus).
+const GROUP_RESPAWN = 45000, AGGRO_RANGE = 4; // ms avant le retour d'un groupe vaincu ; distance à laquelle un groupe agressif te repère
+function groupSizes(z) {
+  if (!z.tier) return [1, 2];
+  const n = Math.min(4, z.foes.length), d = G.profile.level - monsterLevel(z.foes.find(k => !MONSTERS[k].big) || z.foes[0], z);
+  return d < 0 ? [Math.max(1, n-2), n-1] : d <= 5 ? [n-1, n] : [n, n+1];
+}
+function newGroup(z, i, [x,y]) {
+  const pool0 = z.icon==='boss' ? z.foes.slice(1) : z.foes.filter(k => !MONSTERS[k].big), pool = pool0.length ? pool0 : z.foes;
+  const foes = i===0 ? z.foes.slice() : Array.from({ length: groupSizes(z)[i-1] }, () => pool[Math.random()*pool.length|0]);
+  return { i, chief: i===0, foes, kind: foes.reduce((a,k) => MONSTERS[k].xp > MONSTERS[a].xp ? k : a, foes[0]), aggro: i===2 && (z.tier||0) >= 2,
+    x, y, rx:x, ry:y, hx:x, hy:y, off: Math.random()*4, next: performance.now() + Math.random()*3000, dead: 0, moving: false };
+}
+function zoneGroups(z) {
+  const s = sceneOf(z.id), sig = z.foes.join(); G.groups = G.groups || {};
+  let st = G.groups[z.id];
+  if (!st || st.sig!==sig) st = G.groups[z.id] = { sig, list: s.homes.map((h, i) => newGroup(z, i, h)) };
+  const now = performance.now(), h = G.walker;
+  for (const g of st.list) if (g.dead && now > g.dead && !(h && G.profile.pos===z.id && man(h.x,h.y,g.hx,g.hy) <= 1)) Object.assign(g, newGroup(z, g.i, [g.hx, g.hy]));
+  return st.list.filter(g => !g.dead);
+}
 function sceneFoes() {
-  const z = zoneById(G.profile.pos), s = sceneOf(z.id);
-  if (!z.foes || !s.foe) return [];
-  if (!G.foes || G.foes.zone!==z.id) { const lead = foeLeader(z), other = z.foes.find(k => k!==lead) || lead;
-    G.foes = { zone:z.id, list:[{ kind:lead, x:s.foe[0], y:s.foe[1], hx:s.foe[0], hy:s.foe[1] }, { kind:other, x:s.fol[0], y:s.fol[1], hx:s.fol[0], hy:s.fol[1] }] };
-    G.foes.list.forEach(f => { f.rx = f.x; f.ry = f.y; f.off = Math.random()*4; }); }
-  return G.foes.list;
+  const z = zoneById(G.profile.pos); if (!z.foes) return [];
+  const list = zoneGroups(z); G.foes = { zone:z.id, list }; return list;
+}
+// un groupe errant vaincu disparaît, puis revient (avec une nouvelle composition)
+function groupBeaten() { const g = G.fightGroup; if (g && !g.chief) g.dead = performance.now() + GROUP_RESPAWN; G.fightGroup = null; }
+function foeStep(g, nx, ny, ms) {
+  const fx = g.x, fy = g.y; g.x = nx; g.y = ny; g.moving = true; g.face = (nx-fx)-(ny-fy) || g.face;
+  tween(ms, k => { g.rx = fx+(nx-fx)*k; g.ry = fy+(ny-fy)*k; }).then(() => g.moving = false);
+}
+function foeTick(now, s) {
+  if (G.travel || G.mode!=='map' || G.view!=='scene' || !$('#overlay').classList.contains('hide')) return;
+  const h = G.walker;
+  for (const g of sceneFoes()) {
+    if (g.moving || now < g.next || g===G.foeTarget) continue;
+    const d = man(g.x,g.y,h.x,h.y), chase = g.aggro && G.heroMoved && now > (G.aggroOk||0) && d <= AGGRO_RANGE;
+    if (chase && d===1) return foeAttack(g);
+    if (chase) { g.next = now + 330/SPEED;
+      const c = DIRS.map(([a,b]) => [g.x+a, g.y+b]).filter(([x,y]) => sceneFree(x,y) && !(x===h.x && y===h.y) && man(x,y,h.x,h.y) < d && man(x,y,g.hx,g.hy) <= 7);
+      if (c.length) foeStep(g, ...c[Math.random()*c.length|0], 300); continue; }
+    g.next = now + 1500 + Math.random()*3000;
+    const [a,b] = DIRS[Math.random()*4|0], nx = g.x+a, ny = g.y+b;
+    if (man(nx,ny,g.hx,g.hy) <= (g.aggro ? 2 : 3) && sceneFree(nx,ny) && !(nx===h.x && ny===h.y) && !s.exits.some(e => man(e.x,e.y,nx,ny) <= 1)) foeStep(g, nx, ny, 500);
+  }
+}
+function foeAttack(g) {
+  const z = zoneById(G.profile.pos), h = G.walker;
+  G.walkTok = (G.walkTok||0) + 1; G.walking = false; h.rx = h.x; h.ry = h.y; G.profile.cell = [h.x, h.y];
+  G.fightGroup = g; banner(`${MONSTERS[g.kind].name} t'attaque !`);
+  startFight(z.id, null, g.chief ? undefined : g.foes);
 }
 // Case libre pour marcher (les sorties en font partie)
 function sceneFree(x,y) {
-  if (!inB(x,y) || !(G.grid[y][x]===0 || G.grid[y][x]===3)) return false;
+  if (!inB(x,y) || !OPEN_T.has(G.grid[y][x])) return false;
   const s = sceneOf(G.profile.pos);
   if (s.shop && s.shop[0]===x && s.shop[1]===y) return false;
   if (s.crystal && s.crystal[0]===x && s.crystal[1]===y) return false;
@@ -3827,12 +3979,16 @@ function sceneFree(x,y) {
 }
 function enterZone(id, from, keepCell) {
   applyPhases();
-  const p = G.profile, z = zoneById(id), s = sceneOf(id), oldRegion = regionOf(p.pos);
+  const p = G.profile, z = zoneById(id), s = sceneOf(id), oldRegion = regionOf(p.pos), N = s.n, top = 200;
   G.walkTok = (G.walkTok||0) + 1; G.walking = false;
-  p.pos = id; G.view = 'scene'; G.zone = z; G.seed = strHash(id); G.units = []; G.foes = null; G.sHover = null;
+  p.pos = id; G.view = 'scene'; G.zone = z; G.seed = strHash(id); G.units = []; G.foes = null; G.sHover = null; G.foeTarget = null;
+  setBoard(N, N, N*TW/2 + 70, top); G.bgSize = [N*TW + 140, top + N*TH + 70];
   G.grid = s.grid.map(r => r.slice());
+  // les groupes reprennent leur place ; les agressifs te laissent quelques secondes en arrivant
+  if (z.foes) for (const g of zoneGroups(z)) { g.x = g.rx = g.hx; g.y = g.ry = g.hy; g.moving = false; }
+  G.aggroOk = performance.now() + 4000; G.heroMoved = false; // un groupe agressif ne te repère que si tu bouges près de lui
   const e = from && s.exits.find(e => e.to===from);
-  let c = e ? [e.ix, e.iy] : keepCell && p.cell && sceneFree(...p.cell) ? p.cell : SC_C;
+  let c = e ? [e.ix, e.iy] : keepCell && p.cell && sceneFree(...p.cell) ? p.cell : s.c;
   if (!sceneFree(...c)) c = [...distFree(c)];
   G.walker = { x:c[0], y:c[1], rx:c[0], ry:c[1], face: e ? (e.ix < e.x || e.iy < e.y ? -1 : 1) : 1 };
   p.cell = c; save();
@@ -3846,8 +4002,15 @@ function distFree(c) {
   const seen = new Set([key(...c)]), q = [c];
   while (q.length) { const [x,y] = q.shift(); if (sceneFree(x,y)) return [x,y];
     for (const [a,b] of DIRS) { const nx=x+a, ny=y+b; if (inB(nx,ny) && !seen.has(key(nx,ny))) { seen.add(key(nx,ny)); q.push([nx,ny]); } } }
-  return SC_C;
+  return sceneOf(G.profile.pos).c;
 }
+// caméra : suit le héros sans sortir de la scène
+function sceneCam() {
+  const [BW, BH] = G.bgSize, [hx, hy] = iso(G.walker.rx, G.walker.ry), cl = (v, max) => max <= 0 ? max/2 : Math.max(0, Math.min(max, v));
+  return G.cam = [Math.round(cl(hx - cv.width/2, BW - cv.width)), Math.round(cl(hy - 30 - cv.height/2, BH - cv.height))];
+}
+function scenePoint(e) { const [mx,my] = mapPoint(e), c = G.cam || [0,0]; return [mx + c[0], my + c[1]]; }
+function sceneCell(mx, my) { const a = (mx-OX)/(TW/2), b = (my-OY)/(TH/2), x = Math.floor((a+b)/2), y = Math.floor((b-a)/2); return inB(x,y) ? [x,y] : null; }
 // Zone que le joueur doit rejoindre : le PNJ qui a une quête pour lui, sinon l'objectif de la quête principale
 function guideZone() {
   const t = G.scenes.find(s => s.talk && questById(s.quest).main) || G.scenes.find(s => s.talk);
@@ -3866,6 +4029,100 @@ function sceneHint() {
   const base = 'Clique sur le sol pour te déplacer, sur un personnage pour lui parler. M : carte du monde, Q : quêtes, E : équipement, C : personnage, J : métiers, D : butins, H : histoire, G : guides.';
   if (!t) return base;
   return talkPlace(t)===G.profile.pos ? `${NPCS[t.npc].name} a quelque chose à te dire (point !). ${base}` : `${NPCS[t.npc].name} t'attend : suis la flèche dorée. ${base}`;
+}
+// ---- décors des scènes (pixel art généré une fois) : monuments 2x2 et petits éléments ----
+let PROP_IMG = null;
+function propArt() {
+  if (PROP_IMG) return PROP_IMG;
+  const mk = (w, h, fn) => outline(pixelCanvas(w, h, px => {
+    const box = (x0,y0,x1,y1,col) => { for (let y=y0;y<=y1;y++) for (let x=x0;x<=x1;x++) px(x,y,typeof col==='function' ? col(x,y) : col); };
+    const oval = (cx,cy,rx,ry,col) => { for (let y=Math.floor(cy-ry);y<=cy+ry;y++) for (let x=Math.floor(cx-rx);x<=cx+rx;x++) if (((x-cx)/rx)**2 + ((y-cy)/ry)**2 <= 1) px(x,y,typeof col==='function' ? col(x,y) : col); };
+    fn(px, box, oval); }), '#1d140c');
+  const stone = (lt, md, dk) => (x,y) => (y%5===0 || (x + (Math.floor(y/5)%2)*3) % 7===0) ? dk : x%9 < 2 ? lt : md;
+  PROP_IMG = {
+    mill: mk(40, 56, (px, box) => {
+      for (let y=18;y<56;y++) { const hw = 8 + (y-18)*6/37; for (let x=Math.ceil(20-hw); x<=20+hw; x++) px(x,y, y%6===0 ? '#9a8a70' : x < 20-hw/3 ? '#e2d3b0' : x > 20+hw/2 ? '#a8957a' : '#cbb894'); }
+      for (let y=7;y<19;y++) { const hw = (y-7)*1.05 + 1; for (let x=Math.ceil(20-hw); x<=20+hw; x++) px(x,y, x<20 ? '#c4502f' : '#a53d24'); }
+      box(17,44,22,55,'#5a3a20'); box(18,43,21,43,'#5a3a20'); box(18,28,21,31,'#2a2110'); box(19,36,20,38,'#2a2110'); }),
+    tower: mk(34, 80, (px, box) => {
+      box(6,16,27,79, stone('#5c5866','#4a4652','#2e2b34')); box(22,16,27,79, (x,y) => y%5===0 ? '#24212a' : '#38353f');
+      box(4,12,29,16,'#55515e'); for (let x=4;x<30;x++) if (Math.floor((x-4)/4)%2===0) box(x,7,x,11,'#55515e');
+      box(15,22,18,27,'#9be36a'); box(15,34,18,40,'#1a1424'); box(15,52,18,58,'#1a1424'); box(13,68,20,79,'#1a1424'); box(14,67,19,67,'#1a1424'); }),
+    ruin: mk(36, 44, (px, box) => {
+      for (let x=5;x<31;x++) { const top = 6 + ((x*7)%5)*3 + (x>18 ? 9 : 0) + (x>25 ? 6 : 0); box(x, top, x, 39, stone('#a29c92','#8a857c','#5f5a52')); }
+      box(14,30,20,39,'#2a2420'); box(0,38,35,43, (x,y) => (x*3+y*5)%4 ? '#7d776f' : '#5f5a52'); }),
+    bigtree: mk(46, 66, (px, box, oval) => {
+      box(18,34,27,65, (x) => x<22 ? '#7a5232' : '#5c3b22'); for (let y=56;y<66;y++) { const s = (y-56); box(18-s, y, 27+s, y, x => x<22 ? '#6b4524' : '#4e3119'); }
+      const leaf = (x,y) => { const s = (x-20) + (y-14)*1.2 + ((x*7+y*3)%5) - 2; return s < -10 ? '#7cc152' : s < 2 ? '#4f9a3a' : s < 12 ? '#3c7f2e' : '#2d6424'; };
+      oval(23,22,17,14,leaf); oval(10,30,10,8,leaf); oval(36,30,10,8,leaf); oval(23,9,12,9,leaf); }),
+    cave: mk(46, 32, (px, box, oval) => {
+      oval(23,24,22,18, (x,y) => { const s = (x-23)/22 + (y-14)/18; return s < -.5 ? '#a09a92' : s < .3 ? '#8a847c' : '#6e6962'; });
+      oval(23,27,8,9,'#120c0a'); box(0,31,45,31,'#5f5a52'); }),
+    tent: mk(22, 18, (px, box) => { for (let y=2;y<18;y++) { const h = (y-2)*.62 + 1; box(Math.ceil(11-h), y, Math.floor(11+h), y, x => x<11 ? '#d8c49a' : '#a8936a'); }
+      for (let y=9;y<18;y++) { const h = (y-9)*.4; box(Math.ceil(11-h), y, Math.floor(11+h), y, '#3a2a1a'); } box(11,0,11,2,'#6b4524'); }),
+    fire: mk(16, 8, (px, box) => { box(1,4,14,5,'#6b4524'); box(3,6,12,7,'#4e3119'); box(0,5,1,6,'#8a8f99'); box(14,5,15,6,'#8a8f99'); }),
+    well: mk(18, 22, (px, box) => { for (let y=0;y<5;y++) box(4-y, y, 13+y, y, y%2 ? '#8a5a32' : '#a06a3a'); box(2,5,3,13,'#6b4524'); box(14,5,15,13,'#6b4524');
+      box(9,5,9,10,'#d8c49a'); box(8,10,10,11,'#6b4524'); box(1,12,16,21, (x,y) => y<14 ? '#b8b2a8' : (x+y)%4 ? '#9a948c' : '#7d776f'); box(4,12,13,13,'#2a3a5a'); }),
+    scarecrow: mk(16, 26, (px, box, oval) => { box(7,6,8,25,'#6b4524'); box(1,9,14,10,'#6b4524'); box(4,8,11,17,'#5a7ab0'); box(4,17,11,18,'#3a5a90');
+      oval(7.5,4,3,3,'#e2c97a'); box(3,1,12,2,'#6b4524'); box(5,0,10,0,'#6b4524'); px(6,4,'#2a2110'); px(9,4,'#2a2110'); }),
+    fence: mk(20, 12, (px, box) => { box(1,0,2,11,'#8a5a32'); box(17,0,18,11,'#8a5a32'); box(0,3,19,4,'#a06a3a'); box(0,7,19,8,'#a06a3a'); }),
+    tomb: mk(12, 16, (px, box) => { box(1,4,10,15, (x) => x>7 ? '#7d776f' : '#9a948c'); box(3,1,8,3,'#9a948c'); box(2,2,9,3,'#9a948c'); box(5,5,6,11,'#6d675f'); box(3,7,8,8,'#6d675f'); }),
+    pillar: mk(12, 34, (px, box) => { box(0,0,11,3,'#cfcabf'); box(2,4,9,30, x => x%3===0 ? '#a8a399' : x>7 ? '#9a958c' : '#bfbab0'); box(0,30,11,33,'#bfbab0'); }),
+    pillar2: mk(12, 22, (px, box) => { for (let x=2;x<10;x++) box(x, (x*5)%4, x, 18, x%3===0 ? '#a8a399' : x>7 ? '#9a958c' : '#bfbab0'); box(0,18,11,21,'#bfbab0'); px(11,17,'#a8a399'); }),
+    wall: mk(22, 22, (px, box) => { for (let x=0;x<22;x++) box(x, 2 + ((x*5)%3), x, 21, stone('#a29c92','#8a857c','#5f5a52')); }),
+    deadtree: mk(22, 30, (px, box) => { box(9,12,11,29, x => x<10 ? '#5a4636' : '#3e3026');
+      const line = (x0,y0,x1,y1) => { const n = Math.max(Math.abs(x1-x0), Math.abs(y1-y0)); for (let i=0;i<=n;i++) px(Math.round(x0+(x1-x0)*i/n), Math.round(y0+(y1-y0)*i/n), '#4a3a2e'); };
+      line(10,14,3,4); line(10,12,18,3); line(10,9,9,0); line(5,7,1,6); line(15,6,20,8); line(11,16,16,13); line(4,5,4,1); }),
+    anvil: mk(16, 14, (px, box) => { box(1,2,14,4,'#6d727c'); box(1,2,14,2,'#b8bcc4'); box(0,3,0,3,'#6d727c'); box(5,5,10,7,'#4d525c'); box(3,8,12,9,'#3d424c'); box(2,10,13,13,'#6b4524'); }),
+    statue: mk(14, 32, (px, box, oval) => { box(1,24,12,31, (x,y) => y===24 ? '#b8b2a8' : x>9 ? '#7d776f' : '#9a948c'); box(4,9,9,23, x => x>7 ? '#9a958c' : '#c8c2b8');
+      oval(6.5,5,2.5,2.5,'#c8c2b8'); box(10,1,10,13,'#dcd6cc'); box(9,12,11,12,'#9a958c'); box(2,10,3,17,'#b8b2a8'); }),
+    totem: mk(14, 30, (px, box, oval) => { box(6,10,7,29,'#3a2a1a'); oval(6.5,6,6,6,'#e07a3a'); oval(6.5,6,4,4,'#1a1424'); box(4,28,9,29,'#3a2a1a'); }),
+    mushroom: mk(18, 18, (px, box, oval) => { box(6,9,11,17, x => x>9 ? '#d8cdb0' : '#efe4c8');
+      for (let y=1;y<=9;y++) for (let x=0;x<18;x++) if (((x-8.5)/8.5)**2 + ((y-9)/8)**2 <= 1) px(x,y, (x===4&&y===5)||(x===11&&y===4)||(x===8&&y===7)||(x===14&&y===7)||(x===7&&y===2) ? '#fff4e8' : x>12 ? '#a8302a' : '#d8403a'); }),
+    shelf: mk(18, 22, (px, box) => { box(0,0,17,21,'#6b4524'); box(2,2,15,5,'#3a2410'); box(2,8,15,12,'#3a2410'); box(2,15,15,19,'#3a2410');
+      const BK = ['#8a2a2a','#2a5a8a','#5a7a2a','#8a6a2a','#5a2a6a']; for (const y0 of [2,8,15]) for (let x=2;x<15;x+=2) if ((x*y0)%5) box(x, y0 + (x%3===0 ? 1 : 0), x, y0+3, BK[(x+y0)%5]); }),
+    altar: mk(22, 14, (px, box) => { box(0,4,21,7, y => '#9a948c'); box(0,4,21,4,'#b8b2a8'); box(2,8,5,13,'#7d776f'); box(16,8,19,13,'#7d776f'); box(4,1,4,3,'#efe4c8'); box(17,1,17,3,'#efe4c8'); px(4,0,'#ffd04a'); px(17,0,'#ffd04a'); box(9,2,12,3,'#3a2a1a'); }),
+    rift: mk(24, 10, (px) => { const pts = [[0,6],[4,4],[8,6],[12,3],[16,6],[20,4],[23,5]];
+      for (let i=0;i<pts.length-1;i++) { const [x0,y0] = pts[i], [x1,y1] = pts[i+1]; for (let x=x0;x<=x1;x++) { const y = Math.round(y0 + (y1-y0)*(x-x0)/Math.max(1,x1-x0)); px(x,y-1,'#2a1030'); px(x,y,'#c060ff'); px(x,y+1,'#2a1030'); } } }),
+    cart: mk(22, 17, (px, box, oval) => { box(1,0,18,3,'#e2c25a'); box(2,3,19,10, (x,y) => y%3===0 ? '#6b4524' : '#8a5a32'); box(19,6,21,7,'#6b4524');
+      oval(6,12,3.5,3.5,'#4e3119'); oval(16,12,3.5,3.5,'#4e3119'); px(6,12,'#a06a3a'); px(16,12,'#a06a3a'); }),
+    bones: mk(16, 9, (px, box, oval) => { oval(4,4,3.5,3.5,'#efe4c8'); px(3,4,'#2a2110'); px(5,4,'#2a2110'); box(3,7,5,8,'#d8cdb0');
+      for (let x=8;x<16;x++) px(x, 5 + (x>11 ? 1 : 0), '#efe4c8'); px(8,4,'#efe4c8'); px(15,7,'#efe4c8'); }),
+    mirror: mk(14, 30, (px, box, oval) => { oval(7,12,6.5,11.5,'#c9a640'); oval(7,12,4.5,9.5,(x,y) => (x+y)%7===0 ? '#5a3a8a' : '#120c1a'); box(3,25,10,29,'#6b4524'); }),
+  };
+  return PROP_IMG;
+}
+function drawProp(p, now) {
+  const A = propArt(), big = p.w===2, [cx,cy] = big ? iso(p.x+.5, p.y+.5) : iso(p.x, p.y);
+  const kind = p.kind==='pillar' && hash(p.x,p.y) < .35 ? 'pillar2' : p.kind, img = A[kind];
+  if (p.kind==='rift') { // faille : une fente lumineuse au ras du sol
+    const g = ctx.createRadialGradient(cx,cy,2,cx,cy,34); g.addColorStop(0, `rgba(190,90,255,${.45+.2*Math.sin(now/300+p.x)})`); g.addColorStop(1,'rgba(190,90,255,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(cx,cy,34,16,0,0,7); ctx.fill(); drawSprite(img, cx, cy+15, SC*.8); return; }
+  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx, cy+3, big ? 54 : 22, big ? 22 : 9, 0, 0, 7); ctx.fill();
+  const yb = cy + (big ? TH/2 + 4 : 8);
+  drawSprite(img, cx, yb, SC, hash(p.y,p.x) < .5 && !big && p.kind!=='wall' && p.kind!=='fence');
+  if (p.kind==='mill') { // les ailes du moulin tournent
+    const hx = cx, hy = yb - (56-14)*SC, a = now/1400;
+    ctx.save(); ctx.translate(hx, hy); ctx.rotate(a);
+    for (let k=0;k<4;k++) { ctx.rotate(Math.PI/2); ctx.fillStyle = '#6b4524'; ctx.fillRect(-2, 0, 4, 74); ctx.fillStyle = '#efe4c8'; ctx.strokeStyle = '#3a2410'; ctx.lineWidth = 2;
+      ctx.fillRect(3, 16, 13, 56); ctx.strokeRect(3, 16, 13, 56); ctx.beginPath(); for (let y=30;y<72;y+=14) { ctx.moveTo(3,y); ctx.lineTo(16,y); } ctx.stroke(); }
+    ctx.restore(); ctx.fillStyle = '#3a2410'; ctx.beginPath(); ctx.arc(hx, hy, 5, 0, 7); ctx.fill();
+  } else if (p.kind==='tower') { // lueur verte à la fenêtre du Nécromancien
+    const wy = yb - (80-24)*SC, r = 30 + 6*Math.sin(now/350), g = ctx.createRadialGradient(cx, wy, 2, cx, wy, r);
+    g.addColorStop(0,'rgba(155,227,106,.55)'); g.addColorStop(1,'rgba(155,227,106,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, wy, r, 0, 7); ctx.fill();
+  } else if (p.kind==='fire') { // flammes qui dansent
+    for (let k=0;k<3;k++) { const fx = cx - 9 + k*9, h = 16 + 7*Math.sin(now/120 + k*2), fy = yb - 12;
+      ctx.fillStyle = k===1 ? '#ffd04a' : '#ff7a2a'; ctx.beginPath(); ctx.moveTo(fx-6, fy); ctx.quadraticCurveTo(fx, fy-h*1.3, fx+6, fy); ctx.fill(); }
+    const g = ctx.createRadialGradient(cx, yb-16, 2, cx, yb-16, 40); g.addColorStop(0,'rgba(255,170,60,.35)'); g.addColorStop(1,'rgba(255,170,60,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, yb-16, 40, 0, 7); ctx.fill();
+  } else if (p.kind==='mirror') { ctx.fillStyle = `rgba(170,110,255,${.18+.12*Math.sin(now/400)})`; ctx.beginPath(); ctx.ellipse(cx, yb-18*SC, 12, 26, 0, 0, 7); ctx.fill(); }
+}
+// rochers et arbres d'une scène (part d'arbres propre au lieu, arbres morts dans les lieux sinistres)
+function drawSceneRock(x, y, s) {
+  const v = hash(y,x), tree = !isVolcano() && v < s.tree;
+  if (tree && s.dead && v < s.tree*.45) { const [cx,cy] = iso(x,y); ctx.fillStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx,cy+3,20,8,0,0,7); ctx.fill(); return drawSprite(propArt().deadtree, cx, cy+8, SC, v*100%2<1); }
+  const [cx,cy] = iso(x,y), img = tree ? (isNorth() ? DECOR.snowTrees : DECOR.trees)[(v*30|0)%3] : DECOR.rocks[(v*30|0)%3];
+  ctx.fillStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx,cy+3,tree?20:26,tree?8:10,0,0,7); ctx.fill();
+  drawSprite(img, cx, cy + (tree ? 8 : 10), SC, v*100%2<1);
 }
 // ---- dessin ----
 function makeHouse(roof, wall) {
@@ -3912,19 +4169,21 @@ function monsterLevel(k, z) {
 // Monstre demandé par une quête de chasse en cours (pas encore terminée)
 const questWants = k => activeQuests().some(q => q.goal.type==='kill' && [].concat(q.goal.monster).includes(k) && (qs(q).n||0) < q.goal.n);
 // Au survol d'un groupe : liste des monstres, 🎯 sur ceux qu'une quête demande
-function drawFoePanel(z, x, yb) {
-  const counts = {}; z.foes.forEach(k => counts[k] = (counts[k]||0)+1);
-  const q = activeQuests().find(q => q.goal.type==='clear' && q.goal.zone===z.id);
+function drawFoePanel(z, x, yb, grp) {
+  const counts = {}; grp.foes.forEach(k => counts[k] = (counts[k]||0)+1);
+  const q = grp.chief && activeQuests().find(q => q.goal.type==='clear' && q.goal.zone===z.id);
   const lines = Object.entries(counts).map(([k,c]) => [`${c} × ${MONSTERS[k].name} niv. ${monsterLevel(k, z)}`, questWants(k)]);
+  const sub = grp.chief ? null : grp.aggro ? '⚔ Agressif : il t\'attaque si tu t\'approches' : 'Groupe errant : il reviendra plus tard';
   ctx.font = 'bold 13px Segoe UI, sans-serif'; ctx.textAlign = 'left';
-  const head = z.name + (isCleared(z.id) ? ' (libérée)' : '');
-  const w = Math.max(ctx.measureText(head).width, ...lines.map(([t]) => ctx.measureText(t).width + 26), q ? ctx.measureText('🎯 Libérer la zone : ' + q.title).width : 0) + 20;
-  const h = 26 + lines.length*19 + (q ? 19 : 0);
+  const head = grp.chief ? z.name + (isCleared(z.id) ? ' (libérée)' : '') : `Groupe de ${grp.foes.length} monstre${grp.foes.length > 1 ? 's' : ''}`;
+  const w = Math.max(ctx.measureText(head).width, sub ? ctx.measureText(sub).width : 0, ...lines.map(([t]) => ctx.measureText(t).width + 26), q ? ctx.measureText('🎯 Libérer la zone : ' + q.title).width : 0) + 20;
+  const h = 26 + lines.length*19 + (q || sub ? 19 : 0);
   const px = Math.max(4, Math.min(cv.width - w - 4, x - w/2)), py = Math.max(4, yb - h);
-  ctx.fillStyle = 'rgba(20,24,33,.92)'; ctx.fillRect(px, py, w, h); ctx.strokeStyle = '#e2554a'; ctx.lineWidth = 2; ctx.strokeRect(px, py, w, h);
+  ctx.fillStyle = 'rgba(20,24,33,.92)'; ctx.fillRect(px, py, w, h); ctx.strokeStyle = grp.aggro ? '#ff3a2a' : '#e2554a'; ctx.lineWidth = 2; ctx.strokeRect(px, py, w, h);
   ctx.fillStyle = '#ffb0a0'; ctx.fillText(head, px+10, py+18);
   lines.forEach(([t, want], i) => { const ly = py + 37 + i*19; ctx.fillStyle = want ? '#e8b94a' : '#ece6d6'; if (want) ctx.fillText('🎯', px+10, ly); ctx.fillText(t, px+30, ly); });
   if (q) { ctx.fillStyle = '#e8b94a'; ctx.fillText('🎯 Libérer la zone : ' + q.title, px+10, py + 37 + lines.length*19); }
+  else if (sub) { ctx.fillStyle = grp.aggro ? '#ff8a7a' : '#a8a298'; ctx.fillText(sub, px+10, py + 37 + lines.length*19); }
   ctx.textAlign = 'center';
 }
 function drawTag(text, x, y, col='#ece6d6') {
@@ -3949,14 +4208,17 @@ function drawExit(e, now, guide, top) {
 }
 function renderScene(now) {
   sceneArt();
-  ctx.imageSmoothingEnabled = false; ctx.drawImage(bg,0,0);
-  const s = sceneOf(G.profile.pos), hv = G.sHover, ge = guideExit(), z = zoneById(s.id);
+  ctx.imageSmoothingEnabled = false; ctx.fillStyle = '#141a28'; ctx.fillRect(0, 0, cv.width, cv.height);
+  const s = sceneOf(G.profile.pos), hv = G.sHover, ge = guideExit(), z = zoneById(s.id), [camx, camy] = sceneCam();
+  ctx.save(); ctx.translate(-camx, -camy);
+  ctx.drawImage(bg,0,0);
   for (const e of s.exits) drawExit(e, now, e===ge);
   if (hv && hv.cell) { const [cx,cy] = iso(...hv.cell); diamond(ctx,cx,cy,1); ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 2; ctx.stroke(); }
   const ents = [], tags = []; let foeAt = null;
   for (let y=0;y<H;y++) for (let x=0;x<W;x++) { const t = G.grid[y][x];
-    if (t===1) ents.push({ d:x+y, f:() => drawRock(x,y) });
+    if (t===1) ents.push({ d:x+y, f:() => drawSceneRock(x,y,s) });
     else if (t===4) ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); ctx.fillStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx,cy+4,30,12,0,0,7); ctx.fill(); drawSprite(HOUSES[houseKind()], cx, cy+14, SC, hash(x,y)<.5); } }); }
+  for (const p of s.props) ents.push({ d:p.x+p.y+(p.w-1), f:() => drawProp(p, now) });
   const cs = s.crystal && crystalState(s.id);
   if (cs) { const [x,y] = s.crystal; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); drawCrystal(cx, cy, cs, now); if (hv && hv.kind==='crystal') tags.push(['Cristal de la Plaine', cx, cy-(cs==='empty' ? 50 : 125)]); } }); }
   if (s.shop) { const [x,y] = s.shop; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y);
@@ -3970,13 +4232,17 @@ function renderScene(now) {
     ctx.filter = 'none';
     if (n.talk) drawBang(cx, cy-104, now);
     if (hv && hv.kind==='npc' && hv.id===n.id) tags.push([d.name, cx, cy-(n.talk ? 128 : 96)]); } });
-  for (const f of sceneFoes()) ents.push({ d:f.rx+f.ry+.01, f:() => { const [cx,cy] = iso(f.rx,f.ry), m = MONSTERS[f.kind], img = animFrame(m.sprite, false, now, f.off);
-    ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(cx,cy+2,17*(m.big||1),7*(m.big||1),0,0,7); ctx.fill();
-    ctx.strokeStyle='#e2554a'; ctx.lineWidth=2; ctx.beginPath(); ctx.ellipse(cx,cy+2,20*(m.big||1),9*(m.big||1),0,0,7); ctx.stroke();
-    drawSprite(img, cx, cy+6, SC, f.x > G.walker.x);
+  for (const f of sceneFoes()) ents.push({ d:f.rx+f.ry+.01, f:() => { const [cx,cy] = iso(f.rx,f.ry), m = MONSTERS[f.kind], img = animFrame(m.sprite, f.moving, now, f.off), b = m.big||1;
+    ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(cx,cy+2,22*b,9*b,0,0,7); ctx.fill();
+    // les autres monstres du groupe, plus petits, derrière le meneur
+    const oth = f.foes.filter((k,i) => i!==f.foes.indexOf(f.kind)).slice(0, 2), flip = f.face ? f.face < 0 : f.x > G.walker.x;
+    oth.forEach((k,i) => drawSprite(animFrame(MONSTERS[k].sprite, f.moving, now, f.off+1+i), cx + (i ? 20 : -20)*b, cy - 4, SC*.72, flip));
+    ctx.strokeStyle = f.aggro ? `rgba(255,50,40,${.7+.3*Math.sin(now/180)})` : '#e2554a'; ctx.lineWidth = f.aggro ? 3 : 2; ctx.beginPath(); ctx.ellipse(cx,cy+2,24*b,10*b,0,0,7); ctx.stroke();
+    drawSprite(img, cx, cy+6, SC, flip);
     const top = cy + 6 - (img ? img.height*SC : 60);
-    if (f===G.foes.list[0]) { const q = activeQuests().find(q => q.main); if (q && q.goal.zone===z.id) drawBang(cx, top-18, now, '#ef6b5b'); }
-    if (hv && hv.kind==='foe' && !foeAt) foeAt = [cx, top-34]; } });
+    if (f.chief) { const q = activeQuests().find(q => q.main); if (q && q.goal.zone===z.id) drawBang(cx, top-18, now, '#ef6b5b'); }
+    else if (f.aggro) { ctx.font = 'bold 18px Segoe UI, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ff5a4a'; ctx.fillText('⚔', cx, top-8); }
+    if (hv && hv.kind==='foe' && hv.g===f) foeAt = [cx, top-34, f]; } });
   const h = G.walker;
   ents.push({ d:h.rx+h.ry+.02, f:() => { const [cx,cy] = iso(h.rx,h.ry);
     ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(cx,cy+2,17,7,0,0,7); ctx.fill();
@@ -3987,28 +4253,25 @@ function renderScene(now) {
   ents.sort((a,b) => a.d-b.d).forEach(e => e.f());
   for (const e of s.exits) drawExit(e, now, e===ge, true);
   if (hv && hv.kind==='exit') { const [cx,cy] = iso(hv.e.x, hv.e.y), open = isOpen(hv.e.to); tags.push([open ? '➜ ' + zoneById(hv.e.to).name : '??? (pas encore accessible)', cx, cy-(hv.e.portal ? 66 : 26), open ? '#f3e2b0' : '#8c8778']); }
-  for (const t of tags) drawTag(...t);
-  if (foeAt) drawFoePanel(z, ...foeAt);
+  ctx.restore();
+  for (const [t, x, y, col] of tags) drawTag(t, x - camx, y - camy, col);
+  if (foeAt) drawFoePanel(z, foeAt[0] - camx, foeAt[1] - camy, foeAt[2]);
   if (!hv && $('#hint').textContent!==sceneHint()) $('#hint').textContent = sceneHint();
-  // les ennemis font parfois un pas autour de leur position
-  if (!G.walking && now > (G.wanderAt||0)) { G.wanderAt = now + 1800 + Math.random()*2200; const f = sceneFoes()[Math.random()*2|0];
-    if (f && $('#overlay').classList.contains('hide')) { const [a,b] = DIRS[Math.random()*4|0], nx = f.x+a, ny = f.y+b;
-      if (man(nx,ny,f.hx,f.hy)<=1 && sceneFree(nx,ny) && !(nx===h.x && ny===h.y) && !s.exits.some(e => e.x===nx && e.y===ny)) { const fx = f.x, fy = f.y; f.x = nx; f.y = ny;
-        tween(450, k => { f.rx = fx+(nx-fx)*k; f.ry = fy+(ny-fy)*k; }); } } }
+  foeTick(now, s);
 }
 // ---- souris ----
 function sceneTarget(e) {
-  const [mx,my] = mapPoint(e), s = sceneOf(G.profile.pos), hits = [];
+  const [mx,my] = scenePoint(e), s = sceneOf(G.profile.pos), hits = [];
   const test = (x,y,o,hgt=74) => { const [cx,cy] = iso(x,y); if (Math.abs(mx-cx) < 22 && my > cy-hgt && my < cy+12) hits.push({ ...o, d:x+y }); };
   for (const n of sceneNpcs(s.id)) test(n.x, n.y, { kind:'npc', id:n.id, at:[n.x,n.y] });
   if (s.shop) test(...s.shop, { kind:'shop', at:s.shop });
   if (s.bench) test(...s.bench, { kind:'bench', at:s.bench }, 56);
   for (const n of s.nodes) test(n.x, n.y, { kind:'node', n, at:[n.x,n.y] }, n.job==='bucheron' ? 74 : 50);
   if (s.crystal && crystalState(s.id)) test(...s.crystal, { kind:'crystal', at:s.crystal }, 80);
-  for (const f of sceneFoes()) test(f.x, f.y, { kind:'foe', at:[f.x,f.y] }, MONSTERS[f.kind].big ? 100 : 74);
+  for (const f of sceneFoes()) test(f.rx, f.ry, { kind:'foe', g:f, at:[f.x,f.y] }, MONSTERS[f.kind].big ? 100 : 74);
   for (const ex of s.exits) if (ex.portal) test(ex.x, ex.y, { kind:'exit', e:ex, cell:[ex.x,ex.y] }, 80);
   if (hits.length) return hits.sort((a,b) => b.d-a.d)[0];
-  const c = cellFromEvent(e); if (!c) return null;
+  const c = sceneCell(mx, my); if (!c) return null;
   const ex = s.exits.find(x => x.x===c[0] && x.y===c[1]);
   return ex ? { kind:'exit', e:ex, cell:c } : { kind:'ground', cell:c };
 }
@@ -4026,6 +4289,7 @@ function sceneMove(e) {
     : t.kind==='bench' ? "L'atelier : clique pour fabriquer de l'équipement et des consommables avec tes ressources (J : métiers)."
     : t.kind==='node' ? `${nodeText(z.id, t.n)} : clique pour récolter (J : métiers).`
     : t.kind==='npc' ? `${NPCS[t.id].name} : clique pour lui parler.`
+    : !t.g.chief ? `Groupe errant de ${t.g.foes.length} monstre${t.g.foes.length > 1 ? 's' : ''}${t.g.aggro ? ', agressif : il t\'attaque si tu passes près de lui' : ''}. Le vaincre rapporte expérience et butin, mais ne libère pas la zone. Clique pour l'affronter.`
     : `${z.name} : ${z.desc} Clique pour parler aux ennemis${isCleared(z.id) ? ' (zone déjà libérée, tu peux y refaire des combats)' : ''}.`;
 }
 // chemin le plus court vers la première case qui vérifie goal(x,y)
@@ -4046,7 +4310,7 @@ async function walkTo(goal) {
     if (tok!==G.walkTok || G.mode!=='map' || G.view!=='scene') return false;
     const [nx,ny] = path[0];
     if (!sceneFree(nx,ny)) { path = scenePath(goal); if (!path) break; continue; }
-    path.shift();
+    path.shift(); G.heroMoved = true;
     const fx = h.x, fy = h.y; face(h, nx, ny); h.x = nx; h.y = ny;
     G.walkStep = tween(Math.max(1, 190/SPEED), k => { h.rx = fx+(nx-fx)*k; h.ry = fy+(ny-fy)*k; });
     await G.walkStep;
@@ -4062,6 +4326,12 @@ async function sceneClick(e) {
   if (t.kind==='ground') { if (sceneFree(...t.cell)) walkTo((x,y) => x===t.cell[0] && y===t.cell[1]); return; }
   if (t.kind==='exit') { if (!isOpen(t.e.to)) return;
     if (await walkTo((x,y) => x===t.e.x && y===t.e.y) && G.profile.pos===from) enterZone(t.e.to, from); return; }
+  if (t.kind==='foe') { // le groupe s'arrête le temps que le héros le rejoigne
+    const g = t.g; G.foeTarget = g;
+    const ok = await walkTo((x,y) => man(x,y,g.x,g.y)===1);
+    if (G.foeTarget===g) G.foeTarget = null;
+    if (!ok || G.profile.pos!==from || G.mode!=='map' || g.dead) return;
+    face(G.walker, g.x, g.y); dirty = true; return talkFoe(g); }
   const [tx,ty] = t.at;
   if (!await walkTo((x,y) => man(x,y,tx,ty)===1) || G.profile.pos!==from) return;
   face(G.walker, tx, ty); dirty = true;
@@ -4069,7 +4339,6 @@ async function sceneClick(e) {
   else if (t.kind==='shop') showShop();
   else if (t.kind==='bench') showJobs('fab');
   else if (t.kind==='node') harvest(t.n);
-  else if (t.kind==='foe') talkFoe();
   else talkTo(t.id);
 }
 // ---- dialogues ----
@@ -4092,16 +4361,17 @@ function talkIdle(n) {
 }
 const spriteSrcCache = {};
 function spriteSrc(sprite) { if (spriteSrcCache[sprite]) return spriteSrcCache[sprite]; const img = animFrame(sprite, false, 0); return spriteSrcCache[sprite] = !img ? '' : img.src || img.toDataURL(); }
-function talkFoe() {
-  const z = zoneById(G.profile.pos), lead = G.foes.list[0].kind, m = MONSTERS[lead], cleared = isCleared(z.id);
-  const counts = {}; z.foes.forEach(k => { const n = `${MONSTERS[k].name} niv. ${monsterLevel(k, z)}`; counts[n] = (counts[n]||0)+1; });
+function talkFoe(g) {
+  const z = zoneById(G.profile.pos); g = g || sceneFoes().find(f => f.chief) || sceneFoes()[0];
+  const lead = g.kind, m = MONSTERS[lead], cleared = isCleared(z.id), extra = !g.chief;
+  const counts = {}; g.foes.forEach(k => { const n = `${MONSTERS[k].name} niv. ${monsterLevel(k, z)}`; counts[n] = (counts[n]||0)+1; });
   overlay(`<div class="scene">${portraitOf(spriteSrc(m.sprite))}<div class="say"><small class="who">${m.name}</small><h2>${z.name}</h2>
     <p>« ${fillHero(cleared ? FOE_AGAIN : FOE_TALK[lead] || 'Tu n\'iras pas plus loin !')} »</p>
     <div class="foes" style="justify-content:flex-start">${Object.entries(counts).map(([n,c]) => `<span>${c} × ${n}</span>`).join('')}</div>
-    <p class="help">${cleared ? 'Zone déjà libérée : tu peux refaire ce combat pour gagner de l\'expérience, de l\'or et du butin.' : z.desc}</p>
-    ${z.icon==='boss' ? `<p class="help">🏰 Donjon : ${DUNGEON_ROOMS} salles de monstres à franchir avant d'atteindre ${MONSTERS[z.foes[0]].name}. Tes PV se gardent d'une salle à l'autre (+${Math.round(DUNGEON_HEAL*100)} % à chaque entrée).${BOSS_DROPS[z.foes[0]] ? ` Butin rare : <b style="color:#ff5c8a">${BOSS_DROPS[z.foes[0]].name}</b> (${Math.round(BOSS_DROP*100)} % par victoire).` : ''}</p>` : ''}
-    <div style="text-align:right"><button class="btn alt" id="b2">Partir</button><button class="btn" id="b1">${z.icon==='boss' ? 'Entrer dans le donjon' : 'Combattre !'}</button></div></div></div>`, true);
-  $('#b1').onclick = () => startFight(z.id); $('#b2').onclick = () => { hideOverlay(); showNextScene(); };
+    <p class="help">${extra ? (g.aggro ? 'Un groupe agressif ! Le vaincre rapporte expérience, or et butin, mais ne libère pas la zone.' : 'Un groupe errant : le vaincre rapporte expérience, or et butin, mais ne libère pas la zone. Il reviendra plus tard.') : cleared ? 'Zone déjà libérée : tu peux refaire ce combat pour gagner de l\'expérience, de l\'or et du butin.' : z.desc}</p>
+    ${z.icon==='boss' && !extra ? `<p class="help">🏰 Donjon : ${DUNGEON_ROOMS} salles de monstres à franchir avant d'atteindre ${MONSTERS[z.foes[0]].name}. Tes PV se gardent d'une salle à l'autre (+${Math.round(DUNGEON_HEAL*100)} % à chaque entrée).${BOSS_DROPS[z.foes[0]] ? ` Butin rare : <b style="color:#ff5c8a">${BOSS_DROPS[z.foes[0]].name}</b> (${Math.round(BOSS_DROP*100)} % par victoire).` : ''}</p>` : ''}
+    <div style="text-align:right"><button class="btn alt" id="b2">Partir</button><button class="btn" id="b1">${z.icon==='boss' && !extra ? 'Entrer dans le donjon' : 'Combattre !'}</button></div></div></div>`, true);
+  $('#b1').onclick = () => { G.fightGroup = g; startFight(z.id, null, extra ? g.foes : undefined); }; $('#b2').onclick = () => { hideOverlay(); showNextScene(); };
 }
 // ---- le Cristal de la Plaine : volé (acte I), au village, fissuré (actes III-IV), puis restauré ----
 const CRYSTAL_ZONES = ['village', 'antre', 'sanctuaire'];
