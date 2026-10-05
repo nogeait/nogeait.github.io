@@ -49,6 +49,7 @@
   #endturn { margin-left:auto; padding:10px 18px; font:inherit; font-weight:700; border:none; border-radius:8px; background:var(--gold); color:#2a2110; cursor:pointer; }
   #endturn:disabled { opacity:.4; cursor:default; }
   #hint { width:100%; font-size:12px; color:var(--muted); min-height:16px; }
+  body:not(.map) #hint { height:48px; line-height:16px; overflow-y:auto; }
   #overlay { position:fixed; inset:0; background:rgba(10,12,18,.88); display:flex; overflow:auto; padding:16px 0; z-index:10; }
   #overlay > .box { margin:auto; }
   .chip.hov { outline:2px solid #fff; }
@@ -695,7 +696,7 @@ const CARACS = {
 };
 const spellRankCost = r => r - 1;               // passer au rang r coûte r-1 points (façon Dofus)
 function charPoints(p) {
-  p.pts = Object.assign({ vit:0, for:0, agi:0, sag:0 }, p.pts); p.ranks = p.ranks || {};
+  p.pts = p.pts || {}; for (const k of ['vit','for','agi','sag']) p.pts[k] = p.pts[k] || 0; p.ranks = p.ranks || {}; // rempli sur place : remplacer p.pts perdait les clics sur +1
   const spent = Object.values(p.pts).reduce((a,b) => a+b, 0);
   let sspent = 0; for (const r of Object.values(p.ranks)) for (let k=2; k<=r; k++) sspent += spellRankCost(k);
   const free = (p.level-1)*CARAC_PER_LV - spent, sfree = (p.level-1)*SPELL_PTS_PER_LV - sspent;
