@@ -181,8 +181,8 @@
   /* scènes animées (cinématiques) */
   #cine { position:fixed; inset:0; z-index:50; background:#000; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:none; }
   #cine canvas { width:min(100vw, calc(100dvh * 16 / 9)); height:auto; aspect-ratio:16/9; display:block; }
-  #cine .cine-txt { position:absolute; left:50%; bottom:max(6%, 24px); transform:translateX(-50%); width:min(820px, 90vw); text-align:center; font:21px/1.45 Georgia,"Times New Roman",serif; color:#f3ead2; text-shadow:0 2px 6px #000, 0 0 2px #000; background:rgba(0,0,0,.45); padding:10px 18px; border-radius:10px; }
-  #cine .cine-txt.title { background:none; font-size:24px; color:#ffd46a; letter-spacing:2px; }
+  #cine .cine-txt { position:absolute; left:50%; bottom:max(6%, 24px); transform:translate(-50%, 8px); width:min(820px, 90vw); min-height:2.9em; box-sizing:border-box; display:flex; align-items:center; justify-content:center; text-align:center; font:21px/1.45 Georgia,"Times New Roman",serif; color:#f3ead2; text-shadow:0 2px 6px #000, 0 0 2px #000; background:rgba(0,0,0,.45); padding:10px 18px; border-radius:10px; opacity:0; transition:opacity .45s ease, transform .45s ease; pointer-events:none; }
+  #cine .cine-txt.show { opacity:1; transform:translate(-50%, 0); }
   #cine #cineSkip { position:absolute; top:12px; right:12px; opacity:.75; } #cine #cineSkip:hover { opacity:1; }
   #cine .cine-help { position:absolute; left:14px; bottom:10px; color:rgba(255,255,255,.35); font-size:12px; } body.touch #cine .cine-help, body.touch #cine #cineSkip small { display:none; }
 </style>
@@ -799,13 +799,20 @@ async function initSaveFile() {
   try { saveFileOn = await saveFile.queryPermission({ mode:'readwrite' })==='granted'; } catch (e) { saveFileOn = false; }
   if (saveFileOn && await mergeFromFile() && !G.profile) showMenu(); else renderFileBox();
 }
+// stockage protégé : on demande au navigateur de ne jamais effacer tout seul les données du jeu (redemandé à chaque lancement)
+let storageSafe = false;
+async function initPersist() {
+  try { const st = navigator.storage; if (st && st.persist) storageSafe = await st.persisted() || await st.persist(); } catch (e) {}
+  renderFileBox();
+}
+const safeLine = () => storageSafe ? `<p class="help" style="color:var(--pm)">🛡 Stockage protégé : le navigateur n'effacera pas tes personnages de lui-même.</p>` : '';
 function renderFileBox() {
   const b = $('#fileBox'); if (!b) return;
-  if (!FS_OK) { b.innerHTML = `<p class="help">Ta progression est gardée dans ce navigateur. Pour ne pas la perdre si tu effaces tes données de navigation, exporte tes personnages avec 💾 (ou ouvre le jeu avec Chrome ou Edge pour l'enregistrer dans un fichier).</p>`; return; }
+  if (!FS_OK) { b.innerHTML = safeLine() + `<p class="help">Ta progression est gardée dans ce navigateur. Pour ne pas la perdre si tu effaces tes données de navigation, exporte tes personnages avec 💾 (ou ouvre le jeu avec Chrome ou Edge pour l'enregistrer dans un fichier).</p>`; return; }
   const name = saveFile && saveFile.name;
-  b.innerHTML = saveFileOn ? `<p class="help" style="color:var(--pm)">✔ Tes personnages sont aussi enregistrés dans le fichier <b>${name}</b> sur ton PC. </p><button class="btn alt sm" id="fNew">Créer un autre fichier</button> <button class="btn alt sm" id="fOpen">Ouvrir un autre fichier</button>`
+  b.innerHTML = safeLine() + (saveFileOn ? `<p class="help" style="color:var(--pm)">✔ Tes personnages sont aussi enregistrés dans le fichier <b>${name}</b> sur ton PC. </p><button class="btn alt sm" id="fNew">Créer un autre fichier</button> <button class="btn alt sm" id="fOpen">Ouvrir un autre fichier</button>`
     : name ? `<p class="help">Fichier de sauvegarde : <b>${name}</b>. Le navigateur demande ton accord à chaque lancement.</p><button class="btn" id="fRe">Reconnecter ${name}</button><button class="btn alt" id="fOpen">Ouvrir un autre fichier</button>`
-    : `<p class="help">Enregistre tes personnages dans un fichier sur ton PC : ils ne seront pas perdus si tu effaces tes données de navigation.</p><button class="btn" id="fNew">Créer un fichier de sauvegarde</button><button class="btn alt" id="fOpen">Ouvrir un fichier existant</button>`;
+    : `<p class="help">Enregistre tes personnages dans un fichier sur ton PC : ils ne seront pas perdus si tu effaces tes données de navigation.</p><button class="btn" id="fNew">Créer un fichier de sauvegarde</button><button class="btn alt" id="fOpen">Ouvrir un fichier existant</button>`);
   const on = (id, f) => { const e = $('#'+id); if (e) e.onclick = ev => { ev.preventDefault(); f(); }; };
   on('fNew', () => linkFile(true)); on('fOpen', () => linkFile(false)); on('fRe', reconnectFile);
 }
@@ -3903,6 +3910,25 @@ function cineSnow(c, now) { const r = seeded(31); c.fillStyle = 'rgba(230,240,25
 function cineGlow(c, x, y, rad, col) { const g = c.createRadialGradient(x, y, 1, x, y, rad); g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.beginPath(); c.arc(x, y, rad, 0, 7); c.fill(); }
 const easeIO = k => k<0 ? 0 : k>1 ? 1 : k*k*(3-2*k);
 
+// carton de titre : fond sombre, fine dorure, textes qui apparaissent l'un après l'autre
+function cineSpaced(c, text, x, y, sp) { const w = [...text].reduce((a, ch) => a + c.measureText(ch).width + sp, -sp); let cx = x - w/2; c.textAlign = 'left';
+  for (const ch of text) { c.fillText(ch, cx, y); cx += c.measureText(ch).width + sp; } c.textAlign = 'center'; }
+function cineTitle(c, t, now, o) {
+  const hue = o.hue || [255,200,110], col = a => `rgba(${hue},${a})`, gold = a => `rgba(232,196,110,${a})`;
+  const g = c.createLinearGradient(0, 0, 0, CINE_H); g.addColorStop(0, '#07060c'); g.addColorStop(1, `rgb(${hue[0]*0.12|0},${hue[1]*0.12|0},${hue[2]*0.12|0})`); c.fillStyle = g; c.fillRect(0, 0, CINE_W, CINE_H);
+  cineGlow(c, 480, 260, 330 + 10*Math.sin(now/1500), col(0.16));
+  const r = seeded(17); for (let i=0; i<40; i++) { const x = r()*CINE_W, y = (r()*CINE_H - now/1000*(6 + r()*8) + CINE_H*4) % CINE_H; c.fillStyle = col(0.15 + 0.35*r()*(0.5 + 0.5*Math.sin(now/900 + i))); c.fillRect(x, y, 2, 2); }
+  const ap = d => easeIO((t - d)/1.1); c.textAlign = 'center';
+  if (o.top) { c.globalAlpha = ap(0.2); c.font = '17px Georgia, "Times New Roman", serif'; c.fillStyle = gold(0.85); cineSpaced(c, o.top.toUpperCase(), 480, 186, 5); }
+  const wl = 230*ap(0.6); c.globalAlpha = 1; // filets dorés qui s'étirent de part et d'autre d'un losange
+  for (const y of [208, 318]) { c.fillStyle = gold(0.55*ap(0.6)); c.fillRect(480 - 14 - wl, y, wl, 1); c.fillRect(480 + 14, y, wl, 1);
+    c.save(); c.translate(480, y + 0.5); c.rotate(Math.PI/4); c.fillStyle = gold(0.9*ap(0.6)); c.fillRect(-4, -4, 8, 8); c.restore(); }
+  c.globalAlpha = ap(0.7); c.font = 'bold 60px Georgia, "Times New Roman", serif';
+  c.save(); c.shadowColor = col(0.55); c.shadowBlur = 24; c.fillStyle = '#f6dc96'; c.fillText(o.title, 480, 285); c.restore();
+  if (o.sub) { c.globalAlpha = ap(1.5); c.font = 'italic 27px Georgia, "Times New Roman", serif'; c.fillStyle = '#e9e0c8'; c.fillText(o.sub, 480, 362); }
+  if (o.foot) { c.globalAlpha = ap(2.4)*0.85; c.font = '18px Georgia, "Times New Roman", serif'; c.fillStyle = '#bfb7a4'; c.fillText(o.foot, 480, 440); }
+  c.globalAlpha = 1;
+}
 // L'ouverture : pose le monde, le vol du Cristal, la menace, puis l'ombre du Nord (sans dévoiler la lignée du héros)
 const INTRO_SHOTS = [
   { lines: ["Valdoria.", "Au cœur de la Plaine, le village d'Aubépine vit en paix depuis des siècles.",
@@ -3958,11 +3984,8 @@ const INTRO_SHOTS = [
       const p = G.profile, hero = p && animFrame(CLASSES[p.cls].sprite, false, now), cat = IMG['forest_anim_f' + (Math.floor(now/260)%4)];
       if (hero) cineSprite(c, silhouette(hero, '#151320'), 640, 404, 6, true);
       if (cat) cineSprite(c, silhouette(cat, '#151320'), 700, 404, 4.5, true); } },
-  { lines: ["Acte I : la Plaine"], title: true,
-    draw(c, t, now) { cineSky(c, '#1a1424', '#5a3a2a'); cineGlow(c, 480, 330, 380, 'rgba(255,200,110,.35)');
-      c.save(); c.translate(480, 300); for (let i=0; i<16; i++) { c.rotate(Math.PI/8); c.fillStyle = `rgba(255,220,140,${0.05+0.04*Math.sin(now/700+i)})`; c.beginPath(); c.moveTo(0, 0); c.lineTo(-30, -600); c.lineTo(30, -600); c.fill(); } c.restore();
-      const k = easeIO(t/1.6); c.globalAlpha = k; c.textAlign = 'center'; c.font = 'bold 64px Georgia, "Times New Roman", serif';
-      c.fillStyle = '#2a1608'; c.fillText("Héritiers de l'Aube", 483, 283); c.fillStyle = '#ffd46a'; c.fillText("Héritiers de l'Aube", 480, 280); c.globalAlpha = 1; } },
+  { lines: [''], hold: 5200,
+    draw(c, t, now) { cineTitle(c, t, now, { top: "Héritiers de l'Aube", title: 'Acte I', sub: 'la Plaine', foot: `Chapitre 1 · ${MAIN[0].title}`, hue: [255,200,110] }); } },
 ];
 
 function playCine(shots, done) {
@@ -3971,14 +3994,15 @@ function playCine(shots, done) {
   box.innerHTML = `<canvas width="${CINE_W}" height="${CINE_H}"></canvas><div class="cine-txt"></div><button class="btn alt" id="cineSkip">Passer ▸▸ <small>(Échap)</small></button><small class="cine-help">Clic ou Espace pour continuer</small>`;
   document.body.appendChild(box);
   const cvs = box.querySelector('canvas'), c = cvs.getContext('2d'), txt = box.querySelector('.cine-txt');
-  const st = { shot:0, line:0, shotT:performance.now(), lineT:performance.now(), full:false, fade:0 };
+  const st = { shot:0, line:0, shotT:performance.now(), lineT:performance.now(), fade:0, shown:null, swapT:0 };
   G.cine = true;
   const lineText = () => fillHero(shots[st.shot].lines[st.line] || '');
-  const typed = now => { const l = lineText(); return st.full ? l.length : Math.min(l.length, Math.floor((now - st.lineT) / 1000 * 32)); };
+  // chaque ligne apparaît d'un bloc en fondu, reste le temps de la lire, puis la suivante vient toute seule
+  const readTime = () => { const sh = shots[st.shot], l = lineText(); return sh.hold || 2200 + l.length*45; };
   const end = () => { if (!G.cine) return; G.cine = false; cancelAnimationFrame(raf); window.removeEventListener('keydown', key, true); box.remove(); if (done) done(); };
   const next = () => { const now = performance.now(), sh = shots[st.shot];
-    if (typed(now) < lineText().length) { st.full = true; return; }
-    st.full = false; st.lineT = now;
+    if (st.fade || now - st.lineT < 350) return; // évite de sauter une ligne par un double clic
+    st.lineT = now;
     if (st.line < sh.lines.length-1) { st.line++; return; }
     if (st.shot >= shots.length-1) return end();
     st.fade = now; };
@@ -3988,15 +4012,17 @@ function playCine(shots, done) {
   box.querySelector('#cineSkip').onclick = end;
   let raf;
   const frame = now => {
-    const sh = shots[st.shot], l = lineText(), n = typed(now);
-    if (st.fade && now - st.fade > 600) { st.fade = 0; st.shot++; st.line = 0; st.shotT = st.lineT = now; st.full = false; }
-    // une ligne lue reste affichée un moment, puis la suite vient toute seule
-    else if (!st.fade && n >= l.length && now - st.lineT > l.length*1000/32 + 2400 + l.length*18) next();
+    if (st.fade && now - st.fade > 700) { st.fade = 0; st.shot++; st.line = 0; st.shotT = st.lineT = now; }
+    else if (!st.fade && now - st.lineT > readTime()) next();
     const s2 = shots[st.shot]; c.save(); s2.draw(c, (now - st.shotT)/1000, now, st.line, (now - st.lineT)/1000); c.restore();
-    const fin = Math.min(1, (now - st.shotT)/600), fout = st.fade ? Math.min(1, (now - st.fade)/600) : 0, black = Math.max(1-fin, fout);
+    const fin = Math.min(1, (now - st.shotT)/700), fout = st.fade ? Math.min(1, (now - st.fade)/700) : 0, black = Math.max(1-fin, fout);
     if (black > 0) { c.fillStyle = `rgba(0,0,0,${black})`; c.fillRect(0, 0, CINE_W, CINE_H); }
-    const shown = st.fade ? '' : fillHero(s2.lines[st.line] || '').slice(0, typed(now));
-    if (txt.dataset.v !== shown) { txt.dataset.v = shown; txt.textContent = shown; txt.classList.toggle('title', !!s2.title); txt.style.visibility = shown ? '' : 'hidden'; }
+    // texte : la ligne affichée s'efface doucement avant que la suivante apparaisse
+    const want = st.fade ? '' : lineText();
+    if (want !== st.shown) {
+      if (txt.classList.contains('show')) { txt.classList.remove('show'); st.swapT = now; }
+      else if (now - st.swapT > 320) { st.shown = want; txt.textContent = want; if (want) { void txt.offsetWidth; txt.classList.add('show'); } }
+    }
     if (G.cine) raf = requestAnimationFrame(frame);
   };
   raf = requestAnimationFrame(frame);
@@ -4035,14 +4061,9 @@ function cineRift(c, x, y, w, h, k, now) { // fente violette dans le ciel
 function cineCard(n) { // carton « Fin de l'acte … » ; la ligne de texte annonce l'acte suivant
   const ends = actEnds(), name = STORY_RECAP[ends[n]].act, [num, sub] = name.split(' : '), next = ends[n+1]!==undefined ? STORY_RECAP[ends[n+1]].act : null;
   const hue = [[90,140,255],[160,190,255],[170,100,255],[255,200,110],[120,220,120],[255,130,60],[90,210,220],[200,225,255]][n] || [255,200,110];
-  return { title: true, lines: [next ? `Prochainement : ${next}` : 'À suivre…'],
-    draw(c, t, now) { cineSky(c, '#0e0c16', `rgb(${hue[0]*0.25|0},${hue[1]*0.25|0},${hue[2]*0.25|0})`);
-      cineGlow(c, 480, 300, 360, `rgba(${hue},.28)`);
-      c.save(); c.translate(480, 300); for (let i=0; i<16; i++) { c.rotate(Math.PI/8); c.fillStyle = `rgba(${hue},${0.04+0.03*Math.sin(now/700+i)})`; c.beginPath(); c.moveTo(0, 0); c.lineTo(-30, -600); c.lineTo(30, -600); c.fill(); } c.restore();
-      const k = easeIO(t/1.4); c.globalAlpha = k; c.textAlign = 'center';
-      c.font = '28px Georgia, "Times New Roman", serif'; c.fillStyle = '#d8cfb8'; c.fillText(`Fin de l'acte ${num.split(' ')[1]}`, 480, 220);
-      c.font = 'bold 56px Georgia, "Times New Roman", serif'; c.fillStyle = '#1a1008'; c.fillText(sub.charAt(0).toUpperCase() + sub.slice(1), 483, 293); c.fillStyle = '#ffd46a'; c.fillText(sub.charAt(0).toUpperCase() + sub.slice(1), 480, 290);
-      c.globalAlpha = 1; } };
+  const cap = x => x.charAt(0).toUpperCase() + x.slice(1);
+  return { lines: [''], hold: 5600,
+    draw(c, t, now) { cineTitle(c, t, now, { top: `Fin de l'acte ${num.split(' ')[1]}`, title: cap(sub), foot: next ? `Prochainement : ${next.replace(' : ', ' · ')}` : 'À suivre…', hue }); } };
 }
 const ACT_SHOTS = [
   // Acte I : la fête au village, puis les lettres trouvées dans l'antre
@@ -5667,7 +5688,7 @@ function bindDbg() {
 
 buildDecor();
 CAT_ICON = buildCat();
-loadSprites().then(() => { buildVariants(); buildExtraSprites(); showMenu(); requestAnimationFrame(frame); initSaveFile(); });
+loadSprites().then(() => { buildVariants(); buildExtraSprites(); showMenu(); requestAnimationFrame(frame); initSaveFile(); initPersist(); });
 </script>
 </body>
 </html>
