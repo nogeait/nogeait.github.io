@@ -162,6 +162,13 @@
   body.touch #overlay { bottom:auto; height:100dvh; }
   @media (max-height:560px) { body.touch .box { padding:14px 18px; } body.touch .scene .portrait { display:none; } body.touch .scene .say p { font-size:14px; } }
   #tapTip { position:fixed; left:50%; top:12px; transform:translateX(-50%); z-index:99; max-width:min(560px,90vw); padding:8px 12px; background:#11151d; border:1px solid var(--gold); border-radius:8px; color:var(--text); font-size:14px; pointer-events:none; opacity:0; transition:opacity .2s; }
+  /* scènes animées (cinématiques) */
+  #cine { position:fixed; inset:0; z-index:50; background:#000; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:none; }
+  #cine canvas { width:min(100vw, calc(100dvh * 16 / 9)); height:auto; aspect-ratio:16/9; display:block; }
+  #cine .cine-txt { position:absolute; left:50%; bottom:max(6%, 24px); transform:translateX(-50%); width:min(820px, 90vw); text-align:center; font:21px/1.45 Georgia,"Times New Roman",serif; color:#f3ead2; text-shadow:0 2px 6px #000, 0 0 2px #000; background:rgba(0,0,0,.45); padding:10px 18px; border-radius:10px; }
+  #cine .cine-txt.title { background:none; font-size:24px; color:#ffd46a; letter-spacing:2px; }
+  #cine #cineSkip { position:absolute; top:12px; right:12px; opacity:.75; } #cine #cineSkip:hover { opacity:1; }
+  #cine .cine-help { position:absolute; left:14px; bottom:10px; color:rgba(255,255,255,.35); font-size:12px; } body.touch #cine .cine-help, body.touch #cine #cineSkip small { display:none; }
 </style>
 </head>
 <body>
@@ -1976,6 +1983,7 @@ function composeTrack(key) {
 }
 const music = { key:null, track:null, step:0, next:0, gain:null };
 function musicKey() {
+  if (G.cine) return 'bosszone:intro'; // cinématique : air lent et solennel
   if (!G.profile) return G.mode==='menu' ? 'menu:village' : null;
   if (G.mode==='fight') return G.over || !G.zone ? null : G.zone.icon==='boss' ? 'boss:' + G.zone.id : G.dungeon ? `bossfight:${G.dungeon.id}:${G.dungeon.room}` : 'fight:' + G.zone.id;
   if (G.mode!=='map') return null;
@@ -3699,6 +3707,7 @@ function completeQuest(q) {
     const rel = RELICS.find(r => r.chapter === MAIN.indexOf(q)+1);
     if (rel) G.scenes[G.scenes.length-1].last += `<p class="goal">✨ Tu as obtenu une Relique de l'Aube (${RELICS.indexOf(rel)+1}/${RELIC_SLOTS}) : <b>${rel.name}</b> (${statText(rel.stats)}). Elle occupe son emplacement dans ton équipement.</p>`;
     if (q.vision) G.scenes.push({ npc:'vision', title:q.vision.title, pages:q.vision.pages, btn:'Continuer' });
+    const ae = actEnds().indexOf(MAIN.indexOf(q)); if (ae >= 0) G.scenes.push({ cine:ae, npc:'vision', title:'Fin de l\'acte', pages:[''], btn:'Continuer' }); // scène animée de fin d'acte
     const next = MAIN[MAIN.indexOf(q)+1];
     p.story = next ? MAIN.indexOf(next) : MAIN.length;
     if (next) queueIntros(next);
@@ -3717,6 +3726,7 @@ function ensureStory() {
 function showNextScene() {
   if (G.mode!=='map' || G.travel || !$('#overlay').classList.contains('hide') || !G.scenes.some(s => !s.talk)) return;
   const sc = G.scenes.splice(G.scenes.findIndex(s => !s.talk), 1)[0], npc = NPCS[sc.npc];
+  if (sc.cine !== undefined) return playActEnd(sc.cine, showNextScene);
   let page = 0;
   const draw = () => {
     const last = page === sc.pages.length-1;
@@ -3789,11 +3799,294 @@ function showStory() {
   const next = MAIN[p.story];
   overlay(`<h2>Histoire de ${heroName()}</h2><p class="help">Chapitre ${Math.min(p.story+1, MAIN.length)}/${MAIN.length}</p><div class="story">${html}</div>
     ${next ? `<p class="help">En ce moment : <b>${next.title}</b> (voir le journal de quêtes).</p>` : '<p class="help">Tu as terminé toute l\'histoire disponible pour l\'instant.</p>'}
+    <p class="help">Revoir les scènes : <button class="btn alt sm" id="cineReplay">▶ Introduction</button>${actEnds().map((e, i) => e < p.story ? `<button class="btn alt sm" data-cine="${i}">▶ Fin de l'acte ${STORY_RECAP[e].act.split(' ')[1]}</button>` : '').join('')}</p>
     <div style="text-align:center"><button class="btn" id="b1">Fermer</button></div>`, true);
   $('#overlay').dataset.menu = 'story';
   const st = $('#overlay .story'); if (st) st.lastElementChild?.scrollIntoView({ block:'nearest' });
   $('#b1').onclick = () => { hideOverlay(); showNextScene(); };
+  $('#cineReplay').onclick = () => playIntro(showStory);
+  document.querySelectorAll('[data-cine]').forEach(b => b.onclick = () => playActEnd(+b.dataset.cine, showStory));
 }
+// ---------- Scènes animées (cinématiques) : dessinées sur un canvas à part, passables, rejouables depuis Histoire (H) ----------
+const CINE_W = 960, CINE_H = 540;
+const shadowCache = new WeakMap();
+function silhouette(img, col) { // sprite rempli d'une seule couleur (une ombre)
+  let m = shadowCache.get(img); if (!m) shadowCache.set(img, m = {}); if (m[col]) return m[col];
+  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d');
+  g.drawImage(img, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = col; g.fillRect(0, 0, c.width, c.height);
+  m[col] = c; return c;
+}
+function cineSprite(c, img, x, yb, s, flip, alpha=1) { if (!img) return; const w = img.width*s, h = img.height*s;
+  c.save(); c.globalAlpha = alpha; c.imageSmoothingEnabled = false; c.translate(Math.round(x), Math.round(yb)); if (flip) c.scale(-1, 1); c.drawImage(img, -w/2, -h, w, h); c.restore(); }
+function cineSky(c, top, bot) { const g = c.createLinearGradient(0, 0, 0, CINE_H); g.addColorStop(0, top); g.addColorStop(1, bot); c.fillStyle = g; c.fillRect(0, 0, CINE_W, CINE_H); }
+function cineStars(c, now, alpha=1) { const r = seeded(7); c.fillStyle = '#fff';
+  for (let i=0; i<110; i++) { const x = r()*CINE_W, y = r()*CINE_H*0.6, tw = 0.5 + 0.5*Math.sin(now/600 + i*1.7);
+    c.globalAlpha = alpha * (0.25 + 0.6*tw*r()); c.fillRect(x, y, r()<0.15 ? 2 : 1, r()<0.15 ? 2 : 1); } c.globalAlpha = 1; }
+function cineHills(c, y, amp, col, seed) { c.fillStyle = col; c.beginPath(); c.moveTo(0, CINE_H);
+  for (let x=0; x<=CINE_W; x+=8) c.lineTo(x, y + Math.sin(x/170 + seed)*amp + Math.sin(x/61 + seed*3)*amp*0.35); c.lineTo(CINE_W, CINE_H); c.fill(); }
+function cineHouse(c, x, y, s, lit, now) { // petite maison : murs, toit, fenêtre éclairée
+  c.fillStyle = '#1b1a24'; c.fillRect(x-14*s, y-16*s, 28*s, 16*s);
+  c.beginPath(); c.moveTo(x-18*s, y-15*s); c.lineTo(x, y-30*s); c.lineTo(x+18*s, y-15*s); c.fill();
+  if (lit) { c.fillStyle = `rgba(255,${190+Math.sin(now/300+x)*20|0},90,${0.75+0.2*Math.sin(now/500+x)})`; c.fillRect(x-4*s, y-11*s, 7*s, 6*s); } }
+function cineVillage(c, cx, y, s, lit, now) { [[-110,.8],[-62,1],[70,1.1],[122,.85],[-160,.7],[170,.7]].forEach(([dx,k]) => cineHouse(c, cx+dx*s, y, s*k, lit, now)); }
+function cineMountains(c, base, col, snow, seed) { const r = seeded(seed);
+  for (let i=0; i<9; i++) { const x = i*CINE_W/8 + (r()-0.5)*60, h = 140 + r()*150, w = 120 + r()*90;
+    c.fillStyle = col; c.beginPath(); c.moveTo(x-w, base); c.lineTo(x, base-h); c.lineTo(x+w, base); c.fill();
+    if (snow) { c.fillStyle = snow; c.beginPath(); c.moveTo(x-w*0.28, base-h*0.72); c.lineTo(x, base-h); c.lineTo(x+w*0.28, base-h*0.72); c.lineTo(x+w*0.1, base-h*0.78); c.lineTo(x-w*0.06, base-h*0.7); c.fill(); } } }
+function cineSnow(c, now) { const r = seeded(31); c.fillStyle = 'rgba(230,240,255,.8)';
+  for (let i=0; i<90; i++) { const sp = 20 + r()*40, x = (r()*CINE_W + Math.sin(now/900 + i)*20 + now/60) % CINE_W, y = (r()*CINE_H + now/1000*sp) % CINE_H; c.fillRect(x, y, 2, 2); } }
+function cineGlow(c, x, y, rad, col) { const g = c.createRadialGradient(x, y, 1, x, y, rad); g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.beginPath(); c.arc(x, y, rad, 0, 7); c.fill(); }
+const easeIO = k => k<0 ? 0 : k>1 ? 1 : k*k*(3-2*k);
+
+// L'ouverture : pose le monde, le vol du Cristal, la menace, puis l'ombre du Nord (sans dévoiler la lignée du héros)
+const INTRO_SHOTS = [
+  { lines: ["Valdoria.", "Au cœur de la Plaine, le village d'Aubépine vit en paix depuis des siècles.",
+      "Un Cristal veille sur lui. Sa lumière bleue tient les monstres à distance… mais plus personne ne se souvient de qui l'a offert."],
+    draw(c, t, now) { cineSky(c, '#070b1c', '#1c2a4a'); cineStars(c, now); c.fillStyle = '#e9ecf5'; c.beginPath(); c.arc(780, 90, 26, 0, 7); c.fill();
+      cineHills(c, 330, 18, '#16213a', 1); cineHills(c, 380, 12, '#101828', 4);
+      cineVillage(c, 480, 402, 1.4, true, now);
+      cineGlow(c, 480, 345, 120 + 20*Math.sin(now/500), 'rgba(120,200,255,.28)');
+      c.save(); c.translate(480, 418); c.scale(1.6, 1.6); drawCrystalAt(0, 0, 'whole', now, c); c.restore();
+      c.fillStyle = '#0a0f1a'; c.fillRect(0, 418, CINE_W, 122); } },
+  { lines: ["Il y a trois lunes, par une nuit sans étoiles, une ombre énorme s'est glissée jusqu'au sanctuaire.", "Au matin, le socle était vide."],
+    draw(c, t, now, line) { if (line) t = Math.max(t, 9); // « socle vide » : le vol est forcément fini
+      cineSky(c, '#05060d', '#141a2c'); if ([1.2, 5.6, 9.1].some(f => t > f && t < f+0.09)) { /* éclair */ c.fillStyle = 'rgba(200,210,255,.25)'; c.fillRect(0, 0, CINE_W, CINE_H); }
+      cineHills(c, 350, 14, '#0e1422', 2); cineVillage(c, 480, 402, 1.4, false, now);
+      const cx = 480, take = 4.2, gone = t > take;
+      const ox = !gone ? -80 + (cx-40+80)*easeIO(t/3.8) : cx-40 + (CINE_W+160-cx)*easeIO((t-take-0.4)/4);
+      if (!gone) cineGlow(c, cx, 345, 110, 'rgba(120,200,255,.22)');
+      c.save(); c.translate(cx, 418); c.scale(1.6, 1.6); drawCrystalAt(0, 0, 'empty', now, c); if (!gone) drawCrystalAt(0, 0, 'whole', now, c); c.restore();
+      const ogre = animFrame('ogre', !(t>3.8 && t<take+0.4), now);
+      if (ogre) { cineSprite(c, silhouette(ogre, '#04050a'), ox, 420, 5, false);
+        c.fillStyle = '#ff3b3b'; c.fillRect(ox+14, 420-ogre.height*5+52, 5, 4); c.fillRect(ox+26, 420-ogre.height*5+52, 5, 4); }
+      if (gone) { cineGlow(c, ox+36, 340, 60, 'rgba(120,200,255,.3)'); c.save(); c.translate(ox+36, 372); c.scale(0.7, 0.7); drawCrystalAt(0, 0, 'stolen', now, c); c.restore(); } // le Cristal emporté
+      c.fillStyle = '#06080e'; c.fillRect(0, 418, CINE_W, 122);
+      if (t > take+5) { c.fillStyle = `rgba(255,200,140,${Math.min(0.18, (t-take-5)/10)})`; c.fillRect(0, 0, CINE_W, CINE_H); } } },
+  { lines: ["Depuis, plus rien ne protège la Plaine.", "Chaque nuit, les monstres s'approchent un peu plus des maisons d'Aubépine."],
+    draw(c, t, now) { cineSky(c, '#0b0712', '#2a1626'); cineStars(c, now, 0.4); cineHills(c, 290, 10, '#1a1220', 5);
+      cineVillage(c, 480, 300, 0.8, true, now); cineHills(c, 360, 22, '#120c16', 6);
+      const r = seeded(11);
+      for (let i=0; i<14; i++) { const side = i%2 ? 1 : -1, d = r(), y = 380 + r()*60, appear = i*0.45;
+        if (t < appear) continue; const k = Math.min(1, (t-appear)/9), x = 480 + side*(520 - 260*k*(0.6+d*0.4)) + Math.sin(now/400+i)*3;
+        const img = animFrame(r()<0.6 ? 'goblin' : r()<0.5 ? 'orc_warrior' : 'orc_shaman', true, now, i), s = 3 + d*1.5;
+        if (img) { cineSprite(c, silhouette(img, '#07040a'), x, y, s, side>0, Math.min(1, (t-appear)*1.5));
+          if (Math.sin(now/700 + i*2) > -0.8) { c.fillStyle = '#ffd34a'; const ey = y - img.height*s*0.62; c.fillRect(x - 3*s*side, ey, 3, 3); c.fillRect(x + 1*s*side - (side>0?3:0), ey, 3, 3); } } } } },
+  { lines: ["Loin au nord, au-delà des montagnes, quelqu'un attendait ce vol depuis très longtemps.", "« Patience… Bientôt, la lumière de l'Aube m'ouvrira enfin les portes. »"],
+    draw(c, t, now, line, lt) { const zoom = line > 0; cineSky(c, '#0a0e1e', '#3a4a6a');
+      if (!zoom) { cineMountains(c, 520, '#2a344c', '#cfdbee', 3);
+        c.fillStyle = '#0c0f1a'; c.fillRect(600, 190, 46, 300); c.beginPath(); c.moveTo(592, 194); c.lineTo(623, 140); c.lineTo(654, 194); c.fill();
+        const p = 0.6 + 0.4*Math.sin(now/300); c.fillStyle = `rgba(190,90,255,${p})`; c.fillRect(616, 230, 14, 18); cineGlow(c, 623, 239, 60, `rgba(170,80,255,${0.25*p})`);
+        cineMountains(c, 560, '#1a2236', '#9fb0cc', 9); cineSnow(c, now); return; }
+      c.fillStyle = '#07050c'; c.fillRect(0, 0, CINE_W, CINE_H);
+      const k = easeIO(lt/2.5), p = 0.5 + 0.5*Math.sin(now/350);
+      cineGlow(c, 480, 300, 260, `rgba(140,60,220,${0.35*k})`);
+      const img = animFrame('necromancer', false, now);
+      if (img) { cineSprite(c, img, 480, 420, 13, false, k); cineSprite(c, silhouette(img, '#0a0614'), 480, 420, 13, false, k*0.35); }
+      cineGlow(c, 480, 360, 70 + p*10, `rgba(120,200,255,${0.35*k})`); // le reflet du Cristal dans ses mains
+      c.fillStyle = '#07050c'; c.fillRect(0, 418, CINE_W, 122); } },
+  { lines: ["À Aubépine, {héros} se lève avec l'aube, Forest à ses côtés.", "Personne ne le sait encore… mais le destin de {héros} est lié à ce Cristal, bien plus qu'on ne l'imagine."],
+    draw(c, t, now) { const k = easeIO(t/9);
+      cineSky(c, `rgb(${30+60*k|0},${30+50*k|0},${70+30*k|0})`, `rgb(${120+130*k|0},${70+90*k|0},${70+30*k|0})`); cineStars(c, now, 1-k);
+      const sy = 400 - 150*k; cineGlow(c, 480, sy, 260, 'rgba(255,210,120,.55)'); c.fillStyle = '#ffe6a0'; c.beginPath(); c.arc(480, sy, 46, 0, 7); c.fill();
+      cineHills(c, 340, 16, `rgb(${40+30*k|0},${32+26*k|0},${56+14*k|0})`, 1); cineVillage(c, 300, 362, 1, k<0.6, now);
+      cineHills(c, 400, 10, '#151320', 8);
+      const p = G.profile, hero = p && animFrame(CLASSES[p.cls].sprite, false, now), cat = IMG['forest_anim_f' + (Math.floor(now/260)%4)];
+      if (hero) cineSprite(c, silhouette(hero, '#151320'), 640, 404, 6, true);
+      if (cat) cineSprite(c, silhouette(cat, '#151320'), 700, 404, 4.5, true); } },
+  { lines: ["Acte I : la Plaine"], title: true,
+    draw(c, t, now) { cineSky(c, '#1a1424', '#5a3a2a'); cineGlow(c, 480, 330, 380, 'rgba(255,200,110,.35)');
+      c.save(); c.translate(480, 300); for (let i=0; i<16; i++) { c.rotate(Math.PI/8); c.fillStyle = `rgba(255,220,140,${0.05+0.04*Math.sin(now/700+i)})`; c.beginPath(); c.moveTo(0, 0); c.lineTo(-30, -600); c.lineTo(30, -600); c.fill(); } c.restore();
+      const k = easeIO(t/1.6); c.globalAlpha = k; c.textAlign = 'center'; c.font = 'bold 64px Georgia, "Times New Roman", serif';
+      c.fillStyle = '#2a1608'; c.fillText("Héritiers de l'Aube", 483, 283); c.fillStyle = '#ffd46a'; c.fillText("Héritiers de l'Aube", 480, 280); c.globalAlpha = 1; } },
+];
+
+function playCine(shots, done) {
+  if (SPEED > 8 || G.cine) { if (done) done(); return; } // tests accélérés : pas de cinématique
+  const box = document.createElement('div'); box.id = 'cine';
+  box.innerHTML = `<canvas width="${CINE_W}" height="${CINE_H}"></canvas><div class="cine-txt"></div><button class="btn alt" id="cineSkip">Passer ▸▸ <small>(Échap)</small></button><small class="cine-help">Clic ou Espace pour continuer</small>`;
+  document.body.appendChild(box);
+  const cvs = box.querySelector('canvas'), c = cvs.getContext('2d'), txt = box.querySelector('.cine-txt');
+  const st = { shot:0, line:0, shotT:performance.now(), lineT:performance.now(), full:false, fade:0 };
+  G.cine = true;
+  const lineText = () => fillHero(shots[st.shot].lines[st.line] || '');
+  const typed = now => { const l = lineText(); return st.full ? l.length : Math.min(l.length, Math.floor((now - st.lineT) / 1000 * 32)); };
+  const end = () => { if (!G.cine) return; G.cine = false; cancelAnimationFrame(raf); window.removeEventListener('keydown', key, true); box.remove(); if (done) done(); };
+  const next = () => { const now = performance.now(), sh = shots[st.shot];
+    if (typed(now) < lineText().length) { st.full = true; return; }
+    st.full = false; st.lineT = now;
+    if (st.line < sh.lines.length-1) { st.line++; return; }
+    if (st.shot >= shots.length-1) return end();
+    st.fade = now; };
+  const key = e => { e.preventDefault(); e.stopImmediatePropagation(); if (e.key==='Escape') end(); else if (e.key===' ' || e.key==='Enter') next(); };
+  window.addEventListener('keydown', key, true);
+  box.onpointerdown = e => { if (e.target.closest('#cineSkip')) return; e.preventDefault(); next(); };
+  box.querySelector('#cineSkip').onclick = end;
+  let raf;
+  const frame = now => {
+    const sh = shots[st.shot], l = lineText(), n = typed(now);
+    if (st.fade && now - st.fade > 600) { st.fade = 0; st.shot++; st.line = 0; st.shotT = st.lineT = now; st.full = false; }
+    // une ligne lue reste affichée un moment, puis la suite vient toute seule
+    else if (!st.fade && n >= l.length && now - st.lineT > l.length*1000/32 + 2400 + l.length*18) next();
+    const s2 = shots[st.shot]; c.save(); s2.draw(c, (now - st.shotT)/1000, now, st.line, (now - st.lineT)/1000); c.restore();
+    const fin = Math.min(1, (now - st.shotT)/600), fout = st.fade ? Math.min(1, (now - st.fade)/600) : 0, black = Math.max(1-fin, fout);
+    if (black > 0) { c.fillStyle = `rgba(0,0,0,${black})`; c.fillRect(0, 0, CINE_W, CINE_H); }
+    const shown = st.fade ? '' : fillHero(s2.lines[st.line] || '').slice(0, typed(now));
+    if (txt.dataset.v !== shown) { txt.dataset.v = shown; txt.textContent = shown; txt.classList.toggle('title', !!s2.title); txt.style.visibility = shown ? '' : 'hidden'; }
+    if (G.cine) raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+}
+function playIntro(done) { playCine(INTRO_SHOTS, done); }
+// ---------- Scènes de fin d'acte : jouées après le dernier chapitre de chaque acte, à revoir depuis Histoire (H) ----------
+function cineFig(c, sprite, x, yb, s, o={}) { // personnage : sprite (ou ombre), yeux qui brillent en option
+  const img = o.img || animFrame(sprite, !!o.run, performance.now(), o.off||0); if (!img) return;
+  cineSprite(c, o.shadow ? silhouette(img, o.shadow) : img, x, yb, s, o.flip, o.alpha ?? 1);
+  if (o.mask) { c.fillStyle = `rgba(235,230,220,${o.alpha ?? 1})`; c.beginPath(); c.ellipse(x, yb - img.height*s*0.72, img.width*s*0.12, img.height*s*0.07, 0, 0, 7); c.fill(); }
+}
+function cineHero(c, x, yb, s, o={}) { const p = G.profile; if (!p) return; cineFig(c, CLASSES[p.cls].sprite, x, yb, s, o);
+  const cat = IMG['forest_anim_f' + (Math.floor(performance.now()/260)%4)];
+  if (cat) { cineSprite(c, o.shadow ? silhouette(cat, o.shadow) : cat, x + (o.flip ? -1 : 1)*s*11, yb, s*0.75, o.flip, o.alpha ?? 1);
+    if (o.catEyes) { c.fillStyle = o.catEyes; const cx = x + (o.flip ? -1 : 1)*s*11, w = cat.width*s*0.75; c.fillRect(cx + (o.flip ? 1 : -1)*(w/2 - 3*s*0.75) - s*0.75, yb - cat.height*s*0.75 + 2*s*0.75, s*0.75*1.2, s*0.75); } } }
+function cineTrees(c, base, n, col, seed, h=1) { const r = seeded(seed);
+  for (let i=0; i<n; i++) { const x = (i+r()*0.8)*CINE_W/n, t = (90 + r()*110)*h, w = t*0.32;
+    c.fillStyle = col; c.fillRect(x-w*0.12, base-t*0.3, w*0.24, t*0.3);
+    c.beginPath(); c.ellipse(x, base-t*0.62, w, t*0.4, 0, 0, 7); c.fill(); } }
+function cineParticles(c, now, n, col, seed, o={}) { const r = seeded(seed); c.fillStyle = col;
+  for (let i=0; i<n; i++) { const sp = (o.speed||30) * (0.5 + r()), x0 = r()*CINE_W, y0 = r()*CINE_H, ph = r()*7;
+    const y = ((y0 - (o.down ? -1 : 1)*now/1000*sp) % CINE_H + CINE_H) % CINE_H, x = x0 + Math.sin(now/900 + ph)*15;
+    c.globalAlpha = 0.4 + 0.5*Math.abs(Math.sin(now/500 + ph)); c.fillRect(x, y, o.size||3, o.size||3); } c.globalAlpha = 1; }
+function cineGem(c, x, y, s, col, light, now) { // une relique : losange qui brille
+  cineGlow(c, x, y, 70*s + 8*Math.sin(now/300), light); c.save(); c.translate(x, y); c.scale(s, s);
+  c.fillStyle = col; c.strokeStyle = 'rgba(0,0,0,.5)'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, -24); c.lineTo(15, 0); c.lineTo(0, 24); c.lineTo(-15, 0); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = 'rgba(255,255,255,.7)'; c.fillRect(-6, -9, 4, 9); c.restore(); }
+function cineGround(c, col, y=418) { c.fillStyle = col; c.fillRect(0, y, CINE_W, CINE_H-y); }
+function cineVolcano(c, x, base, w, h, col, now) { c.fillStyle = col; c.beginPath(); c.moveTo(x-w, base); c.lineTo(x-w*0.14, base-h); c.lineTo(x+w*0.14, base-h); c.lineTo(x+w, base); c.fill();
+  cineGlow(c, x, base-h, w*0.45, `rgba(255,110,30,${0.45+0.15*Math.sin(now/400)})`); c.fillStyle = '#ff7a1a'; c.fillRect(x-w*0.12, base-h-2, w*0.24, 5); }
+function cineRift(c, x, y, w, h, k, now) { // fente violette dans le ciel
+  if (k <= 0) return; cineGlow(c, x, y, Math.max(w, h)*0.7*k, `rgba(170,60,255,${0.35*k})`);
+  c.fillStyle = `rgba(230,180,255,${0.9*k})`; c.beginPath(); c.moveTo(x - w*k, y);
+  for (let i=0; i<=10; i++) { const t = i/10; c.lineTo(x - w*k + 2*w*k*t, y - Math.sin(t*Math.PI)*h*k*(0.8 + 0.2*Math.sin(now/120 + i))); }
+  for (let i=10; i>=0; i--) { const t = i/10; c.lineTo(x - w*k + 2*w*k*t, y + Math.sin(t*Math.PI)*h*k*0.25); } c.fill(); }
+function cineCard(n) { // carton « Fin de l'acte … » ; la ligne de texte annonce l'acte suivant
+  const ends = actEnds(), name = STORY_RECAP[ends[n]].act, [num, sub] = name.split(' : '), next = ends[n+1]!==undefined ? STORY_RECAP[ends[n+1]].act : null;
+  const hue = [[90,140,255],[160,190,255],[170,100,255],[255,200,110],[120,220,120],[255,130,60],[90,210,220],[200,225,255]][n] || [255,200,110];
+  return { title: true, lines: [next ? `Prochainement : ${next}` : 'À suivre…'],
+    draw(c, t, now) { cineSky(c, '#0e0c16', `rgb(${hue[0]*0.25|0},${hue[1]*0.25|0},${hue[2]*0.25|0})`);
+      cineGlow(c, 480, 300, 360, `rgba(${hue},.28)`);
+      c.save(); c.translate(480, 300); for (let i=0; i<16; i++) { c.rotate(Math.PI/8); c.fillStyle = `rgba(${hue},${0.04+0.03*Math.sin(now/700+i)})`; c.beginPath(); c.moveTo(0, 0); c.lineTo(-30, -600); c.lineTo(30, -600); c.fill(); } c.restore();
+      const k = easeIO(t/1.4); c.globalAlpha = k; c.textAlign = 'center';
+      c.font = '28px Georgia, "Times New Roman", serif'; c.fillStyle = '#d8cfb8'; c.fillText(`Fin de l'acte ${num.split(' ')[1]}`, 480, 220);
+      c.font = 'bold 56px Georgia, "Times New Roman", serif'; c.fillStyle = '#1a1008'; c.fillText(sub.charAt(0).toUpperCase() + sub.slice(1), 483, 293); c.fillStyle = '#ffd46a'; c.fillText(sub.charAt(0).toUpperCase() + sub.slice(1), 480, 290);
+      c.globalAlpha = 1; } };
+}
+const ACT_SHOTS = [
+  // Acte I : la fête au village, puis les lettres trouvées dans l'antre
+  [ { lines: ["Le Cristal brille de nouveau au cœur d'Aubépine.", "Ce soir, tout le village fête {héros} et Forest."],
+      draw(c, t, now) { cineSky(c, '#0a0f24', '#3a2a4a'); cineStars(c, now, 0.7); cineHills(c, 340, 14, '#1a1a2c', 2);
+        cineVillage(c, 480, 402, 1.4, true, now); cineGround(c, '#14121e');
+        cineGlow(c, 480, 345, 130, 'rgba(120,200,255,.3)'); c.save(); c.translate(480, 418); c.scale(1.6, 1.6); drawCrystalAt(0, 0, 'whole', now, c); c.restore();
+        const r = seeded(4); for (let i=0; i<18; i++) { const x = 120 + r()*720, y = 420 - ((now/1000*(18 + r()*14) + r()*400) % 420), w = 0.5+0.5*Math.sin(now/300+i); // lanternes qui s'envolent
+          cineGlow(c, x, y, 16, `rgba(255,190,90,${0.35*w + 0.2})`); c.fillStyle = '#ffcf6a'; c.fillRect(x-3, y-4, 6, 8); }
+        cineHero(c, 600, 418, 4.5, { flip: true });
+        cineFig(c, 'wizzard_f', 360, 418, 4.5, {}); cineFig(c, 'elf_m', 300, 418, 4.5, { off: 1 }); cineFig(c, 'elf_f', 250, 418, 4.5, { off: 2 }); } },
+    { lines: ["Mais dans l'antre de l'Ogre, des lettres attendent encore d'être lues…", "Elles sont scellées d'un crâne, et viennent du Nord."],
+      draw(c, t, now, line) { c.fillStyle = '#0c0806'; c.fillRect(0, 0, CINE_W, CINE_H); cineGlow(c, 480, 300, 260, `rgba(255,150,60,${0.22 + 0.04*Math.sin(now/90)})`);
+        c.save(); c.translate(480, 280); c.rotate(-0.06); c.fillStyle = '#d9c9a0'; c.fillRect(-170, -120, 340, 240); c.fillStyle = '#b9a67a'; c.fillRect(-170, 110, 340, 10);
+        c.fillStyle = 'rgba(60,40,20,.55)'; const r = seeded(9); for (let i=0; i<9; i++) c.fillRect(-140, -95 + i*22, 120 + r()*150, 4);
+        const k = line ? easeIO(t/2) : 0.4; cineGlow(c, 110, 80, 50, `rgba(160,60,255,${0.5*k})`);
+        c.fillStyle = '#5a1a2a'; c.beginPath(); c.arc(110, 80, 26, 0, 7); c.fill(); c.fillStyle = '#e8dcc0'; c.beginPath(); c.arc(110, 74, 11, 0, 7); c.fill(); c.fillRect(103, 80, 14, 8);
+        c.fillStyle = '#5a1a2a'; c.fillRect(104, 71, 5, 5); c.fillRect(111, 71, 5, 5); c.restore(); } },
+    cineCard(0) ],
+  // Acte II : la Faille se referme, puis le Cristal se fissure
+  [ { lines: ["La Faille se referme dans un grondement terrible.", "Le Grand Démon retourne dans les ténèbres d'où il venait."],
+      draw(c, t, now) { const k = 1 - easeIO(t/9); cineSky(c, '#1a0a14', '#4a1a1a'); cineMountains(c, 470, '#2a1a22', null, 5);
+        cineRift(c, 480, 180, 220, 120, Math.max(0.05, k), now);
+        cineFig(c, 'big_demon', 480, 300 - 80*(1-k), 7*Math.max(0.2, k), { shadow: '#12040a', alpha: Math.max(0, k*1.3 - 0.2) });
+        cineGround(c, '#140a0e', 430); cineHero(c, 320, 430, 4.5, { shadow: '#140a0e' }); } },
+    { lines: ["Cette nuit-là, Forest se réveille en sifflant, le poil hérissé.", "Loin au sud, au sanctuaire d'Aubépine, un craquement sinistre résonne…"],
+      draw(c, t, now, line, lt) { cineSky(c, '#060814', '#141c34'); cineStars(c, now, 0.6); cineHills(c, 340, 14, '#0e1422', 2); cineVillage(c, 480, 402, 1.4, false, now); cineGround(c, '#080a12');
+        if (!line) { c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(0, 0, CINE_W, CINE_H); const cat = IMG.forest_anim_f0; if (cat) { cineSprite(c, cat, 480, 400, 14, false); c.fillStyle = '#c8ff6a'; c.fillRect(480 - 6*7, 400 - 8*14 + 2*14, 14, 14); } return; }
+        const cr = lt > 1.2, sh = cr && t < 1.6 ? (Math.random()-0.5)*8 : 0;
+        cineGlow(c, 480+sh, 345, 110, cr ? 'rgba(120,70,190,.3)' : 'rgba(120,200,255,.25)');
+        c.save(); c.translate(480+sh, 418); c.scale(1.6, 1.6); drawCrystalAt(0, 0, cr ? 'cracked' : 'whole', now, c); c.restore(); } },
+    cineCard(1) ],
+  // Acte III : la légende s'illumine, puis la voix du Nécromancien
+  [ { lines: ["Au cœur des ruines, l'Éclipse se dissout dans un dernier cri.", "Sur le mur, la légende s'illumine : des objets de lumière peuvent vaincre celui qui fut enchaîné."],
+      draw(c, t, now, line, lt) { cineSky(c, '#0c0a14', '#2a2238'); c.fillStyle = '#3a3448'; c.fillRect(180, 80, 600, 340); c.fillStyle = '#2c2838'; for (let i=0; i<6; i++) c.fillRect(180, 120 + i*52, 600, 3);
+        for (const x of [140, 820]) { c.fillStyle = '#2a2436'; c.fillRect(x-24, 60, 48, 360); c.fillRect(x-34, 50, 68, 18); }
+        const g = line ? easeIO(lt/2) : 0, r = seeded(14); cineGlow(c, 480, 230, 260, `rgba(255,210,110,${0.3*g})`);
+        for (let i=0; i<5; i++) for (let j=0; j<9; j++) { if (r() < 0.25) continue; c.fillStyle = `rgba(255,${200+r()*40|0},120,${(0.15 + 0.85*g)*(0.7 + 0.3*Math.sin(now/400 + i + j))})`; c.fillRect(230 + j*58 + r()*10, 130 + i*56, 22 + r()*14, 8); c.fillRect(236 + j*58, 140 + i*56, 6, 12); }
+        if (!line) { const k = easeIO(t/4); cineFig(c, 'eclipse_spr', 480, 418, 9, { alpha: 1 - k }); cineParticles(c, now, 60, `rgba(200,140,255,${1-k})`, 3, { speed: 60 }); }
+        cineGround(c, '#16121e'); cineHero(c, 300, 418, 4.5, { shadow: '#16121e' }); } },
+    { lines: ["Dans l'ombre, une voix glaciale résonne une dernière fois :", "« Cherche-les donc… je les trouverai avant toi. »"],
+      draw(c, t, now) { c.fillStyle = '#040308'; c.fillRect(0, 0, CINE_W, CINE_H); const k = easeIO(t/3), p = 0.6 + 0.4*Math.sin(now/300);
+        cineGlow(c, 480, 260, 300, `rgba(120,40,200,${0.25*k})`); c.fillStyle = `rgba(230,120,255,${k*p})`; c.fillRect(420, 250, 34, 12); c.fillRect(506, 250, 34, 12);
+        cineGlow(c, 437, 256, 40, `rgba(230,120,255,${0.4*k*p})`); cineGlow(c, 523, 256, 40, `rgba(230,120,255,${0.4*k*p})`); } },
+    cineCard(2) ],
+  // Acte IV : six lumières s'envolent du Cristal, l'une vers une forêt ancienne
+  [ { lines: ["Dans un éclat aveuglant, le Cristal brille comme au premier jour.", "Six lumières s'en échappent et s'éparpillent aux quatre coins de Valdoria."],
+      draw(c, t, now, line, lt) { cineSky(c, '#141a34', '#4a3a5a'); cineStars(c, now, 0.5); cineHills(c, 340, 14, '#1c1e30', 2); cineVillage(c, 480, 402, 1.4, true, now); cineGround(c, '#12121c');
+        cineGlow(c, 480, 345, 150, 'rgba(255,236,160,.35)'); c.save(); c.translate(480, 418); c.scale(1.6, 1.6); drawCrystalAt(0, 0, 'restored', now, c); c.restore();
+        if (line) for (let i=0; i<6; i++) { const a = -Math.PI/2 + (i-2.5)*0.45, d = easeIO(lt/6)*520, x = 480 + Math.cos(a)*d, y = 330 + Math.sin(a)*d*0.8;
+          cineGlow(c, x, y, 34, 'rgba(255,230,140,.7)'); c.fillStyle = '#fff6d0'; c.fillRect(x-4, y-4, 8, 8); } } },
+    { lines: ["L'une d'elles descend au cœur d'une forêt ancienne, aux arbres immenses.", "Forest miaule doucement : on dirait qu'il connaît cet endroit."],
+      draw(c, t, now, line) { cineSky(c, '#0a1a14', '#2a4a2a'); cineTrees(c, 420, 8, '#163222', 3, 2); cineTrees(c, 440, 11, '#0e2418', 8, 1.3);
+        const y = Math.min(300, 40 + t*45); cineGlow(c, 480, y, 80, 'rgba(255,230,140,.5)'); c.fillStyle = '#fff6d0'; c.fillRect(476, y-4, 8, 8);
+        cineParticles(c, now, 40, 'rgba(200,255,150,.8)', 6, { speed: 15, size: 2 }); cineGround(c, '#0a160e', 440);
+        cineHero(c, 760, 440, 5, { flip: true, shadow: '#0a160e', catEyes: line ? '#9be36a' : null }); } },
+    cineCard(3) ],
+  // Acte V : le Cœur de Sylve, puis une montagne de feu
+  [ { lines: ["Le Grand Tréant est purifié. À ses racines brille le Cœur de Sylve, la première Relique de l'Aube.", "Quand tu la prends, les yeux de Forest s'illuminent d'or."],
+      draw(c, t, now, line) { cineSky(c, '#10241a', '#3a5a32'); cineTrees(c, 420, 9, '#1a3a22', 5, 1.8); cineParticles(c, now, 50, 'rgba(220,255,160,.8)', 2, { speed: 12, size: 2 });
+        cineFig(c, 'treant_spr', 300, 420, 8, { shadow: '#122a18' }); cineGround(c, '#0c1a10');
+        cineGem(c, 520, line ? 300 : 360 - 20*Math.sin(now/600), 1.1, '#5ad16a', 'rgba(240,220,120,.55)', now);
+        cineHero(c, 660, 418, 5, { flip: true, shadow: '#0c1a10', catEyes: line ? '#ffd34a' : null }); } },
+    { lines: ["Dans la lumière de la relique, une nouvelle piste se dessine…", "Une montagne qui crache du feu, très loin à l'est."],
+      draw(c, t, now) { cineSky(c, '#1a0c10', '#6a2a1a'); cineGlow(c, 480, 300, 340, 'rgba(120,255,140,.12)'); cineVolcano(c, 480, 430, 330, 260, '#2a1214', now);
+        cineParticles(c, now, 40, 'rgba(255,140,40,.9)', 7, { speed: 50, size: 3 }); cineGround(c, '#140808', 430); } },
+    cineCard(4) ],
+  // Acte VI : la Braise d'Aube, puis la silhouette masquée
+  [ { lines: ["Ignarok s'effondre dans la lave.", "Au fond du cratère, une flamme dorée brûle sans jamais faiblir : la Braise d'Aube."],
+      draw(c, t, now, line) { cineSky(c, '#1a0806', '#5a1a0a'); cineParticles(c, now, 60, 'rgba(255,150,50,.9)', 8, { speed: 70, size: 3 });
+        if (!line) { const k = easeIO(t/4); cineFig(c, 'ignarok_spr', 480, 430 + 120*k, 9, { alpha: 1 - k*0.6 }); }
+        c.fillStyle = '#e24a10'; c.fillRect(0, 430, CINE_W, 110); for (let x=0; x<CINE_W; x+=24) { c.fillStyle = `rgba(255,200,60,${0.4+0.3*Math.sin(now/300+x)})`; c.fillRect(x, 430 + 6*Math.sin(now/400 + x/50), 14, 4); }
+        if (line) { cineGlow(c, 480, 330, 120, 'rgba(255,210,90,.55)'); c.fillStyle = '#ffd46a'; c.beginPath(); c.moveTo(480, 280 + 6*Math.sin(now/150)); c.quadraticCurveTo(510, 340, 480, 370); c.quadraticCurveTo(450, 340, 480, 280); c.fill(); c.fillStyle = '#fff3c0'; c.fillRect(476, 335, 8, 22); } } },
+    { lines: ["Au bord du cratère, une silhouette masquée apparaît, Brenna à ses côtés.", "« Deux sur six… Profite de ta victoire. »"],
+      draw(c, t, now, line, lt) { cineSky(c, '#2a0c08', '#7a3010'); cineGlow(c, 480, 540, 400, 'rgba(255,120,40,.35)'); cineParticles(c, now, 40, 'rgba(255,170,60,.8)', 9, { speed: 60, size: 2 });
+        c.fillStyle = '#1a0806'; c.beginPath(); c.moveTo(0, 360); c.lineTo(380, 380); c.lineTo(600, 360); c.lineTo(CINE_W, 390); c.lineTo(CINE_W, CINE_H); c.lineTo(0, CINE_H); c.fill();
+        const a = line ? Math.max(0, 1 - Math.max(0, lt - 3.5)/2) : easeIO(t/1.5);
+        cineFig(c, 'wizzard_m', 470, 372, 8, { shadow: '#0a0404', mask: true, alpha: a }); cineFig(c, 'dwarf_f', 560, 372, 7, { shadow: '#0a0404', alpha: a }); } },
+    cineCard(5) ],
+  // Acte VII : la Perle d'Aube, puis l'inscription de l'Ordre
+  [ { lines: ["Le Kraken s'enfonce dans l'ombre des abysses.", "Sur l'autel, une perle nacrée brille d'une lumière douce : la Perle d'Aube."],
+      draw(c, t, now, line) { cineSky(c, '#0a3a4a', '#04121a'); for (let i=0; i<5; i++) { c.fillStyle = `rgba(160,240,255,${0.05+0.03*Math.sin(now/800+i)})`; c.beginPath(); c.moveTo(200 + i*140, 0); c.lineTo(160 + i*140, 420); c.lineTo(220 + i*140, 420); c.lineTo(240 + i*140, 0); c.fill(); }
+        cineParticles(c, now, 30, 'rgba(200,250,255,.6)', 5, { speed: 40, size: 3 });
+        if (!line) { const k = easeIO(t/6); cineFig(c, 'kraken', 480, 300 + 240*k, 9, { alpha: 1 - k*0.8 }); }
+        c.fillStyle = '#0a2a34'; c.fillRect(0, 420, CINE_W, 120); c.fillStyle = '#4a6a74'; c.fillRect(420, 380, 120, 40); c.fillStyle = '#6a8a94'; c.fillRect(410, 372, 140, 10);
+        if (line) { cineGlow(c, 480, 352, 90, 'rgba(230,250,255,.55)'); c.fillStyle = '#f4f8ff'; c.beginPath(); c.arc(480, 352, 14, 0, 7); c.fill(); c.fillStyle = '#ffffff'; c.fillRect(474, 344, 5, 5); } } },
+    { lines: ["Sur la pierre de l'autel, l'Ordre a recopié une inscription à la craie : une montagne enneigée.", "Ils savent déjà où chercher la quatrième relique…"],
+      draw(c, t, now) { c.fillStyle = '#3a4a50'; c.fillRect(0, 0, CINE_W, CINE_H); const r = seeded(21); c.fillStyle = 'rgba(0,0,0,.18)'; for (let i=0; i<40; i++) c.fillRect(r()*CINE_W, r()*CINE_H, 30 + r()*80, 3);
+        const k = Math.min(1, t/4); c.strokeStyle = 'rgba(240,240,230,.85)'; c.lineWidth = 4; c.beginPath(); const pts = [[260,380],[400,170],[470,250],[560,120],[700,380]];
+        c.moveTo(...pts[0]); for (let i=1; i<pts.length && i <= k*pts.length + 0.5; i++) c.lineTo(...pts[i]); c.stroke();
+        if (k > 0.8) { c.beginPath(); c.moveTo(520, 180); c.lineTo(560, 150); c.lineTo(600, 180); c.stroke(); }
+        c.font = 'bold 34px Georgia, serif'; c.fillStyle = `rgba(240,240,230,${Math.max(0, k*1.5-0.8)})`; c.textAlign = 'center'; c.fillText('✦  IV  ✦', 480, 440); } },
+    cineCard(6) ],
+  // Acte VIII : le Flocon volé, puis la prison qui se fissure
+  [ { lines: ["Au sommet du Givreval, Hrimgar s'effondre enfin dans la neige.", "« Trois pour toi, une pour moi… La partie ne fait que commencer. »"],
+      draw(c, t, now, line, lt) { cineSky(c, '#2a3448', '#8a9ab0'); cineMountains(c, 470, '#5a6a80', '#e8f0ff', 12);
+        if (!line) { const k = easeIO((t-1)/3); cineFig(c, 'hrimgar_spr', 300, 420 + 60*k, 9, { alpha: 1 - k*0.7 }); }
+        const a = line ? Math.max(0, 1 - Math.max(0, lt - 3)/2.5) : 1;
+        cineFig(c, 'wizzard_m', 640, 420, 7, { shadow: '#1a1c28', mask: true, alpha: a });
+        cineGem(c, 668, 300, 0.6, '#e8f6ff', `rgba(180,220,255,${0.6*a})`, now);
+        cineGround(c, '#d8e2f0', 420); cineSnow(c, now); cineSnow(c, now*1.7 + 3000); } },
+    { lines: ["Au loin, le ciel se fend d'une longue lueur violette.", "La prison du Nécromancien commence à se fissurer…"],
+      draw(c, t, now, line, lt) { cineSky(c, '#06040e', '#1a1030'); cineStars(c, now, 0.8); cineRift(c, 480, 200, 360, 50, easeIO(t/5), now);
+        if (line) { const k = easeIO(lt/2.5), p = 0.6 + 0.4*Math.sin(now/250); c.fillStyle = `rgba(255,140,255,${k*p})`; c.fillRect(440, 190, 20, 7); c.fillRect(500, 190, 20, 7); }
+        cineMountains(c, 470, '#0c0a18', '#3a3450', 12); cineGround(c, '#08060e', 430); cineHero(c, 480, 430, 4.5, { shadow: '#08060e' }); } },
+    cineCard(7) ],
+];
+function actEnds() { const e = []; STORY_RECAP.forEach((r, i) => { if (!STORY_RECAP[i+1] || STORY_RECAP[i+1].act !== r.act) e.push(i); }); return e; }
+function playActEnd(n, done) { if (ACT_SHOTS[n]) playCine(ACT_SHOTS[n], done); else if (done) done(); }
 function showGuides(back) {
   const k = t => `<kbd>${t}</kbd>`;
   overlay(`<h2>Guides · Héritiers de l'Aube</h2>
@@ -3997,7 +4290,7 @@ function showMenu() {
     if (confirm(`Supprimer définitivement ${c.name || CLASSES[c.cls].name} (${CLASSES[c.cls].name.toLowerCase()} niv. ${c.level}) ? Pense à l'exporter avant si tu veux le garder.`)) { deleteSlot(c.slot); showMenu(); } });
   document.querySelectorAll('.cls').forEach(b => b.onclick = () => { const nm = $('#heroName').value.trim().replace(/[<>&"]/g, '').slice(0,16);
     if (!nm) { $('#heroName').focus(); $('#heroName').classList.add('need'); $('#heroName').placeholder = 'Choisis d\'abord un nom !'; return; }
-    G.profile = { name:nm, cls:b.dataset.cls, level:1, xp:0, story:0, quests:{}, v:2, cleared:[], pos:'village', inv:[], equip:{}, gold:0, nextId:1, slot:newSlot(), lastPlayed:Date.now() }; G.scenes = []; save(); openMap(); });
+    G.profile = { name:nm, cls:b.dataset.cls, level:1, xp:0, story:0, quests:{}, v:2, cleared:[], pos:'village', inv:[], equip:{}, gold:0, nextId:1, slot:newSlot(), lastPlayed:Date.now() }; G.scenes = []; save(); playIntro(openMap); });
 }
 // ---------- Export / import de la sauvegarde (fichier ou code à copier-coller) ----------
 const saveToCode = txt => btoa(unescape(encodeURIComponent(txt)));
