@@ -54,6 +54,11 @@
   .chip.hov { outline:2px solid #fff; }
   #overlay.hide { display:none; }
   .box { background:var(--panel); border:2px solid #3a4459; border-radius:14px; padding:26px 30px; max-width:680px; width:calc(100% - 32px); text-align:center; }
+  .box { position:relative; } .xclose { position:absolute; top:10px; right:12px; width:34px; height:34px; border-radius:8px; border:1px solid #3a4459; background:var(--panel2); color:var(--text); font-size:18px; cursor:pointer; z-index:2; } .xclose:hover { border-color:var(--gold); color:var(--gold); }
+  .lvcard { text-align:left; background:#1b2232; border:2px solid var(--gold); border-radius:10px; padding:10px 14px; margin:10px 0; }
+  .lvcard.forest { border-color:#b08cff; } .lvcard h4 { margin:0 0 4px; font-size:17px; color:var(--gold); } .lvcard.forest h4 { color:#cdb4ff; }
+  .lvcard .chips span { display:inline-block; background:var(--panel); border:1px solid #3a4459; border-radius:12px; padding:3px 10px; margin:4px 5px 0 0; font-size:14px; color:var(--text); }
+  .lvcard .help { margin:8px 0 0; }
   .box h1 { margin:0 0 4px; color:var(--gold); font-size:30px; }
   .box h2 { margin:0 0 10px; color:var(--gold); }
   .box p { color:#cfc8b6; line-height:1.45; }
@@ -78,6 +83,7 @@
   .item img { width:36px; height:36px; object-fit:contain; image-rendering:pixelated; flex:none; }
   .item .txt { flex:1; min-width:0; } .item .txt b { display:block; } .item small { display:block; color:var(--muted); }
   .item .act { display:flex; flex-direction:column; gap:4px; }
+  .smith .act .btn { white-space:normal; max-width:140px; line-height:1.2; } .smith .act .btn small { display:block; font-weight:400; font-size:11px; margin-top:2px; }
   .btn.sm { padding:5px 10px; font-size:12px; margin:0; white-space:nowrap; }
   .item .btn.alt { background:#3e4860; }
   .btn:disabled { opacity:.45; cursor:default; }
@@ -130,8 +136,8 @@
   .charrow img { height:34px; image-rendering:pixelated; } .charrow .txt { flex:1; } .charrow .txt b { display:block; } .charrow small { color:var(--muted); }
   .charrow .btn { margin:0; } .charrow .btn.sm { padding:6px 10px; font-size:17px; }
   .savecode { width:100%; height:70px; font:12px monospace; background:var(--panel2); color:var(--text); border:2px solid #3a4459; border-radius:8px; padding:6px; resize:vertical; word-break:break-all; }
-  #hfToast { position:absolute; right:12px; top:12px; display:flex; gap:10px; align-items:center; background:rgba(20,24,33,.95); border:2px solid var(--gold); border-radius:10px; padding:8px 14px; max-width:320px; z-index:20; pointer-events:none; opacity:0; transform:translateY(-10px); transition:opacity .3s, transform .3s; }
-  #hfToast.on { opacity:1; transform:none; }
+  #hfToast { position:absolute; right:12px; top:12px; display:flex; gap:10px; align-items:center; background:rgba(20,24,33,.95); border:2px solid var(--gold); border-radius:10px; padding:8px 14px; max-width:320px; z-index:20; pointer-events:none; cursor:pointer; opacity:0; transform:translateY(-10px); transition:opacity .3s, transform .3s; }
+  #hfToast.on { opacity:1; transform:none; pointer-events:auto; } #hfToast.on:hover { border-color:#fff3; box-shadow:0 0 0 2px var(--gold); }
   /* effets du nom (débloqués par les hauts faits) */
   .nfx { display:inline-flex; align-items:center; white-space:nowrap; }
   .nfx .t { background:var(--grad); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; font-weight:800; filter:drop-shadow(0 0 5px var(--g)); }
@@ -153,7 +159,7 @@
   .feats { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:8px; }
   .feat { display:flex; gap:10px; align-items:center; background:var(--panel2); border:2px solid #3a4459; border-radius:8px; padding:6px 10px; opacity:.6; }
   .feat.got { opacity:1; border-color:#f4c84a99; } .feat.got b { color:var(--gold); } .feat .txt { flex:1; } .feat small { display:block; font-size:12px; }
-  .feat .pts { font-weight:700; color:var(--gold); } .fbar { height:5px; background:#222a38; border-radius:3px; margin-top:3px; } .fbar div { height:100%; background:var(--pm); border-radius:3px; }
+  .feat .pts { display:block; margin:0; font-weight:700; color:var(--gold); } .fbar { height:5px; background:#222a38; border-radius:3px; margin-top:3px; } .fbar div { height:100%; background:var(--pm); border-radius:3px; }
   /* tactile (iPad) : pas de zoom au double toucher, pas de loupe ni de surbrillance */
   html { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
   body.touch { -webkit-user-select:none; -webkit-touch-callout:none; }
@@ -658,7 +664,7 @@ const ZONES = [
   { id:'col', chapter:6, region:2, name:'Col des brumes', x:265, y:330, tier:5, icon:'fight', foes:['squelette','squelette','zombie'], desc:'Un col noyé dans la brume, où rôdent des morts-vivants.' },
   { id:'cimetiere', chapter:7, region:2, name:'Cimetière oublié', x:360, y:180, tier:6, icon:'fight', foes:['zombie','squelette','givre','zombie'], desc:'Chaque nuit, de nouveaux morts sortent de terre.' },
   { id:'lac', chapter:8, region:2, name:'Lac gelé', x:430, y:420, tier:6, icon:'fight', foes:['givre','givre','squelette','orcmasque'], desc:'Des Zombies de givre gardent le lac où le Nécromancien puise sa magie.' },
-  { id:'forteresse', chapter:9, region:2, name:'Forteresse en ruine', x:565, y:250, tier:7, icon:'fight', foes:['orcmasque','diablotin','squelette','necro'], desc:"L'élite du Nécromancien, les Orcs masqués, tient la forteresse." },
+  { id:'forteresse', chapter:9, region:2, name:'Forteresse en ruine', x:565, y:250, tier:7, icon:'fight', foes:['orcmasque','diablotin','squelette','givre'], desc:"L'élite du Nécromancien, les Orcs masqués, tient la forteresse." },
   { id:'tour', chapter:10, region:2, name:'Tour du Nécromancien', x:655, y:420, tier:8, icon:'boss', foes:['zombiegeant','necro','squelette','givre'], desc:'Le Nécromancien et son Zombie géant préparent un terrible rituel.' },
   { id:'miroir', chapter:13, region:2, name:'Ruines de la tour', x:745, y:470, tier:10, icon:'fight', foes:['gardien','ombre','ombre'], desc:'Dans les ruines de la tour, un Gardien veille sur un étrange miroir noir.' },
   { id:'faille', chapter:11, region:2, name:'Faille démoniaque', x:790, y:300, tier:9, icon:'boss', foes:['demon','chort','diablotin'], desc:'Un Grand Démon tente de franchir la Faille. Dernier combat !' },
@@ -736,13 +742,25 @@ const LINKS = [['village','lisiere'],['lisiere','champs'],['lisiere','marais'],[
   ['champs','cote'],['remontercote','portecume'],['portecume','quais'],['quais','recifs'],['recifs','thalassar'],['recifs','jardins'],['thalassar','amphitheatre'],['jardins','amphitheatre'],['amphitheatre','abysses'],
   ['camp','givreval'],['descendregivre','refuge'],['refuge','sentiers'],['sentiers','monastere'],['monastere','bibliogelee'],['bibliogelee','coltempetes'],['bibliogelee','sanctgivre'],['coltempetes','sanctgivre'],['sanctgivre','sommet']];
 const FIGHT_ZONES = ZONES.filter(z => z.foes);
-const zoneById = id => ZONES.find(z => z.id===id);
+const zoneById = id => ZONES.find(z => z.id===id) || dunZone(id);
+// Salles d'un donjon de boss : « antre#1 », « antre#2 » (monstres), « antre#3 » (salle du boss). Ce ne sont pas des zones de la carte.
+const DUN_Z = {};
+function dunZone(id) {
+  if (typeof id!=='string' || !id.includes('#')) return undefined;
+  const [bid, k] = id.split('#'), b = ZONES.find(z => z.id===bid), n = +k; if (!b || !b.foes || !(n >= 1 && n <= DUNGEON_ROOMS+1)) return undefined;
+  const sig = b.foes.join() + b.name, c = DUN_Z[id]; if (c && c.sig===sig) return c.z;
+  const boss = n > DUNGEON_ROOMS, z = { id, name: boss ? `${b.name} · Salle du boss` : `${b.name} · Salle ${n}`, region:b.region, tier:b.tier, x:b.x, y:b.y, chapter:b.chapter,
+    icon:'dungeon', foes: boss ? b.foes.slice() : dungeonRoom(b, n).foes, dun:{ base:bid, n, boss },
+    desc: boss ? `${MONSTERS[b.foes[0]].name} t'attend au fond du donjon.` : `Salle ${n} du donjon : bats les monstres pour ouvrir la porte suivante.` };
+  DUN_Z[id] = { sig, z }; return z;
+}
+const dunRun = z => z && z.dun && G.dunRun && G.dunRun.id===z.dun.base ? G.dunRun : null;
 const neighbors = id => LINKS.filter(l => l.includes(id)).map(l => l[0]===id ? l[1] : l[0]);
 const isCleared = id => zoneById(id).foes ? G.profile.cleared.includes(id) : storyAllows(id);
 const regionOf = id => zoneById(id).region || 1;
 const curRegion = () => regionOf(G.profile.pos);
 const storyAllows = id => (zoneById(id).chapter ?? 0) <= G.profile.story;
-const isOpen = id => storyAllows(id) && (isCleared(id) || neighbors(id).some(isCleared));
+const isOpen = id => { const z = zoneById(id); if (z && z.dun) { const r = dunRun(z); return !!r && r.done >= z.dun.n - 1; } return storyAllows(id) && (isCleared(id) || neighbors(id).some(isCleared)); };
 const SAVE_KEY = 'chroniques-plaine-save';
 // plusieurs personnages : liste de profils (chacun avec son identifiant p.slot) ; l'ancienne sauvegarde unique devient le premier
 const SLOTS_KEY = 'chroniques-plaine-persos';
@@ -809,6 +827,7 @@ const safeLine = () => storageSafe ? `<p class="help" style="color:var(--pm)">�
 function renderFileBox() {
   const b = $('#fileBox'); if (!b) return;
   if (!FS_OK) { b.innerHTML = safeLine() + `<p class="help">Ta progression est gardée dans ce navigateur. Pour ne pas la perdre si tu effaces tes données de navigation, exporte tes personnages avec 💾 (ou ouvre le jeu avec Chrome ou Edge pour l'enregistrer dans un fichier).</p>`; return; }
+  if (saveFileOn) document.querySelectorAll('.bkHint').forEach(e => e.remove());
   const name = saveFile && saveFile.name;
   b.innerHTML = safeLine() + (saveFileOn ? `<p class="help" style="color:var(--pm)">✔ Tes personnages sont aussi enregistrés dans le fichier <b>${name}</b> sur ton PC. </p><button class="btn alt sm" id="fNew">Créer un autre fichier</button> <button class="btn alt sm" id="fOpen">Ouvrir un autre fichier</button>`
     : name ? `<p class="help">Fichier de sauvegarde : <b>${name}</b>. Le navigateur demande ton accord à chaque lancement.</p><button class="btn" id="fRe">Reconnecter ${name}</button><button class="btn alt" id="fOpen">Ouvrir un autre fichier</button>`
@@ -830,7 +849,7 @@ function heroStats(p) {
   const c = CLASSES[p.cls], lv = p.level;
   const g = gearTotals(p);
   const t = charPoints(p).pts, ml = mealBonus(p);
-  return { hp: Math.round((c.hp + (lv-1)*LV_HP + t.vit*CARACS.vit.per + g.vie) * (1 + ml.vie/100)), pa: c.pa + (lv>=5) + (lv>=10) + (lv>=20) + g.pa, pm: c.pm + (lv>=3) + (lv>=15) + (lv>=25) + g.pm,
+  return { hp: Math.round((c.hp + (lv-1)*LV_HP + t.vit*CARACS.vit.per + g.vie) * (1 + ml.vie/100)), pa: c.pa + (lv>=12) + (lv>=30) + (lv>=50) + g.pa, pm: c.pm + (lv>=8) + (lv>=25) + (lv>=40) + g.pm,
     mul: 1 + (lv-1)*LV_DMG + (t.for*CARACS.for.per + g.puissance + ml.puissance)/100, res: Math.min(50, g.resistance + Math.floor(t.sag*CARACS.sag.per)), crit: Math.min(c.critCap || CRIT_CAP, (c.crit || CRIT_CHANCE) + t.agi*CARACS.agi.per/100) };
 }
 // ---------- Points de caractéristique et de sort (gagnés à chaque niveau) ----------
@@ -842,6 +861,7 @@ const CARACS = {
   agi: { name:'Agilité', per:0.5, desc:'+0,5 % de chance de coup critique par point (30 % au plus, 40 % pour le Roublard)' },
   sag: { name:'Sagesse', per:0.5, desc:'+1 % de résistance tous les 2 points (50 % au plus, équipement compris)' },
 };
+const resetCost = p => 50 * p.level;            // réinitialiser ses points de caractéristiques ou de sorts (06/10 : dépense d'or)
 const spellRankCost = r => r - 1;               // passer au rang r coûte r-1 points (façon Dofus)
 function charPoints(p) {
   p.pts = p.pts || {}; for (const k of ['vit','for','agi','sag']) p.pts[k] = p.pts[k] || 0; p.ranks = p.ranks || {}; // rempli sur place : remplacer p.pts perdait les clics sur +1
@@ -946,7 +966,7 @@ ${pips}</b>
     <h3>Caractéristiques : ${c.free} point${c.free>1?'s':''} à répartir</h3><div class="pts">${Object.keys(CARACS).map(row).join('')}</div>
     <h3>Sorts : ${c.sfree} point${c.sfree>1?'s':''} de sort</h3><p class="help">Monter un sort au rang suivant coûte autant de points que son rang actuel (rang 2 : 1 point, rang 3 : 2 points…). Chaque rang donne +8 % de dégâts ou de soins. Selon le sort, certains rangs ajoutent aussi de la portée, réduisent la relance ou donnent un lancer de plus par tour. Clique sur les chiffres 1 à 5 à côté d'un sort pour voir ses effets à ce rang. Les flèches ↑ ↓ changent l'ordre des sorts dans la barre de combat et leurs raccourcis.</p>
     <div class="pts one">${order.map(srow).join('')}</div>
-    <p><button class="btn alt" id="ptAuto"${c.free || c.sfree ? '' : ' disabled'}>Répartir automatiquement</button><button class="btn alt" id="ptReset">Réinitialiser les caractéristiques</button><button class="btn alt" id="spReset">Réinitialiser les sorts</button></p>
+    <p><button class="btn alt" id="ptAuto"${c.free || c.sfree ? '' : ' disabled'}>Répartir automatiquement</button><button class="btn alt" id="ptReset"${p.gold < resetCost(p) ? ' disabled' : ''}>Réinitialiser les caractéristiques · ${resetCost(p)} or</button><button class="btn alt" id="spReset"${p.gold < resetCost(p) ? ' disabled' : ''}>Réinitialiser les sorts · ${resetCost(p)} or</button></p>
     <button class="btn" id="b1">${back ? 'Retour' : 'Fermer'}</button>`, true);
   const ov = $('#overlay'), redo = () => { save(); refreshMapTitle(); updateCharBtn(); const sc = ov.querySelector('.box').scrollTop; showCharacter(back); ov.querySelector('.box').scrollTop = sc; };
   ov.querySelectorAll('[data-pt]').forEach(b => b.onclick = () => { const k = b.dataset.pt, n = +b.dataset.n; p.pts[k] = Math.max(0, p.pts[k] + (n > 0 ? Math.min(n, charPoints(p).free) : n)); play('equip'); redo(); });
@@ -957,8 +977,8 @@ ${pips}</b>
     if (r < SPELL_MAX_RANK && charPoints(p).sfree >= spellRankCost(r+1)) { p.ranks[sp.id] = r+1; play('buff'); } redo(); });
   if ($('#collarUp')) $('#collarUp').onclick = () => { const ok = upgradeCollar(); if (ok) play('buff'); redo(); if (ok) flashMsg(`Forest ronronne : il porte maintenant un ${COLLAR_NAMES[p.collar-1].toLowerCase()} (niveau ${p.collar}) !`); };
   $('#ptAuto').onclick = () => { autoPoints(p); play('equip'); redo(); };
-  $('#ptReset').onclick = () => { for (const k in p.pts) p.pts[k] = 0; redo(); };
-  $('#spReset').onclick = () => { p.ranks = {}; redo(); };
+  $('#ptReset').onclick = () => { if (!Object.values(p.pts).some(v => v) || p.gold < resetCost(p)) return; p.gold -= resetCost(p); for (const k in p.pts) p.pts[k] = 0; redo(); };
+  $('#spReset').onclick = () => { if (!Object.keys(p.ranks || {}).length || p.gold < resetCost(p)) return; p.gold -= resetCost(p); p.ranks = {}; redo(); };
   ov.dataset.menu = 'char';
   wireTitleSelect(p); wireFxPick(p, redo);
   $('#cardBtn').onclick = () => showShareCard(() => showCharacter(back));
@@ -996,11 +1016,70 @@ function makeUnit(def, team, x, y, extra={}) {
     ranged:!!def.ranged, mul:1, cds:{}, uses:{}, alive:true, scale: def.big || 1 }, extra);
 }
 
+// Mécanique propre à chaque boss (affichée avant d'entrer dans le donjon et au survol du boss)
+const BOSS_MECHS = {
+  ogre: ["Colère de l'Ogre", 'sous la moitié de ses PV, il enrage et frappe 30 % plus fort.'],
+  zombiegeant: ['Chair qui repousse', 'il récupère 5 % de ses PV au début de chacun de ses tours.'],
+  demon: ['Aura infernale', 'au début de son tour, il te brûle si tu es à 2 cases ou moins de lui.'],
+  pretresse: ['Protection des fidèles', "elle subit 35 % de dégâts en moins tant qu'un de ses alliés est debout."],
+  eclipse: ['Dévoreuse de lumière', 'tous les 3 tours, elle te retire 1 PA pour ton prochain tour.'],
+  bourreau: ['Exécution', 'il frappe 50 % plus fort une cible qui a moins de 35 % de ses PV.'],
+  grandtreant: ['Écorce épineuse', 'il renvoie 20 % des dégâts reçus au corps à corps.'],
+  ignarok: ['Fournaise', 'à partir du 4e tour, ses dégâts augmentent de 8 % à chaque tour.'],
+  kraken: ['Étreinte des abysses', 'si tu commences ton tour collé à lui, tu perds 2 PM.'],
+  hrimgar: ['Armure de glace', 'un bouclier de glace absorbe des dégâts égaux à 15 % de ses PV et se reforme tous les 4 tours.'],
+};
+const mechText = k => BOSS_MECHS[k] ? `${BOSS_MECHS[k][0]} : ${BOSS_MECHS[k][1]}` : '';
+// annonce bien visible d'une mécanique de boss (au-dessus du plateau, plus longue que la bannière de tour), aussi notée dans le journal
+function mechAlert(t) {
+  let e = $('#mechban');
+  if (!e) { e = document.createElement('div'); e.id = 'mechban'; e.style.cssText = 'position:fixed;left:50%;top:18%;transform:translateX(-50%);max-width:70vw;padding:9px 20px;background:rgba(60,12,22,.93);border:2px solid #ff5a4a;color:#ffd8cf;font:bold 18px Segoe UI,sans-serif;border-radius:10px;z-index:40;pointer-events:none;transition:opacity .4s;opacity:0;text-align:center;box-shadow:0 0 24px rgba(255,80,60,.35)'; document.body.appendChild(e); }
+  e.textContent = '⚠️ ' + t; e.style.opacity = 1; clearTimeout(G.mechT); G.mechT = setTimeout(() => e.style.opacity = 0, SPEED > 8 ? 30 : 3200);
+  log('⚠️ ' + t); play('bouclier');
+}
+// bonus de dégâts d'un boss contre une cible
+function mechAtk(u, t) {
+  if (u.mech==='ogre' && u.enraged) return 1.3;
+  if (u.mech==='bourreau' && t.hp < t.maxHp*0.35) { addFloat(t.x, t.y-.5, 'Exécution !', '#ff5a4a'); return 1.5; }
+  if (u.mech==='ignarok' && G.round >= 4) return 1 + 0.08*(G.round-3);
+  return 1;
+}
+// effets au début du tour d'une unité (boss, ou héros soumis à un boss)
+function mechTurn(u) {
+  const h = G.hero, boss = G.units.filter(o => o.alive && o.mech);
+  if (u===h) {
+    if (h.paMalus) { h.pa = Math.max(0, h.pa - h.paMalus); addFloat(h.x,h.y,`-${h.paMalus} PA`,'#c58bff'); mechAlert(`Dévoreuse de lumière : tu perds ${h.paMalus} PA ce tour.`); h.paMalus = 0; }
+    const k = boss.find(b => b.mech==='kraken' && man(b.x,b.y,h.x,h.y)===1);
+    if (k) { h.pm = Math.max(0, h.pm - 2); addFloat(h.x,h.y,'-2 PM','#9fe3ff'); mechAlert(`Étreinte des abysses : le Kraken t'enserre, -2 PM ce tour. Éloigne-toi de lui !`); }
+    return;
+  }
+  if (!u.mech) return;
+  if (u.mech==='zombiegeant') { const g = Math.min(u.maxHp-u.hp, Math.round(u.maxHp*0.05)); if (g > 0) { u.hp += g; addFloat(u.x,u.y,`+${g}`,'#5ad16a'); if (!u.mechSaid) { u.mechSaid = true; mechAlert(`Chair qui repousse : le Zombie géant récupère ${g} PV à chaque tour. Frappe fort !`); } else log(`La chair de ${u.name} repousse : +${g} PV.`); } }
+  if (u.mech==='demon' && man(u.x,u.y,h.x,h.y) <= 2) { mechAlert('Aura infernale : tu es à 2 cases ou moins du Grand Démon, tu brûles !'); hurt(h, Math.max(1, Math.round(6*u.mul))); checkEnd(); }
+  if (u.mech==='eclipse' && G.round % 3===0) { h.paMalus = 1; addFloat(h.x,h.y,'Lumière dévorée','#c58bff'); mechAlert(`Dévoreuse de lumière : l'Éclipse te prendra 1 PA à ton prochain tour.`); }
+  if (u.mech==='ignarok' && G.round >= 4) { addFloat(u.x,u.y,`+${Math.round(8*(G.round-3))} %`,'#ff7a1a'); mechAlert(`Fournaise : les dégâts d'Ignarok montent à +${Math.round(8*(G.round-3))} %. Finis-le vite !`); }
+  if (u.mech==='hrimgar' && G.round % 4===0 && !u.ice) { u.ice = Math.round(u.maxHp*0.15); addFloat(u.x,u.y,'Armure de glace','#9fe3ff'); mechAlert(`Armure de glace : le bouclier de Hrimgar se reforme (${u.ice} PV).`); }
+}
+// dégâts reçus par un boss : protections, colère, épines (G.caster = l'unité qui lance le sort en cours)
+function mechHurt(t, v) {
+  if (t.mech==='pretresse' && G.units.some(o => o.alive && o.team==='enemy' && o!==t)) { v = Math.max(1, Math.round(v*0.65)); addFloat(t.x, t.y-.5, 'Protégée', '#ffd36a');
+    if (!t.mechSaid) { t.mechSaid = true; mechAlert('Protection des fidèles : la Grande Prêtresse subit 35 % de dégâts en moins tant que ses alliés sont debout.'); } }
+  if (t.mech==='hrimgar' && t.ice) { const a = Math.min(t.ice, v); t.ice -= a; v -= a; addFloat(t.x,t.y-.4,`Glace -${a}`,'#9fe3ff'); if (!t.ice) mechAlert('Armure de glace brisée ! Hrimgar prend tous les dégâts… jusqu\'à ce qu\'elle se reforme.'); }
+  return v;
+}
+function mechAfter(t, v) {
+  if (t.mech==='ogre' && t.alive && !t.enraged && t.hp < t.maxHp/2) { t.enraged = true; addFloat(t.x,t.y,'Colère !','#ff5a4a'); mechAlert(`Colère de l'Ogre : le Chef Ogre enrage, ses coups font 30 % de dégâts en plus !`); }
+  const c = G.caster;
+  if (t.mech==='grandtreant' && c && c.team==='hero' && c.alive && man(c.x,c.y,t.x,t.y)===1 && v > 0) { G.caster = null; if (!t.mechSaid) { t.mechSaid = true; mechAlert('Écorce épineuse : le Grand Tréant renvoie 20 % des dégâts reçus au corps à corps. Frappe-le de loin !'); } else log(`Les épines de ${t.name} te blessent.`); addFloat(c.x, c.y-.5, 'Épines', '#9be36a'); hurt(c, Math.max(1, Math.round(v*0.2))); G.caster = c; }
+}
+
 // Donjon : chaque boss attend au fond, derrière 2 salles de monstres de sa zone. Les PV se gardent d'une salle à l'autre,
 // avec un petit soin à chaque entrée ; une défaite fait ressortir du donjon (on recommence à la salle 1).
 const DUNGEON_ROOMS = 2, DUNGEON_HEAL = 0.25;
+// Les boss (et le Nécromancien) n'apparaissent que dans la salle du boss de leur donjon, jamais dans les groupes ordinaires
+const bossOnly = k => k==='necro' || ZONES.some(z => z.icon==='boss' && z.foes[0]===k) || Object.values(ZONE_PHASES).some(l => l.some(ph => ph.icon==='boss' && ph.foes[0]===k));
 function dungeonRoom(z, n) {
-  const pool = z.foes.length > 1 ? z.foes.slice(1) : z.foes;
+  const p0 = z.foes.slice(1).filter(k => !bossOnly(k)), pool = p0.length ? p0 : z.foes.slice(1);
   return { ...z, icon:'room', name:`${z.name} · Salle ${n}/${DUNGEON_ROOMS}`, foes:[0,1,2].map(i => pool[(i + n - 1) % pool.length]) };
 }
 function startFight(zoneId, room, group) {
@@ -1008,8 +1087,9 @@ function startFight(zoneId, room, group) {
   G.token++;
   const token = G.token;
   applyPhases();
-  const base = zoneById(zoneId), carry = G.dungeon && G.dungeon.id===zoneId && room > 1 ? G.dungeon.hp : null;
+  const base = zoneById(zoneId), run = G.dunRun && G.dunRun.id===zoneId ? G.dunRun : null, carry = run && room > 1 ? run.hp : null;
   G.dungeon = base.icon==='boss' && !group ? { id:zoneId, room: room || 1, hp:carry } : null;
+  if (G.dungeon && !run) G.dunRun = { id:zoneId, done:G.dungeon.room - 1, hp:null, cine:true }; // combat lancé hors du donjon (mode test)
   const f = group ? { ...base, icon:'fight', foes:group, extra:true } : G.dungeon && G.dungeon.room <= DUNGEON_ROOMS ? dungeonRoom(base, G.dungeon.room) : G.dungeon ? { ...base, name:`${base.name} · Salle du boss` } : base;
   G.zone = f; G.seed = rnd(1,1e6); G.mode = 'fight'; document.body.classList.remove('map'); setTimeout(renderDbg);
   setBoard(...FIGHT_BOARD); G.bgSize = null;
@@ -1027,7 +1107,8 @@ function startFight(zoneId, room, group) {
   f.foes.forEach((k, i) => {
     const m = MONSTERS[k], [x,y] = spots[i];
     const hp = Math.round(m.hp*scale);
-    units.push(makeUnit(m, 'enemy', x, y, { hp, maxHp:hp, mul:scale, kind:k, name:`${m.name} niv. ${monsterLevel(k, f)}` }));
+    const mech = f.icon==='boss' && i===0 && BOSS_MECHS[k] ? k : null;
+    units.push(makeUnit(m, 'enemy', x, y, { hp, maxHp:hp, mul:scale, kind:k, name:`${m.name} niv. ${monsterLevel(k, f)}`, mech, ice: mech==='hrimgar' ? Math.round(hp*0.15) : 0 }));
   });
   G.units = units; G.turn = 0; G.round = 1; G.hurtTaken = 0; G.sel = null; G.busy = false; G.over = false;
   $('#log').innerHTML = '';
@@ -1036,6 +1117,7 @@ function startFight(zoneId, room, group) {
   buildSpellButtons();
   hideOverlay();
   log(`Le combat commence : ${f.name}.`);
+  { const b = units.find(u => u.mech); if (b) setTimeout(() => { if (G.token===token) mechAlert(`${BOSS_MECHS[b.mech][0]} : ${BOSS_MECHS[b.mech][1]}`); }, 900/Math.min(SPEED, 8)); }
   runTurns(token);
 }
 
@@ -1127,16 +1209,18 @@ async function cast(u,sp,tx,ty) {
     else { play('swing'); const sx=u.x, sy=u.y; await tween(180, k => { const s=Math.sin(Math.PI*k)*.35; u.rx=sx+(tx-sx)*s; u.ry=sy+(ty-sy)*s; }); u.rx=u.x; u.ry=u.y; }
     if (sp.dmg) {
       const crit = Math.random() < (u.crit || CRIT_CHANCE) + (u.turnCrit || 0); // un coup critique touche toutes les cibles du sort
+      G.caster = u;
       if (crit) log(`Coup critique de ${u.name} !`);
       for (const [x,y,f] of zoneCells(sp,tx,ty)) {
         const t = unitAt(x,y);
         if (!t || t===u) continue;
-        const v = hurt(t, Math.max(1, Math.round(rnd(...sp.dmg)*(u.mul + (u.turnBonus||0))*f*(crit ? CRIT_MUL : 1)*condMul(sp, t))), crit);
+        const v = hurt(t, Math.max(1, Math.round(rnd(...sp.dmg)*(u.mul + (u.turnBonus||0))*f*(crit ? CRIT_MUL : 1)*mechAtk(u, t)*condMul(sp, t))), crit);
         if (sp.drain && u.alive) { const g = Math.min(u.maxHp-u.hp, Math.round(v*sp.drain)); if (g > 0) { u.hp += g; addFloat(u.x,u.y,`+${g}`,'#5ad16a'); log(`${u.name} récupère ${g} PV.`); } }
         if (!t.alive) continue;
         if (sp.poison) addDot(t, sp, u);
         if (sp.slowPm && !t.malus && G.round > (t.slowFree ?? -1)) { t.malus = sp.slowPm; log(`${t.name} aura ${sp.slowPm} PM de moins au prochain tour.`); }
       }
+      G.caster = null;
     }
     const kt = (sp.push || sp.pull) && unitAt(tx,ty);
     if (kt && kt!==u) await knock(u, kt, sp);
@@ -1168,6 +1252,7 @@ const resOf = t => Math.min(75, (t.res||0) + (t.tempRes||0) + (t.ward && t.ward.
 function hurt(t,v,crit) {
   const res = resOf(t);
   if (res) v = Math.max(1, Math.round(v*(1-res/100)));
+  if (t.mech) v = mechHurt(t, v);
   if (t.team==='hero' && DBG.god) v = 0;
   t.hp = Math.max(0, t.hp-v); if (t===G.hero) G.hurtTaken += v;
   addFloat(t.x,t.y, crit ? `Critique ! -${v}` : `-${v}`, crit ? '#ffd04a' : '#ff5a4a');
@@ -1175,6 +1260,7 @@ function hurt(t,v,crit) {
   log(`${t.name} perd ${v} PV.`);
   t.flash = performance.now();
   if (t.hp<=0) { t.alive = false; play(G.zone && G.zone.icon==='boss' && t.kind===G.zone.foes[0] ? 'mortboss' : 'mort'); log(`${t.name} est vaincu !`); }
+  if (t.mech) mechAfter(t, v);
   return v;
 }
 
@@ -1198,6 +1284,7 @@ function beginTurn(u) {
   if (u.malus) { u.pm = Math.max(0, u.pm - u.malus); addFloat(u.x,u.y,`-${u.malus} PM`,'#9fe3ff'); log(`${u.name} est ralenti : -${u.malus} PM ce tour.`); u.malus = 0; u.slowFree = G.round; } // pas de nouveau ralentissement avant le tour suivant
   if (u.dots && u.dots.length) { for (const d of u.dots) { if (!u.alive) break; log(`${d.name} sur ${u.name}.`); hurt(u, d.v); d.n--; } u.dots = u.dots.filter(d => d.n > 0); }
   for (const k in u.cds) { u.cds[k]--; if (u.cds[k]<=0) delete u.cds[k]; }
+  if (u.alive && !G.over) mechTurn(u);
   G.sel = null;
   banner(u.team==='hero' ? `Tour ${G.round} · À toi de jouer !` : `Tour de ${u.name}`);
   if (u.team==='hero') play('tour');
@@ -1358,6 +1445,9 @@ function stateText(o) {
   for (const d of o.dots||[]) t.push(`${d.name} ${d.v} PV/tour (${d.n} tour${d.n>1 ? 's' : ''})`);
   if (o.malus) t.push(`ralenti (-${o.malus} PM)`);
   if (o.ward && o.ward.r >= G.round) t.push(`protégé (+${o.ward.v} % résistance)`);
+  if (o.ice) t.push(`armure de glace (${o.ice} PV)`);
+  if (o.enraged) t.push('enragé');
+  if (o.mech) return `${t.length ? `État : ${t.join(', ')}. ` : ''}Mécanique : ${mechText(o.mech)} `;
   return t.length ? `État : ${t.join(', ')}. ` : '';
 }
 // montre au joueur ce que l'ennemi va faire avant qu'il le fasse
@@ -1421,13 +1511,16 @@ const COLLAR_LOOK = [ // couleur du collier, ornement (niveaux pairs), pierre du
   ['#7a4a22',null,null],['#7a4a22','#c9ccd6',null],['#7d8590',null,'#b0b6c0'],['#7d8590','#3a3f48','#b0b6c0'],['#c9d0dc',null,'#9ad8ff'],['#c9d0dc','#ffffff','#9ad8ff'],
   ['#e0b030',null,'#ff4a5a'],['#e0b030','#ff4a5a','#ff4a5a'],['#3fae6a',null,'#5aff9a'],['#3fae6a','#a8ffcf','#5aff9a'],['#3a2050','#b46aff','#b46aff'],['#ffd46a','#fff6d0','#fff3b0']];
 function forestActs(story) { let n = 0; for (let i = 1; i <= Math.min(story, FOREST_STEPS.length-1); i++) if (FOREST_STEPS[i].pa || FOREST_STEPS[i].pm) n++; return n; }
-function forestLook(p = G.profile) { const a = p ? forestActs(p.story) : 0, c = p ? Math.min(p.collar||0, COLLAR.length) : 0; return { a, c, key:`forest_${a}_${c}` }; }
+// Accessoires purement visuels pour Forest, vendus chez le marchand (06/10 : dépense d'or). pix = [ligne, colonne] sur le sprite.
+const FOREST_ACCS = [{ id:'ruban', name:'Ruban rouge', price:500, col:'#e0303a', pix:[[0,3]] }, { id:'azur', name:'Nœud d\'azur', price:1000, col:'#3a8aff', pix:[[0,3],[1,2]] },
+  { id:'cloche', name:'Clochette d\'argent', price:2500, col:'#dfe6f0', pix:[[0,3],[5,4]] }, { id:'couronne', name:'Petite couronne d\'or', price:5000, col:'#ffd23a', pix:[[0,2],[0,3],[0,4]] }];
+function forestLook(p = G.profile) { const a = p ? forestActs(p.story) : 0, c = p ? Math.min(p.collar||0, COLLAR.length) : 0, x = p && FOREST_ACCS.find(o => o.id===p.forestAcc); return { a, c, x, key:`forest_${a}_${c}${x ? '_'+x.id : ''}` }; }
 function forestLookText(p) { const l = forestLook(p), t = FOREST_LOOKS.filter(([n]) => l.a >= n).map(([,s]) => s); if (l.c) t.unshift(COLLAR_NAMES[l.c-1].toLowerCase()); return t.join(', '); }
 function buildForestLook(l) {
   if (IMG[l.key+'_anim_f0']) return l.key;
   const { a, c } = l, cl = c ? COLLAR_LOOK[c-1] : null;
   const col = { k:'#1a1a22', g: a>=5 ? '#ffcf4a' : a>=1 ? '#b4ff6a' : '#9be36a', h:'#3a3f5c', e:'#ffd46a', s:'#d8f0ff', l:'#ffb84a',
-    C: a>=8 ? '#a8324e' : a>=6 ? '#5a2a8a' : '#2a4a8a', T: a>=8 ? '#ffe08a' : '#e8c26a', c: cl && cl[0], d: cl && (cl[1]||cl[0]), j: cl && cl[2] };
+    C: a>=8 ? '#a8324e' : a>=6 ? '#5a2a8a' : '#2a4a8a', T: a>=8 ? '#ffe08a' : '#e8c26a', c: cl && cl[0], d: cl && (cl[1]||cl[0]), j: cl && cl[2], X: l.x && l.x.col };
   const frames = CAT_PIX.map(rows => {
     const g = rows.map(r => [...r]), set = (y, x, ch) => { if (g[y] && g[y][x] !== undefined) g[y][x] = ch; };
     if (a>=1) set(1, 3, 'h');
@@ -1435,6 +1528,7 @@ function buildForestLook(l) {
     if (a>=6) set(1, 3, 's');
     if (a>=2) { set(4, 5, 'T'); set(4, 6, 'C'); set(4, 7, 'C'); set(5, 6, 'C'); set(5, 7, 'C'); }
     if (c) { set(4, 2, 'c'); set(4, 3, cl[1] ? 'd' : 'c'); set(4, 4, 'c'); if (cl[2]) set(5, 3, 'j'); }
+    if (l.x) l.x.pix.forEach(([y, x]) => set(y, x, 'X'));
     if (a>=7) { let tip = null; for (let y = 0; y < g.length && !tip; y++) for (let x = 11; x >= 9; x--) if (g[y][x]==='k') { tip = [y, x]; break; } if (tip) set(tip[0], tip[1], 'l'); }
     return g.map(r => r.join(''));
   });
@@ -1846,7 +1940,7 @@ function hint() {
   if (G.sel) {
     const pv = dmgPreview();
     if (pv.length) t = pv.map(({t:o,r,c}) => `${o.name} : ${r[0]===r[1] ? r[0] : r[0]+' à '+r[1]} dégâts (critique ${c[0]} à ${c[1]}), ` + (r[0]>=o.hp ? 'vaincu à coup sûr' : r[1]>=o.hp ? `peut être vaincu (${o.hp} PV)` : c[1]>=o.hp ? `il restera ${o.hp-r[1]} à ${o.hp-r[0]} PV, vaincu sur un critique` : `il restera ${o.hp-r[1]} à ${o.hp-r[0]} PV`)).join(' · ') + '. ';
-    t += `${G.sel.name} : ${G.sel.desc}${critLine(G.sel, h)}` + (G.sel.self ? (touchUI ? ' Touche ton personnage deux fois pour le lancer.' : ' Clique sur ton personnage pour le lancer.') : (touchUI ? ' Touche une cible pour voir l\'effet, puis touche-la encore pour lancer. Touche à nouveau le sort pour l\'annuler.' : ''));
+    t += `${G.sel.name} : ${G.sel.desc}${critLine(G.sel, h)}` + (G.sel.self ? (touchUI ? ' Touche ton personnage deux fois pour le lancer.' : ` Clique sur ton personnage ou appuie encore sur la touche ${SPELL_KEYS[G.hero.spells.indexOf(G.sel)] || 'du sort'} pour le lancer.`) : (touchUI ? ' Touche une cible pour voir l\'effet, puis touche-la encore pour lancer. Touche à nouveau le sort pour l\'annuler.' : ''));
     if (G.hover && !canCast(h,G.sel,...G.hover)) { const d = man(h.x,h.y,...G.hover);
       t += (d<G.sel.minR||d>G.sel.maxR) ? ' (hors de portée)' : (G.grid[G.hover[1]][G.hover[0]]===1 ? '' : (G.sel.needEmpty && !walkable(...G.hover) ? ' (case occupée)' : ' (pas de ligne de vue)')); }
   } else if (!t && isHeroTurn()) t = touchUI ? 'Touche une case verte pour voir le chemin, puis touche-la encore pour t\'y déplacer. Touche un ennemi pour voir ses sorts, ou choisis un sort.' : `Clique sur une case verte pour te déplacer, ou choisis un sort (touches ${SPELL_KEYS.slice(0, G.hero.spells.length).join(' ')}). Clic droit ou Échap pour annuler.`;
@@ -1907,7 +2001,8 @@ document.addEventListener('keydown', e => {
   if (e.key==='Escape' && !ov.classList.contains('hide')) { if (ov.dataset.menu && $('#b1')) $('#b1').click(); return; }
   // sorts : touches & é " ' ( § è _ ç à du clavier AZERTY (même emplacement que 1 à 0), chiffres acceptés aussi
   const dg = /^(Digit|Numpad)[0-9]$/.test(e.code) ? e.code.slice(-1) : /^[0-9]$/.test(e.key) ? e.key : '', sk = dg ? (+dg || 10) : 0;
-  if (sk) selectSpell(sk-1);
+  if (sk) { const sp = G.hero && G.hero.spells[sk-1]; // sort lancé sur soi déjà choisi : un 2e appui sur sa touche le lance
+    if (sp && sp.self && G.sel===sp && isHeroTurn()) doHero(() => cast(G.hero, sp, G.hero.x, G.hero.y)); else selectSpell(sk-1); }
   else if (e.key===' ' || e.key==='Enter') { e.preventDefault(); if (!$('#overlay').classList.contains('hide')) return; endHeroTurn(); }
   else if ((e.key==='e' || e.key==='E' || e.key==='i') && G.mode==='map' && !G.travel && $('#overlay').classList.contains('hide')) showBag();
   else if ((e.key==='c' || e.key==='C') && G.mode==='map' && !G.travel && $('#overlay').classList.contains('hide')) showCharacter();
@@ -2058,7 +2153,7 @@ function musicKey() {
   if (G.mode==='fight') return G.over || !G.zone ? null : G.zone.icon==='boss' ? 'boss:' + G.zone.id : G.dungeon ? `bossfight:${G.dungeon.id}:${G.dungeon.room}` : 'fight:' + G.zone.id;
   if (G.mode!=='map') return null;
   const z = zoneById(G.profile.pos);
-  return (z && z.icon==='boss' ? 'bosszone:' : 'zone:') + G.profile.pos;
+  return (z && (z.icon==='boss' || z.dun) ? 'bosszone:' : 'zone:') + G.profile.pos;
 }
 function mtone(type, f, t, dur, vol, att=0.02) {
   const o = actx.createOscillator(), g = actx.createGain();
@@ -2718,11 +2813,17 @@ function itemCard(it, actions) {
     <small>${r.name} · ${SLOTS[it.slot]}</small><div>${statText(it.stats)}</div>${it.boss ? `<small style="color:${r.color}">Butin rare de ${MONSTERS[it.boss].name}</small>` : ''}${it.set ? setLine(it) : ''}${actions.diff ? `<small>${diffText(it)}</small>` : ''}</div>
     <div class="act">${actions.btns.map(([act,label,dis]) => `<button class="btn sm${act==='sell'||act==='unequip'?' alt':''}" data-act="${act}" data-id="${it.id}"${dis?' disabled':''}>${label}</button>`).join('')}</div></div>`;
 }
+// sac plein : l'objet n'est plus vendu, il attend (p.wait) et entre dans le sac dès qu'une place se libère
+const waitList = (p = G.profile) => p.wait || (p.wait = []);
 function addToBag(it) {
   const p = G.profile;
-  if (p.inv.length >= BAG_MAX) { p.gold += it.value; return false; }
+  if (p.inv.length >= BAG_MAX) { waitList(p).push(it); return false; }
   p.inv.push(it); return true;
 }
+function fillFromWait(p = G.profile) { const w = waitList(p); while (w.length && p.inv.length < BAG_MAX) p.inv.push(w.shift()); }
+const sellPrice = it => Math.max(1, Math.round(it.value / 3)); // revente au tiers de la valeur (achat chez le marchand : 3x la valeur)
+const WAIT_BTNS = it => [['equip','Équiper'],['sell',`Vendre ${sellPrice(it)} or`]];
+const waitNote = n => n ? `<p class="help">🎒 Sac plein : ${n > 1 ? `ces ${n} objets sont mis` : 'cet objet est mis'} de côté. Ils entreront dans ton sac dès qu'une place se libère (touche E).</p>` : '';
 // Butin unique des boss : un objet par boss, plus fort qu'un Légendaire, qui tombe rarement à chaque victoire contre lui
 const BOSS_DROP = 0.05;
 const BOSS_DROPS = {
@@ -2747,7 +2848,7 @@ function genBossItem(z, p) {
 }
 function rollLoot(z, first) {
   const p = G.profile, items = [];
-  const gold = rnd(8,14) * (1 + z.tier);
+  const gold = Math.round(rnd(8,14) * (1 + z.tier) * 0.7); // -30 % (06/10)
   p.gold += gold;
   const n = first ? 2 : (Math.random()<.35 ? 2 : 1);
   for (let i=0;i<n;i++) items.push(Math.random() < SET_DROP ? genSetItem(z, p) : genItem(z.tier, p.cls));
@@ -2828,17 +2929,18 @@ function showLootBook() {
 // Écrans
 function lootHtml(l) {
   return `<div class="loot"><img class="chest" src="${SPRITES.chest_full_open_anim_f2}" alt=""><b><img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> +${l.gold} or</b></div>
-    <div class="items">${l.items.map(it => itemCard(it, { diff:true, btns: l.sold.includes(it) ? [['none','Sac plein : vendu',true]] : [['equip','Équiper']] })).join('')}</div>`;
+    <div class="items">${l.items.map(it => itemCard(it, { diff:true, btns: l.sold.includes(it) ? WAIT_BTNS(it) : [['equip','Équiper']] })).join('')}</div>${waitNote(l.sold.length)}`;
 }
 function bindItemButtons(after) {
   $('#overlay').querySelectorAll('[data-act]').forEach(b => b.onclick = () => {
     const p = G.profile, id = +b.dataset.id, act = b.dataset.act;
-    if (act==='equip') { const i = p.inv.findIndex(x => x.id===id); if (i<0) return; const it = p.inv[i]; p.inv.splice(i,1); if (p.equip[it.slot]) p.inv.push(p.equip[it.slot]); p.equip[it.slot] = it; b.textContent = 'Équipé'; b.disabled = true; }
+    const L = [p.inv, waitList(p)].find(l => l.some(x => x.id===id)) || p.inv;
+    if (act==='equip') { const i = L.findIndex(x => x.id===id); if (i<0) return; const it = L[i]; L.splice(i,1); if (p.equip[it.slot]) addToBag(p.equip[it.slot]); p.equip[it.slot] = it; b.textContent = 'Équipé'; b.disabled = true; }
     else if (act==='unequip') { const it = Object.values(p.equip).find(x => x && x.id===id); if (!it || p.inv.length>=BAG_MAX) return; p.equip[it.slot] = null; p.inv.push(it); }
-    else if (act==='sell') { const i = p.inv.findIndex(x => x.id===id); if (i<0) return; G.lastSale = { items:[p.inv[i]], gold:p.inv[i].value }; p.gold += p.inv[i].value; p.inv.splice(i,1); }
+    else if (act==='sell') { const i = L.findIndex(x => x.id===id); if (i<0) return; G.lastSale = { items:[L[i]], gold:sellPrice(L[i]) }; p.gold += sellPrice(L[i]); L.splice(i,1); if (!b.closest('.bag, .waitlist')) { b.textContent = 'Vendu'; b.disabled = true; } }
     else if (act==='buy') { const i = p.shop.findIndex(x => x.id===id); const it = p.shop[i]; if (!it || p.gold < it.value*3 || p.inv.length>=BAG_MAX) return; p.gold -= it.value*3; p.shop.splice(i,1); p.inv.push(it); }
     play(act==='sell' || act==='buy' ? 'piece' : 'equip');
-    save(); refreshMapTitle();
+    fillFromWait(p); save(); refreshMapTitle();
     if (act==='equip') progressQuests();
     if (after) after();
   });
@@ -2848,12 +2950,13 @@ function statsLine() {
   return `<div class="statline"><span>❤ ${st.hp} PV</span><span style="color:var(--pa)">${st.pa} PA</span><span style="color:var(--pm)">${st.pm} PM</span><span>⚔ +${Math.round((st.mul-1)*100)} % dégâts</span><span>🛡 ${st.res} % résistance</span><span style="color:#ffd04a">✦ ${Math.round(st.crit*100)} % critique</span>${t.portee ? `<span>🎯 +${t.portee} portée</span>` : ''}<span style="color:var(--gold)"><img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> ${G.profile.gold} or</span></div>`;
 }
 function showBag(back) {
-  const p = G.profile;
+  const p = G.profile; fillFromWait(p);
+  const wait = waitList(p).map(it => itemCard(it, { diff:true, btns:WAIT_BTNS(it) })).join('');
   const slots = Object.keys(SLOTS).map(s => p.equip[s] ? itemCard(p.equip[s], { btns:[['unequip','Retirer', p.inv.length>=BAG_MAX]] })
     : `<div class="item empty"><div class="txt"><b>${SLOTS[s]}</b><small>Aucun objet équipé</small></div></div>`).join('');
-  const f = bagFilter(), shown = bagFiltered(p), gain = shown.reduce((t,it) => t+it.value, 0);
+  const f = bagFilter(), shown = bagFiltered(p), gain = shown.reduce((t,it) => t+sellPrice(it), 0);
   const bag = shown.slice().sort((a,b) => b.rarity-a.rarity || b.value-a.value)
-    .map(it => itemCard(it, { diff:true, btns:[['equip','Équiper'],['sell',`Vendre ${it.value} or`]] })).join('')
+    .map(it => itemCard(it, { diff:true, btns:[['equip','Équiper'],['sell',`Vendre ${sellPrice(it)} or`]] })).join('')
     || `<p class="help">${p.inv.length ? 'Aucun objet du sac ne correspond à ces filtres.' : 'Ton sac est vide. Remporte des combats pour trouver du butin !'}</p>`;
   const fb = (k, v, label, color) => `<button class="btn sm alt${f[k]===v?' on':''}" data-filt="${k}" data-val="${v}"${color?` style="color:${color}"`:''}>${label}</button>`;
   const filters = `<div class="filters"><span class="lbl">Rareté</span>${fb('rar',-1,'Toutes')}${RARITIES.map((r,i) => fb('rar',i,r.name,r.color)).join('')}</div>
@@ -2863,6 +2966,7 @@ function showBag(back) {
   overlay(`<h2>Équipement de ${heroName()} (${CLASSES[p.cls].name} niv. ${p.level})</h2>${statsLine()}
     <h3>Équipé</h3><div class="items">${forestCard(p)}${slots}</div>
     ${p.story >= RELICS_REVEALED ? `<h3>Reliques de l'Aube (${relicsOwned(p).length}/${RELIC_SLOTS})</h3><div class="items">${relicCards(p)}</div>` : ''}
+    ${wait ? `<h3>🎒 En attente : sac plein (${waitList(p).length})</h3><p class="help">Ces objets entreront dans ton sac dès qu'une place se libère. Tu peux aussi les équiper ou les vendre directement.</p><div class="items waitlist">${wait}</div>` : ''}
     <h3>Sac (${p.inv.length}/${BAG_MAX})</h3>${filters}<div class="items bag">${bag}</div>
     <button class="btn" id="b1">${back ? 'Retour' : 'Fermer'}</button>`, true);
   G.bagBack = back;
@@ -2878,7 +2982,7 @@ function bagFilter() { return G.bagFilter || (G.bagFilter = { rar:-1, slot:'' })
 function bagFiltered(p) { const f = bagFilter(); return p.inv.filter(it => (f.rar<0 || it.rarity===f.rar) && (!f.slot || it.slot===f.slot)); }
 // Vente rapide : vend les objets du sac qui passent les filtres, jamais l'équipement porté
 function confirmSellAll(back) {
-  const p = G.profile, items = bagFiltered(p), gain = items.reduce((t,it) => t+it.value, 0);
+  const p = G.profile, items = bagFiltered(p), gain = items.reduce((t,it) => t+sellPrice(it), 0);
   if (!items.length) return;
   const f = bagFilter(), what = [f.rar>=0 ? RARITIES[f.rar].name.toLowerCase() : '', f.slot ? SLOTS[f.slot].toLowerCase() : ''].filter(Boolean).join(', ');
   overlay(`<h2>Vente rapide</h2><p>Vendre <b>${items.length} objet${items.length>1?'s':''}</b>${what ? ` (filtre : ${what})` : ' (tout le sac)'} pour <b style="color:var(--gold)">${gain} or</b> ?</p>
@@ -2897,7 +3001,7 @@ function undoLastSale() {
   const p = G.profile, s = G.lastSale;
   if (!p || !s) return false;
   if (p.gold < s.gold || p.inv.length + s.items.length > BAG_MAX) { flashMsg(p.gold < s.gold ? "Pas assez d'or pour annuler la dernière vente." : 'Pas assez de place dans le sac pour annuler la dernière vente.'); return false; }
-  p.gold -= s.gold; p.inv.push(...s.items); G.lastSale = null;
+  p.gold -= s.gold; s.items.forEach(addToBag); G.lastSale = null;
   play('piece'); save(); refreshMapTitle(); return true;
 }
 function flashMsg(t) { const b = $('#overlay .box'); if (!b) return alert(t); let m = b.querySelector('.flash'); if (!m) { m = document.createElement('p'); m.className = 'goal flash'; b.prepend(m); } m.textContent = t; }
@@ -2910,8 +3014,16 @@ function showShop() {
     || '<p class="help">Le marchand n\'a plus rien à vendre. Reviens après ton prochain combat !</p>';
   overlay(`<h2>Le marchand du village</h2><p>« Bienvenue, aventurier ! Mon stock change après chacun de tes combats. »</p>${statsLine()}
     <div class="items">${offers}</div>
+    <h3>Pour Forest</h3><p class="help">Accessoires pour le plaisir des yeux : ils ne donnent aucun bonus.</p>
+    <div style="text-align:center">${FOREST_ACCS.map(o => { const own = (p.forestAccs||[]).includes(o.id), on = p.forestAcc===o.id;
+      return `<button class="btn sm${own ? ' alt' : ''}" data-acc="${o.id}"${!own && p.gold < o.price ? ' disabled' : ''}>${o.name} · ${on ? 'porté (retirer)' : own ? 'mettre' : o.price + ' or'}</button>`; }).join('')}</div>
     <button class="btn alt" id="b2">Mon équipement</button><button class="btn" id="b1">Quitter la boutique</button>`, true);
   bindItemButtons(showShop);
+  $('#overlay').querySelectorAll('[data-acc]').forEach(b => b.onclick = () => {
+    const o = FOREST_ACCS.find(x => x.id===b.dataset.acc), own = p.forestAccs = p.forestAccs || [];
+    if (!own.includes(o.id)) { if (p.gold < o.price) return; p.gold -= o.price; own.push(o.id); play('piece'); }
+    p.forestAcc = p.forestAcc===o.id ? null : o.id; save(); refreshMapTitle(); dirty = true; showShop();
+    if (p.forestAcc) flashMsg(`Forest porte maintenant : ${o.name.toLowerCase()} !`); });
   $('#overlay').dataset.menu = 'shop';
   $('#b1').onclick = () => { hideOverlay(); showNextScene(); }; $('#b2').onclick = () => showBag(showShop);
 }
@@ -3041,12 +3153,15 @@ let JOB_ART = null;
 function jobArt() {
   if (JOB_ART) return JOB_ART;
   const ol = c => outline(c, '#1d140c');
-  const WHEAT = ['#e8c25a','#d8c9a0','#8fb0ff','#fff0a0','#8be36a','#ff6a4a'], LEAF = ['#4f9a3a','#2f6a4a','#7fae5a','#e4e9d2','#3fd08a','#6a5656'],
-    LEAF2 = ['#3a7a2a','#21513a','#5f8e40','#b9c2a4','#22a86a','#4a3a3a'], ORE = ['#e07a3a','#c9d2e0','#f4f8ff','#ffd04a','#4ae08a','#9a5aff'];
+  const WHEAT = ['#e8c25a','#d8c9a0','#8fb0ff','#fff0a0','#8be36a','#ff6a4a'], LEAF = ['#c9b23a','#2f6a4a','#7fae5a','#e4e9d2','#3fd08a','#6a5656'],
+    LEAF2 = ['#9a842a','#21513a','#5f8e40','#b9c2a4','#22a86a','#4a3a3a'], ORE = ['#e07a3a','#c9d2e0','#f4f8ff','#ffd04a','#4ae08a','#9a5aff'];
   const stalks = (px, col, cut) => { for (const sx of [2,5,8,11,13]) { const h = cut ? 2 : 9 + (sx*7)%4;
     for (let y=15; y>15-h; y--) px(sx, y, '#7a8c3a'); if (!cut) for (let y=15-h; y<19-h; y++) { px(sx-1,y,col); px(sx+1,y,col); px(sx,y-1,col); } } };
   const tree = (px, t) => { for (let y=14;y<24;y++) for (let x=7;x<11;x++) px(x,y, x<9 ? '#6b4524' : '#4e3119');
-    for (let y=0;y<16;y++) for (let x=0;x<18;x++) { const dx = x-8.5, dy = (y-7.5)*1.15; if (dx*dx+dy*dy < 64) px(x,y, (x*3+y*5)%7===0 || dx > 3 ? LEAF2[t] : LEAF[t]); } };
+    for (let y=0;y<16;y++) for (let x=0;x<18;x++) { const dx = x-8.5, dy = (y-7.5)*1.15; if (dx*dx+dy*dy < 64) px(x,y, (x*3+y*5)%7===0 || dx > 3 ? LEAF2[t] : LEAF[t]); }
+    // une hache plantée dans le tronc et une entaille : cet arbre-là se coupe (les arbres du décor n'en ont pas)
+    for (let x=11;x<16;x++) px(x,19,'#a0703a'); px(15,18,'#a0703a');
+    for (let y=17;y<22;y++) { px(10,y,'#c9d2e0'); px(11,y, y===17 || y===21 ? '#c9d2e0' : '#8a94a4'); } px(9,19,'#e8d0a0'); px(9,20,'#e8d0a0'); };
   const rock = (px, t) => { for (let y=2;y<14;y++) for (let x=1;x<19;x++) { const dx = (x-9.5)/9, dy = (y-8)/6; if (dx*dx+dy*dy < 1) px(x,y, y<6 ? '#a09a92' : x>12 ? '#6e6962' : '#8a847c'); }
     if (t!=null) for (const [x,y] of [[5,6],[9,9],[13,7],[7,11],[12,11],[10,5]]) { px(x,y,ORE[t]); px(x+1,y,ORE[t]); px(x,y+1,ORE[t]); } };
   JOB_ART = { paysan:[], bucheron:[], mineur:[] };
@@ -3075,6 +3190,7 @@ function drawJobThings(s, now, hv, ents, tags) {
     // cercle doré si l'on peut récolter, gris si le niveau manque ou si la ressource repousse
     ctx.strokeStyle = ok && jobs().lv[n.job] >= JOB_REQ[n.t] ? `rgba(232,185,74,${.55+.3*Math.sin(now/300)})` : 'rgba(170,170,180,.45)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(cx,cy+2,20,9,0,0,7); ctx.stroke();
     drawSprite(ok ? A[n.job][n.t] : A.cut[n.job], cx, cy+8, SC);
+    if (ok && !(hv && hv.kind==='node' && hv.n===n)) drawBubble(JOBS[n.job].icon, cx, cy-(n.job==='bucheron' ? 80 : 46), now);
     if (hv && hv.kind==='node' && hv.n===n) tags.push([nodeText(s.id, n), cx, cy-(n.job==='bucheron' ? 84 : 58)]); } });
   if (s.bench) { const [x,y] = s.bench; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y);
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx,cy+3,26,9,0,0,7); ctx.fill();
@@ -3237,8 +3353,7 @@ const QUESTS = [
     intro:["Garrick m'a tout raconté. Tu as accompli des merveilles, {héros}.",
       "Il ne reste qu'une chose à faire : affronter le <b>Chef Ogre</b> dans son antre et nous rapporter le Cristal de la Plaine.",
       "Sois prudent. Tout Aubépine compte sur toi."],
-    outro:["(Le Cristal brille de nouveau au centre du sanctuaire.)",
-      "Tu l'as fait, {héros} ! Les monstres fuient déjà nos terres. Aubépine se souviendra de ton nom pour toujours.",
+    outro:["Tu l'as fait, {héros} ! Les monstres fuient déjà nos terres. Aubépine se souviendra de ton nom pour toujours.",
       "La Plaine est vaste, et d'autres aventures t'attendent peut-être. Continue à t'entraîner : on ne sait jamais ce que l'avenir nous réserve."] },
   // ----- Acte II : les Terres du Nord -----
   { id:'q7', main:true, title:'Le passage du Nord', npc:'maela', goal:{ type:'clear', zone:'col' },
@@ -3298,11 +3413,8 @@ const QUESTS = [
     intro:["Je suis venue aussi vite que j'ai pu. Je sens la Faille d'ici… C'est la dernière bataille, {héros}.",
       "Si le Grand Démon passe, la Plaine et le Nord seront perdus. Prépare-toi bien : refais quelques combats, passe voir le marchand du camp.",
       "Tout le monde compte sur toi. Nous croyons en toi."],
-    outro:["(La Faille se referme dans un grondement terrible. Le ciel redevient bleu.)",
-      "Tu l'as fait ! Tu as sauvé la Plaine ET le Nord. Ton nom sera chanté dans tous les villages, {héros}.",
-      "Repose-toi bien… et continue à t'entraîner, on ne sait jamais ce que l'avenir nous réserve.",
-      "(Cette nuit-là, Forest se réveille en sifflant, le poil hérissé. Loin au sud, au sanctuaire d'Aubépine, un craquement sinistre résonne…)",
-      "(Fin de l'acte II.)"] },
+    outro:["Tu l'as fait ! Tu as sauvé la Plaine ET le Nord. Ton nom sera chanté dans tous les villages, {héros}.",
+      "Repose-toi bien… et continue à t'entraîner, on ne sait jamais ce que l'avenir nous réserve."] },
   // ----- Acte III : le Reflet -----
   { id:'q13', main:true, title:'Le Cristal fissuré', npc:'maela', goal:{ type:'clear', zone:'sanctuaire' },
     reward:{ xp:1300, gold:650, item:{ slot:'amulette', rarity:2 } },
@@ -3363,11 +3475,7 @@ const QUESTS = [
     intro:["J'ai fait le voyage jusqu'à la vallée, {héros}. Orwin m'a tout raconté.",
       "L'Ordre invoque une créature d'ombre gigantesque, l'<b>Éclipse</b>, pour détruire la fin de la légende avant que tu ne la lises.",
       "Rejoins le Cœur des ruines et arrête-les. Nous devons savoir comment vaincre le Nécromancien."],
-    outro:["(L'Éclipse se dissout dans un cri. Sur le mur du cœur des ruines, les gravures se mettent à briller.)",
-      "Orwin lit à voix haute : « Des <b>objets de lumière</b>, nés de la même magie que le Cristal, peuvent seuls vaincre celui qui fut enchaîné. »",
-      "Combien sont-ils ? Où sont-ils ? Qui les a créés ? La légende ne le dit pas…",
-      "(Une voix glaciale résonne une dernière fois : « <i>Cherche-les donc… je les trouverai avant toi.</i> »)",
-      "(Fin de l'acte III.)"] },
+    outro:["Ces objets de lumière sont nés de la même magie que le Cristal… Mais combien sont-ils ? Où sont-ils ? Qui les a créés ? La légende ne le dit pas."] },
   { id:'s14', title:'Bien préparé', npc:'orwin', startsWith:'q18', goal:{ type:'equip', n:7, pet:true },
     reward:{ xp:600, gold:300 },
     intro:["Avant d'affronter l'Éclipse, sois prêt : équipe tes sept emplacements. Forest compte, bien sûr, il est le plus fidèle de tes équipements !"],
@@ -3438,13 +3546,7 @@ const QUESTS = [
     intro:["{héros}, te voilà ! Lune et moi allons réparer le Cristal avec les éclats d'aube. Mais il nous faut du temps.",
       "L'Ordre a envoyé son champion, le <b>Bourreau du Soleil noir</b>. Il marche déjà sur Aubépine.",
       "Protège le sanctuaire jusqu'à ce que le Cristal soit restauré. Tout Aubépine compte sur toi."],
-    outro:["(Dans un éclat aveuglant, la fissure se referme. Le Cristal brille comme au premier jour.)",
-      "Le Cristal est restauré ! Grâce à toi, {héros}. Et à Forest, qui n'a pas quitté le sanctuaire une seule seconde."],
-    vision:{ title:'Vision : les six lumières', pages:[
-      "(Six lumières jaillissent du Cristal et s'éparpillent aux quatre coins de Valdoria. Toutes sont floues… sauf une.)",
-      "(Tu vois une <b>forêt ancienne</b>, aux arbres immenses, peuplée de créatures fantastiques. C'est là que repose la première relique.)",
-      "(Forest se met à miauler doucement, le regard tourné vers le sud-est. On dirait qu'il connaît cet endroit.)",
-      "(Fin de l'acte IV.)"] } },
+    outro:["Le Cristal est restauré ! Grâce à toi, {héros}. Et à Forest, qui n'a pas quitté le sanctuaire une seule seconde."] },
   // ----- Acte V : le Cœur de Sylve -----
   { id:'q25', main:true, title:"L'orée enchantée", npc:'lune', goal:{ type:'clear', zone:'oree' },
     reward:{ xp:3800, gold:1800, item:{ slot:'arme', rarity:2 } },
@@ -3501,11 +3603,8 @@ const QUESTS = [
     intro:["Le <b>Grand Tréant</b>, notre gardien millénaire… L'Ordre l'a retourné contre nous.",
       "Il faut l'affronter pour le libérer de la sève noire. C'est le seul moyen d'atteindre la relique.",
       "Va, {héros}. Et toi aussi, enfant de la sylve. La forêt entière compte sur vous."],
-    outro:["(Le Grand Tréant s'effondre, puis se redresse lentement. La sève noire coule hors de son écorce : il est purifié.)",
-      "(Au creux de ses racines repose une gemme verte et dorée : le <b>Cœur de Sylve</b>, la première Relique de l'Aube.)",
-      "(Quand tu la prends, une force nouvelle te traverse. Les yeux de Forest brillent un instant d'une lumière dorée.)",
-      "(Au loin, la voix du Nécromancien gronde de colère. Et dans la lumière de la relique, une nouvelle piste se dessine, vers la deuxième relique…)",
-      "Merci, {héros}. La forêt ne t'oubliera jamais. (Fin de l'acte V.)"] },
+    outro:["(Au loin, la voix du Nécromancien gronde de colère.)",
+      "Merci, {héros}. La forêt ne t'oubliera jamais."] },
 
   // ----- Acte VI : la Braise d'Aube -----
   { id:'q31', main:true, title:'Le chemin des cendres', npc:'garrick', goal:{ type:'clear', zone:'plainescendres' },
@@ -3562,11 +3661,8 @@ const QUESTS = [
     intro:["Le dragon <b>Ignarok</b> dort depuis mille ans au fond du cratère. L'Ordre l'a réveillé et enchaîné à sa volonté.",
       "La Braise d'Aube est là-haut, au milieu des flammes. Les nains ne peuvent pas t'accompagner dans le cratère, mais nos cœurs seront avec toi.",
       "Bonne chance, {héros}. Et toi aussi, le chat."],
-    outro:["(Ignarok s'effondre dans la lave. Au fond du cratère, une flamme dorée brûle sans jamais faiblir : la <b>Braise d'Aube</b>.)",
-      "Elle est à toi, {héros}. Les nains l'ont gardée sans le savoir pendant des siècles. Il est temps qu'elle serve à ce pour quoi elle a été forgée.",
-      "(Une silhouette masquée apparaît au bord du cratère, Brenna à ses côtés. Pour la première fois, elle parle, d'une voix calme et froide.)",
-      "« <i>Deux sur six… Profite de ta victoire.</i> »",
-      "(Elle disparaît avec Brenna, emportant un fragment d'inscription arraché à la forge des anciens. L'Ordre a désormais une piste vers la troisième relique. Fin de l'acte VI.)"] },
+    outro:["La Braise d'Aube est à toi, {héros}. Les nains l'ont gardée sans le savoir pendant des siècles. Il est temps qu'elle serve à ce pour quoi elle a été forgée.",
+      "(Au bord du cratère, la silhouette masquée de l'Ordre a disparu avec Brenna, emportant un fragment d'inscription arraché à la forge des anciens. L'Ordre a désormais une piste vers la troisième relique.)"] },
   // ----- Acte VII : la Perle d'Aube -----
   { id:'q37', main:true, title:'Le port des naufrages', npc:'garrick', goal:{ type:'clear', zone:'quais' },
     reward:{ xp:7800, gold:3700, item:{ slot:'bottes', rarity:2 } },
@@ -3629,11 +3725,9 @@ const QUESTS = [
     intro:["Le <b>Kraken</b> dormait dans les abysses depuis plus longtemps que notre mémoire. L'Ordre l'a enchaîné à sa volonté.",
       "La relique repose au fond du <b>sanctuaire des abysses</b>. Nous continuerons de chanter tant que tu seras en bas.",
       "Reviens-nous, {héros}. Toi et ton chat."],
-    outro:["(Le Kraken s'enfonce dans l'ombre des abysses. Sur l'autel, une perle nacrée brille d'une lumière douce : la <b>Perle d'Aube</b>.)",
-      "(Tu la prends. La bulle de lumière s'éteint… mais la mer ne bouge pas. Le chant des tritons tient la cité.)",
+    outro:["(Tu prends la Perle d'Aube. La bulle de lumière s'éteint… mais la mer ne bouge pas. Le chant des tritons tient la cité.)",
       "Thalassar est sauvée, et la relique est entre de bonnes mains. Merci, {héros}.",
-      "(Sur l'autel, une inscription a été recopiée à la craie par l'Ordre. Elle décrit une <b>montagne enneigée</b>, au-delà des Terres du Nord.)",
-      "Ils savent déjà où chercher la quatrième… Il faut te dépêcher. (Fin de l'acte VII.)"] },
+      "Cette montagne enneigée doit se trouver au-delà des Terres du Nord. Il faut te dépêcher."] },
   // ----- Acte VIII : le Flocon de l'Aube -----
   { id:'q43', main:true, title:'Retour au Nord', npc:'garrick', goal:{ type:'clear', zone:'sentiers' },
     reward:{ xp:10100, gold:4850, item:{ slot:'bottes', rarity:2 } },
@@ -3691,11 +3785,9 @@ const QUESTS = [
     intro:["Hrimgar, le géant des glaces… Il dormait sous le sommet depuis l'époque du dieu venu du ciel. Le masqué l'a réveillé pour couvrir sa fuite.",
       "Monte au <b>sommet du Givreval</b>, {héros}. Arrête-le, ou au moins, reviens vivant."],
     outro:["(Pendant le combat, Brenna surgit de la tempête et se jette sur la silhouette masquée pour lui arracher le Flocon.)",
-      "(D'un seul geste, le masqué la repousse. Brenna tombe dans la neige, blessée. Hrimgar s'effondre enfin, et tu cours la relever.)",
-      "« <i>Trois pour toi, une pour moi… La partie ne fait que commencer.</i> » (La silhouette disparaît dans le blizzard avec le Flocon de l'Aube.)",
+      "(D'un seul geste, le masqué la repousse. Brenna tombe dans la neige, blessée, et tu cours la relever.)",
       "« Je suis désolée, {héros}. Pour tout. Laisse-moi me battre à tes côtés. Je peux au moins forger pour toi. »",
-      "(Brenna part s'installer au camp de Garrick, dans les Terres du Nord : elle y améliorera ton équipement.)",
-      "(Au loin, le ciel se fend d'une longue lueur violette. La prison du Nécromancien commence à se fissurer. Fin de l'acte VIII.)"] },
+      "(Brenna part s'installer au camp de Garrick, dans les Terres du Nord : elle y améliorera ton équipement.)"] },
 ];
 
 const MAIN = QUESTS.filter(q => q.main);
@@ -3710,8 +3802,8 @@ const forClass = q => !q.cls || q.cls===G.profile.cls; // quêtes de classe : se
 
 function levelBonusText(lv) {
   const b = [`+${LV_HP} PV max`, `+${Math.round(LV_DMG*100)} % de dégâts`, `+${CARAC_PER_LV} points de caractéristique`, `+${SPELL_PTS_PER_LV} point de sort`];
-  if ([3,15,25].includes(lv)) b.push('+1 PM');
-  if ([5,10,20].includes(lv)) b.push('+1 PA');
+  if ([8,25,40].includes(lv)) b.push('+1 PM');
+  if ([12,30,50].includes(lv)) b.push('+1 PA');
   for (const sp of CLASSES[G.profile.cls].spells) if (sp.lvl===lv) b.push(`nouveau sort : ${sp.name}`);
   return b.join(', ');
 }
@@ -3722,7 +3814,13 @@ function addXp(n) {
   if (p.level >= XP_MAX_LEVEL) p.xp = 0;
   return ups;
 }
-function levelUpHtml(ups) { if (ups.length) setTimeout(updateCharBtn); return ups.map(lv => `<p class="lvup">Niveau ${lv} ! ${levelBonusText(lv)}.</p>`).join('') + (ups.length ? '<p class="help">Répartis tes points dans <b>Personnage (C)</b>.</p>' : ''); }
+function levelUpHtml(ups) { if (!ups.length) return ''; setTimeout(updateCharBtn);
+  const n = ups.length, cnt = l => ups.filter(lv => l.includes(lv)).length, pm = cnt([3,15,25]), pa = cnt([5,10,20]), s = (k, w) => k > 1 ? w + 's' : w;
+  const chips = [`+${LV_HP*n} PV max`, `+${Math.round(LV_DMG*100)*n} % de dégâts`, `+${CARAC_PER_LV*n} ${s(CARAC_PER_LV*n, 'point')} de caractéristique`, `+${SPELL_PTS_PER_LV*n} ${s(SPELL_PTS_PER_LV*n, 'point')} de sort`];
+  if (pa) chips.push(`+${pa} PA`); if (pm) chips.push(`+${pm} PM`);
+  for (const sp of CLASSES[G.profile.cls].spells) if (ups.includes(sp.lvl)) chips.push(`✨ Nouveau sort : ${sp.name}`);
+  return `<div class="lvcard"><h4>⭐ ${n > 1 ? `Niveaux ${ups[0]} à ${ups[n-1]}` : `Niveau ${ups[0]}`} atteint !</h4><div class="chips">${chips.map(c => `<span>${c}</span>`).join('')}</div>
+    <p class="help">Répartis tes points dans <b>Personnage (C)</b>.</p></div>`; }
 
 const equippedCount = g => Object.values(G.profile.equip).filter(Boolean).length + (g.pet ? 1 : 0);
 function goalText(q) {
@@ -3770,16 +3868,16 @@ function completeQuest(q) {
   if (r.item) { const tier = Math.min(9, MAIN.indexOf(q)>=0 ? MAIN.indexOf(q) : p.story); item = genItem(tier, p.cls, r.item.slot, r.item.rarity); if (r.item.name) item.name = r.item.name; if (!addToBag(item)) item.sold = true; }
   G.scenes.push({ npc:q.outroNpc || q.npc, title:'Quête accomplie : ' + q.title, pages: q.outro || ['Merci pour ton aide, {héros} !'],
     last:`<div class="reward"><b>Récompenses :</b> +${r.xp} XP · <img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> +${r.gold} or</div>${levelUpHtml(ups)}
-      ${item ? `<div class="items">${itemCard(item, { diff:true, btns: item.sold ? [['none','Sac plein : vendu',true]] : [['equip','Équiper']] })}</div>` : ''}`, btn:'Continuer' });
+      ${item ? `<div class="items">${itemCard(item, { diff:true, btns: item.sold ? WAIT_BTNS(item) : [['equip','Équiper']] })}</div>${waitNote(item.sold ? 1 : 0)}` : ''}`, btn:'Continuer' });
   if (q.main) {
     const fb = FOREST_STEPS[MAIN.indexOf(q)+1];
-    if (fb) G.scenes[G.scenes.length-1].last += `<p class="lvup">🐈‍⬛ Forest grandit avec toi : ${statText(fb)}${fb.pa||fb.pm ? ' (bonus de fin d\'acte)' : ''}.</p>`;
+    if (fb) G.scenes[G.scenes.length-1].last += `<div class="lvcard forest"><h4>🐈‍⬛ Forest grandit avec toi${fb.pa||fb.pm ? ' (bonus de fin d\'acte)' : ''}</h4><div class="chips">${statText(fb).split(' · ').map(c => `<span>${c}</span>`).join('')}</div></div>`;
     const look = fb && (fb.pa||fb.pm) && FOREST_LOOKS.find(([n]) => n === forestActs(MAIN.indexOf(q)+1));
-    if (look) G.scenes[G.scenes.length-1].last += `<p class="lvup">✨ Forest a une nouvelle allure : ${look[1]} !</p>`;
+    if (look) G.scenes[G.scenes.length-1].last += `<div class="lvcard forest"><h4>✨ Forest a une nouvelle allure</h4><div class="chips"><span>${look[1]}</span></div></div>`;
     const rel = RELICS.find(r => r.chapter === MAIN.indexOf(q)+1);
     if (rel) G.scenes[G.scenes.length-1].last += `<p class="goal">✨ Tu as obtenu une Relique de l'Aube (${RELICS.indexOf(rel)+1}/${RELIC_SLOTS}) : <b>${rel.name}</b> (${statText(rel.stats)}). Elle occupe son emplacement dans ton équipement.</p>`;
     if (q.vision) G.scenes.push({ npc:'vision', title:q.vision.title, pages:q.vision.pages, btn:'Continuer' });
-    const ae = actEnds().indexOf(MAIN.indexOf(q)); if (ae >= 0) G.scenes.push({ cine:ae, npc:'vision', title:'Fin de l\'acte', pages:[''], btn:'Continuer' }); // scène animée de fin d'acte
+    const ae = actEnds().indexOf(MAIN.indexOf(q)); if (ae >= 0) { G.scenes.push({ cine:ae, npc:'vision', title:'Fin de l\'acte', pages:[''], btn:'Continuer' }); G.scenes.push({ backup:true, npc:'vision', title:'Sauvegarde', pages:[''] }); } // scène animée de fin d'acte, puis proposition de sauvegarde
     const next = MAIN[MAIN.indexOf(q)+1];
     p.story = next ? MAIN.indexOf(next) : MAIN.length;
     if (next) queueIntros(next);
@@ -3799,6 +3897,7 @@ function showNextScene() {
   if (G.mode!=='map' || G.travel || !$('#overlay').classList.contains('hide') || !G.scenes.some(s => !s.talk)) return;
   const sc = G.scenes.splice(G.scenes.findIndex(s => !s.talk), 1)[0], npc = NPCS[sc.npc];
   if (sc.cine !== undefined) return playActEnd(sc.cine, showNextScene);
+  if (sc.backup) return backupPrompt(showNextScene);
   let page = 0;
   const draw = () => {
     const last = page === sc.pages.length-1;
@@ -4218,7 +4317,9 @@ function showJournal() {
   // quêtes proposées mais pas encore acceptées : on dit à qui parler et où
   const waiting = G.scenes.filter(s => s.talk).map(s => { const q = questById(s.quest); return `<div class="quest${q.main?' main':''}"><b>${q.main ? '★ ' : ''}${q.title}</b><small>À recevoir</small>
     <div>💬 Va parler à ${NPCS[s.npc].name} (${zoneById(talkPlace(s)).name}). Suis la flèche dorée.</div></div>`; }).join('');
-  const act = waiting + activeQuests().map(q => `<div class="quest${q.main?' main':''}"><b>${q.main ? '★ ' : ''}${q.title}</b><small>${NPCS[q.npc].name}</small>
+  const fl = treasure().flowers ? `<div class="quest"><b>🌸 Fleurs de lune</b><small>${NPCS.lune.name}</small>
+    <div>💬 Tu as ${treasure().flowers} fleur${treasure().flowers>1 ? 's' : ''} de lune : va les offrir à Lune (${zoneById(lunePlace()).name}). Une enseigne bleue flotte au-dessus d'elle.</div><small>Récompense : amitié et +${Math.round(LUNE_XP*100)} % d'expérience par fleur, pour toujours</small></div>` : '';
+  const act = waiting + fl + activeQuests().map(q => `<div class="quest${q.main?' main':''}"><b>${q.main ? '★ ' : ''}${q.title}</b><small>${NPCS[q.npc].name}</small>
     <div>🎯 ${goalText(q)}</div><small>Récompense : ${rewardText(q.reward)}</small></div>`).join('') || '<p class="help">Aucune quête en cours.</p>';
   const done = QUESTS.filter(q => qs(q) && qs(q).state==='done').map(q => `<li>${q.title}</li>`).join('');
   overlay(`<h2>Journal de quêtes</h2><p class="help">Chapitre ${Math.min(p.story+1, MAIN.length)}/${MAIN.length} · ${p.story>=MAIN.length ? 'Histoire terminée !' : 'Les quêtes principales (★) font avancer l\'histoire et ouvrent de nouvelles zones.'}</p>
@@ -4487,9 +4588,11 @@ function hfToast(h) { hfQueue.push(h); if (!hfTimer) hfNext(); }
 function hfNext() {
   const t = $('#hfToast'); if (!hfQueue.length) { t.classList.remove('on'); hfTimer = null; return; }
   const h = hfQueue.shift(), more = hfQueue.length > 2 ? hfQueue.splice(0).length : 0;
-  t.innerHTML = `<span class="ic">🏆</span><div><small>Haut fait débloqué ! (+${h.pts} points)</small><b>${h.name}</b>${more ? `<small>et ${more} autre${more>1?'s':''} : touche F pour les voir</small>` : `<small>${h.desc}${h.title ? ` · nouveau titre « ${h.title} »` : ''}${fxForHf(h.id) ? ` · nouvel effet de nom « ${fxForHf(h.id).name} »` : ''}</small>`}</div>`;
+  t.innerHTML = `<span class="ic">🏆</span><div><small>Haut fait débloqué ! (+${h.pts} points)</small><b>${h.name}</b>${more ? `<small>et ${more} autre${more>1?'s':''} : clique ici ou touche F</small>` : `<small>${h.desc}${h.title ? ` · nouveau titre « ${h.title} »` : ''}${fxForHf(h.id) ? ` · nouvel effet de nom « ${fxForHf(h.id).name} »` : ''}</small>`}</div>`;
   t.classList.add('on');
-  hfTimer = setTimeout(() => { t.classList.remove('on'); hfTimer = setTimeout(hfNext, 350); }, 3200);
+  hfTimer = setTimeout(() => { t.classList.remove('on'); hfTimer = setTimeout(hfNext, 350); }, 7000);
+  t.onclick = () => { clearTimeout(hfTimer); hfQueue.length = 0; hfTimer = null; t.classList.remove('on');
+    const ov = $('#overlay'); if (G.profile && G.mode==='map' && !G.travel && (ov.classList.contains('hide') || ov.dataset.menu)) showFeats(); else G.hfWanted = true; };
 }
 function showFeats() {
   const p = G.profile; if (!p) return;
@@ -4518,8 +4621,18 @@ function migrateSave(p) {
 }
 
 // ---------- Écrans ----------
-function overlay(html, wide) { const o=$('#overlay'); o.dataset.menu = ''; o.innerHTML = `<div class="box${wide?' wide':''}">${html}</div>`; o.classList.remove('hide'); }
-function hideOverlay() { $('#overlay').classList.add('hide'); }
+function overlay(html, wide) { const o=$('#overlay'); o.dataset.menu = ''; o.innerHTML = `<div class="box${wide?' wide':''}">${html}</div>`; o.classList.remove('hide');
+  queueMicrotask(() => addXClose(o)); }
+// croix en haut à droite de tous les menus : fermer sans descendre tout en bas (même effet que leur bouton Fermer / Retour / Annuler…)
+function addXClose(o) {
+  const box = o.querySelector('.box'); if (!box || box.querySelector('.xclose')) return;
+  const close = /^(Fermer|Retour|Annuler|Au revoir|Partir|Quitter la boutique|Rester sur la carte)$/;
+  const b = o.dataset.menu ? o.querySelector('#b1') : [o.querySelector('#b1'), o.querySelector('#b2')].find(b => b && close.test(b.textContent.trim()));
+  if (!b) return;
+  const x = document.createElement('button'); x.className = 'xclose'; x.title = 'Fermer (Échap)'; x.textContent = '✕'; x.onclick = () => b.click(); box.prepend(x); }
+function hideOverlay() { $('#overlay').classList.add('hide');
+  // clic sur l'encadré d'un haut fait pendant une autre fenêtre : les hauts faits s'ouvrent dès qu'elle est fermée
+  if (G.hfWanted) setTimeout(() => { if (G.hfWanted && G.profile && G.mode==='map' && !G.travel && $('#overlay').classList.contains('hide')) { G.hfWanted = false; showFeats(); } }); }
 function showMenu() {
   const chars = characters();
   const card = k => { const c = CLASSES[k];
@@ -4527,7 +4640,7 @@ function showMenu() {
   overlay(`<h1>Héritiers de l'Aube</h1><p>Un petit RPG tactique au tour par tour, dans le monde de <b>Valdoria</b>. Le Cristal qui protégeait <b>Aubépine</b>, ton village, a été volé. Avec <b>Forest</b>, ton fidèle chat noir, suis l'histoire en huit actes, accomplis des quêtes, libère les ${FIGHT_ZONES.length} zones des six régions de Valdoria !</p>
     <div id="fileBox"></div>
     ${chars.length ? `<h3>Reprendre un personnage</h3><div class="chars">${chars.map((c,i) => `<div class="charrow"><img src="${SPRITES[CLASSES[c.cls].sprite+'_idle_anim_f0']}" alt="">
-      <div class="txt"><b>${c.name || CLASSES[c.cls].name}${heroTitle(c) ? ` <small style="display:inline;color:var(--gold)">« ${heroTitle(c)} »</small>` : ''}</b><small>${CLASSES[c.cls].name} niv. ${c.level} · chapitre ${Math.min(c.story+1, MAIN.length)}/${MAIN.length} · 🏆 ${hfPoints(c)} pts</small></div>
+      <div class="txt"><b>${c.name || CLASSES[c.cls].name}${heroTitle(c) ? ` <small style="display:inline;color:var(--gold)">« ${heroTitle(c)} »</small>` : ''}</b><small>${CLASSES[c.cls].name} niv. ${c.level} · chapitre ${Math.min(c.story+1, MAIN.length)}/${MAIN.length} · 🏆 ${hfPoints(c)} pts</small>${backupHint(c)}</div>
       <button class="btn" data-play="${i}"${i===0 ? ' id="cont"' : ''}>Jouer</button><button class="btn alt sm" data-exp="${i}" title="Exporter ce personnage">💾</button><button class="btn alt sm" data-del="${i}" title="Supprimer ce personnage">🗑</button></div>`).join('')}</div>
       <h3>Nouveau personnage</h3>` : ''}
     <div class="namebox"><label for="heroName">Nom de ton héros :</label> <input id="heroName" maxlength="16" placeholder="Choisis un nom" autocomplete="off"></div>
@@ -4551,6 +4664,28 @@ function showMenu() {
 // ---------- Export / import de la sauvegarde (fichier ou code à copier-coller) ----------
 const saveToCode = txt => btoa(unescape(encodeURIComponent(txt)));
 function codeToSave(code) { code = code.trim(); if (code.startsWith('{')) return parseSave(code); try { return parseSave(decodeURIComponent(escape(atob(code.replace(/\s+/g, ''))))); } catch (e) { return null; } }
+// fichier de sauvegarde téléchargé (PC et iPad) : on retient la date pour le rappel de l'écran d'accueil
+function downloadSave(p) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(p)], { type:'application/json' }));
+  a.download = `valdoria-${(p.name || p.cls).replace(/[^\w-]+/g, '_')}-niv${p.level}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  p.backupAt = Date.now();
+  if (G.profile && G.profile.slot===p.slot) { G.profile.backupAt = p.backupAt; save(); }
+  else { const l = readSlots(), o = l.find(o => o && o.slot===p.slot); if (o) { o.backupAt = p.backupAt; writeSlots(l); } }
+}
+const BACKUP_DAYS = 7;
+// rappel discret : aucun fichier téléchargé depuis BACKUP_DAYS jours (inutile si le fichier sur PC est déjà relié)
+function backupHint(p) {
+  if (saveFileOn || p.level < 3) return '';
+  const d = p.backupAt ? Math.floor((Date.now() - p.backupAt) / 864e5) : -1;
+  if (d >= 0 && d < BACKUP_DAYS) return '';
+  return `<small class="bkHint" style="display:block;color:var(--gold)">💾 ${d < 0 ? 'Pas encore de copie dans un fichier' : `Dernière copie dans un fichier il y a ${d} jours`}</small>`;
+}
+function backupPrompt(done) {
+  overlay(`<h2>💾 Acte terminé</h2><p>C'est le bon moment pour garder une copie de ta partie dans un fichier. Tu pourras la réimporter depuis l'écran d'accueil (💾 Importer un personnage), sur ton PC comme sur ton iPad.</p>
+    <div style="text-align:center"><button class="btn" id="b1">Télécharger ma sauvegarde</button><button class="btn alt" id="b2">Plus tard</button></div>`);
+  const end = () => { hideOverlay(); if (done) done(); };
+  $('#b1').onclick = () => { downloadSave(G.profile); end(); }; $('#b2').onclick = end;
+}
 function showSaveMenu(back, prof = G.profile) {
   if (G.profile) save();
   const p = prof, cur = p && JSON.stringify(p);
@@ -4567,14 +4702,13 @@ function showSaveMenu(back, prof = G.profile) {
   const msg = (t, ok) => { const m = $('#svMsg'); m.textContent = t; m.style.color = ok ? 'var(--pm)' : '#ff6a5a'; };
   if (p) {
     $('#svCopy').onclick = () => { const o = $('#svOut'); o.select(); (navigator.clipboard ? navigator.clipboard.writeText(o.value) : Promise.reject()).then(() => msg('Code copié !', true), () => { document.execCommand('copy'); msg('Code copié !', true); }); };
-    $('#svDl').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([cur], { type:'application/json' }));
-      a.download = `valdoria-${(p.name || p.cls).replace(/[^\w-]+/g, '_')}-niv${p.level}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); };
+    $('#svDl').onclick = () => { downloadSave(p); msg('Fichier téléchargé !', true); };
   }
   const doImport = np => {
     if (!np) return msg('Sauvegarde illisible : vérifie le code ou le fichier.', false);
     const l = readSlots(), i = np.slot ? l.findIndex(o => o && o.slot===np.slot) : -1;
     if (i>=0 && !confirm(`${np.name || CLASSES[np.cls].name} est déjà dans ta liste. Remplacer sa progression par celle importée (niv. ${np.level}) ?`)) return;
-    np.slot = np.slot || newSlot(); np.lastPlayed = np.savedAt = Date.now();
+    np.slot = np.slot || newSlot(); np.lastPlayed = np.savedAt = Date.now(); np.backupAt = np.backupAt || Date.now(); // il vient d'un fichier
     if (i>=0) l[i] = np; else l.push(np);
     if (G.profile && G.profile.slot===np.slot) G.profile = null;
     if (!writeSlots(l)) return msg('Impossible d\'enregistrer la sauvegarde dans ce navigateur.', false);
@@ -4606,16 +4740,17 @@ function showRoomCleared() {
   const done = progressQuests({ kills: fightKills() }), drops = rollDrops();
   play('victoire'); if (ups.length) setTimeout(() => play('niveau'), 1000);
   renderDbg(); save();
-  d.hp = G.hero.hp;
+  d.hp = G.hero.hp; if (G.dunRun) { G.dunRun.hp = G.hero.hp; G.dunRun.done = Math.max(G.dunRun.done, d.room); }
   const boss = d.room >= DUNGEON_ROOMS, bossName = MONSTERS[zoneById(d.id).foes[0]].name;
-  overlay(`<h2>Salle ${d.room} franchie !</h2><p><b>+${xp} XP</b>. Il te reste <b>${G.hero.hp} / ${G.hero.maxHp} PV</b> : tu récupères ${Math.round(DUNGEON_HEAL*100)} % de tes PV en entrant dans la salle suivante.</p>${levelUpHtml(ups)}${dropsHtml(drops)}
+  overlay(`<h2>Salle ${d.room} franchie !</h2><p><b>+${xp} XP</b>. Il te reste <b>${G.hero.hp} / ${G.hero.maxHp} PV</b> : tu récupères ${Math.round(DUNGEON_HEAL*100)} % de tes PV au début du prochain combat. La porte de la salle suivante est ouverte.</p>${levelUpHtml(ups)}${dropsHtml(drops)}
     ${done.length ? `<p class="goal">📜 Quête accomplie : <b>${done.map(q => q.title).join(', ')}</b>.</p>` : ''}
     <p class="help">${boss ? `${bossName} t'attend dans la dernière salle.` : `Encore ${DUNGEON_ROOMS - d.room} salle avant ${bossName}.`} Si tu quittes le donjon, il faudra recommencer à la salle 1.</p>
-    <div style="text-align:center"><button class="btn alt" id="b2">Quitter le donjon</button><button class="btn" id="b1">${boss ? 'Affronter le boss' : 'Salle suivante'}</button></div>`, true);
-  $('#b1').onclick = () => startFight(d.id, d.room + 1); $('#b2').onclick = () => { G.dungeon = null; openMap(); };
+    <div style="text-align:center"><button class="btn alt" id="b2">Quitter le donjon</button><button class="btn" id="b1">Continuer l'exploration</button></div>`, true);
+  $('#b1').onclick = () => { G.profile.pos = `${d.id}#${d.room}`; openMap(); }; $('#b2').onclick = () => { leaveDungeon(); openMap(); };
 }
 function showVictory() {
   if (G.dungeon && G.dungeon.room <= DUNGEON_ROOMS) return showRoomCleared();
+  if (G.dungeon) leaveDungeon(); // boss vaincu : on ressort devant l'entrée
   G.dungeon = null;
   const z = G.zone, p = G.profile, first = !z.extra && !p.cleared.includes(z.id);
   if (first) p.cleared.push(z.id);
@@ -4644,9 +4779,9 @@ function showDefeat() {
   renderDbg();
   hfFight(false);
   progressQuests({ kills: fightKills() });
-  const dj = G.dungeon; G.dungeon = null;
-  overlay(`<h2>Défaite…</h2><p>Les monstres ont eu raison de toi.${dj ? ' Tu ressors du donjon : il faudra recommencer à la salle 1.' : ''} Tu peux retenter ce combat ou retourner sur la carte pour t'équiper. Les monstres vaincus comptent quand même pour tes quêtes.</p><button class="btn" id="b1">Réessayer</button><button class="btn alt" id="b2">Reprendre l'exploration</button>`);
-  $('#b1').onclick = () => startFight(G.zone.id, null, G.zone.extra ? G.zone.foes : undefined); $('#b2').onclick = openMap;
+  const dj = G.dungeon; if (dj) leaveDungeon(); G.dungeon = null;
+  overlay(`<h2>Défaite…</h2><p>Les monstres ont eu raison de toi.${dj ? ' Tu ressors du donjon : il faudra recommencer à la salle 1.' : ''} Tu peux ${dj ? 'retenter le donjon' : 'retenter ce combat'} ou retourner sur la carte pour t'équiper. Les monstres vaincus comptent quand même pour tes quêtes.</p><button class="btn" id="b1">Réessayer</button><button class="btn alt" id="b2">Reprendre l'exploration</button>`);
+  $('#b1').onclick = () => dj ? enterDungeon(dj.id) : startFight(G.zone.id, null, G.zone.extra ? G.zone.foes : undefined); $('#b2').onclick = openMap;
 }
 
 // ---------- Exploration : chaque zone est une scène où le héros se déplace ----------
@@ -4751,8 +4886,15 @@ const SCENE_KIT = {
   sommet: { n:23, rocks:24, lake:[0,-5,6,3.6], props:{ bones:2 } },
 };
 const BIG_PROPS = ['mill', 'tower', 'ruin', 'bigtree', 'cave'];
+// Salles des donjons : dallage sombre, décor différent dans chaque salle (crypte, grande salle, salle du trône)
+const DUN_KITS = [
+  { n:15, tree:0, rocks:7, ponds:0, dungeon:1, props:{ tomb:4, pillar:4, bones:4 } },
+  { n:15, tree:0, rocks:9, ponds:2, dungeon:1, props:{ wall:8, statue:2, fire:2, bones:2 } },
+  { n:17, tree:0, rocks:5, ponds:0, dungeon:1, props:{ pillar:8, altar:1, fire:4, statue:2 } },
+];
 function sceneKit(z) {
   const hub = z.icon==='village', portal = z.icon==='portal';
+  if (z.dun) return DUN_KITS[z.dun.boss ? 2 : z.dun.n - 1];
   return Object.assign({ n: hub ? 19 : portal ? 17 : 23, tree:.6, rocks: hub ? 10 : portal ? 18 : 24, ponds:0, props:{} }, SCENE_KIT[z.id]);
 }
 // Case de bord dans la direction (dx,dy) de la carte du monde (le haut de l'écran est le nord)
@@ -4765,7 +4907,7 @@ function edgeCell(dx, dy, N=13) {
   return [0, N-1-t((a-180)/90)];
 }
 function sceneOf(id) {
-  if (SCENES[id]) return SCENES[id];
+  if (SCENES[id] && SCENES[id].boss===(zoneById(id).icon==='boss')) return SCENES[id]; // une zone qui devient zone de boss (étape de l'histoire) reçoit son entrée de donjon
   const z = zoneById(id), R = seeded(strHash(id)), hub = z.icon==='village', K = sceneKit(z), N = K.n, C = [N>>1, N>>1];
   const inS = (x,y) => x>=0 && y>=0 && x<N && y<N, rc = (a=1) => a + (R()*(N-2*a)|0);
   const g = Array.from({length:N}, () => Array(N).fill(0));
@@ -4776,7 +4918,8 @@ function sceneOf(id) {
       if (v<1 || v>N-2 || exits.some(e => man(e.x,e.y,nx,ny) < 3)) continue;
       exits.push({ x:nx, y:ny, to, portal, ix: nx===0 ? 1 : nx===N-1 ? N-2 : nx, iy: ny===0 ? 1 : ny===N-1 ? N-2 : ny }); return; }
   };
-  for (const n of neighbors(id)) { const b = zoneById(n); addExit(n, b.x-z.x, b.y-z.y); }
+  if (z.dun) { const { base, n } = z.dun; addExit(n > 1 ? `${base}#${n-1}` : base, -1, 1); if (!z.dun.boss) addExit(`${base}#${n+1}`, 1, -1); exits.forEach((e, i) => { e.back = i===0; e.fwd = i===1; }); }
+  else for (const n of neighbors(id)) { const b = zoneById(n); addExit(n, b.x-z.x, b.y-z.y); }
   if (z.icon==='portal') addExit(z.to, z.x-450, z.y-280, true);
   const nearExit = (x,y,d=1) => exits.some(e => man(e.x,e.y,x,y) <= d);
   const cellOpen = (x,y) => OPEN_T.has(g[y][x]) && !block.has(key(x,y));
@@ -4818,7 +4961,7 @@ function sceneOf(id) {
   let shop = null, crystal = null;
   if (hub) for (const c of at([[2,-3],[3,-2],[-3,2],[-2,3]])) if (reserve(...c)) { shop = c; break; }
   if (CRYSTAL_ZONES.includes(id)) for (const c of at([[0,-2],[-2,0],[1,-2],[-2,1],[-1,2],[2,-1]])) if (reserve(...c)) { crystal = c; break; }
-  for (const c of ring) if (slots.length < (hub ? 7 : 2) && reserve(...c)) slots.push(c);
+  for (const c of ring) if (slots.length < (hub ? 7 : 2) && !(shop && man(...c, ...shop) <= 1) && reserve(...c)) slots.push(c); // personne devant l'étalage du marchand
   // groupes de monstres : le chef de zone près du centre, deux groupes errants plus loin (loin des sorties et du centre)
   const homes = [];
   if (z.foes) {
@@ -4826,20 +4969,20 @@ function sceneOf(id) {
     const far = (x,y,d) => homes.every(h => man(x,y,...h) >= d);
     const chief = pick((x,y) => { const d = man(x,y,...C); return d>=3 && d<=6; }) || pick((x,y) => man(x,y,...C)>=2);
     if (chief) homes.push(chief);
-    for (let i=0; i<2; i++) { const h = pick((x,y) => man(x,y,...C)>=8 && !nearExit(x,y,6) && far(x,y,6)) || pick((x,y) => man(x,y,...C)>=5 && !nearExit(x,y,3) && far(x,y,4));
+    for (let i=0; i<(z.dun ? 0 : 2); i++) { const h = pick((x,y) => man(x,y,...C)>=8 && !nearExit(x,y,6) && far(x,y,6)) || pick((x,y) => man(x,y,...C)>=5 && !nearExit(x,y,3) && far(x,y,4));
       if (h) homes.push(h); }
   }
   const bench = hub ? at([[-2,-3],[-3,-2],[3,2],[2,3],[-1,-3],[-3,-1],[1,-3],[-3,1]]).find(c => reserve(...c)) || null : null, nodes = [];
-  if (!hub) for (const job of JOB_IDS) for (let k=0; k<80; k++) { const x = rc(), y = rc();
+  if (!hub && !z.dun) for (const job of JOB_IDS) for (let k=0; k<80; k++) { const x = rc(), y = rc();
     if (man(x,y,...C) >= 2 && reserve(x,y)) { nodes.push({ x, y, job, t:Math.min(JOB_REQ.length-1, regionOf(id)-1) }); break; } }
   // trésors des zones de combat, forgeron / auberge / habitants des villages (voir « Trésors et villages vivants »)
   const spot = (ok, tries=500) => { for (let k=0; k<tries; k++) { const x = rc(), y = rc(); if (ok(x,y) && reserve(x,y)) return [x,y]; } return null; };
   let chest = null, herb = null, secret = null, smith = null, inn = null; const folk = [];
-  if (z.foes) { const T = treasureZones(); chest = T.chest.has(id) ? spot((x,y) => man(x,y,...C) >= 5) : null; herb = T.herb.has(id) ? spot((x,y) => man(x,y,...C) >= 4 && (!chest || man(x,y,...chest) >= 5)) : null;
+  if (z.foes && !z.dun) { const T = treasureZones(); chest = T.chest.has(id) ? spot((x,y) => man(x,y,...C) >= 5) : null; herb = T.herb.has(id) ? spot((x,y) => man(x,y,...C) >= 4 && (!chest || man(x,y,...chest) >= 5)) : null;
     secret = !T.secret.has(id) ? null : spot((x,y) => man(x,y,...C) >= 7 && (x<=2 || y<=2 || x>=N-3 || y>=N-3)) || spot((x,y) => man(x,y,...C) >= 6); }
-  if (hub) { smith = at([[3,-1],[-1,3],[4,-2],[-2,4],[3,1],[1,3]]).find(c => reserve(...c)) || null;
+  if (hub) { smith = at([[3,3],[4,2],[2,4],[-3,-3],[-4,-2],[3,1],[1,3]]).find(c => reserve(...c)) || null;
     inn = at([[-3,1],[1,-4],[-4,1],[1,4],[-3,-1],[-1,-4]]).find(c => reserve(...c)) || null;
-    for (let i=0; i<3; i++) { const h = spot((x,y) => { const d = man(x,y,...C); return d>=3 && d<=6; }); if (h) folk.push(h); } }
+    for (let i=0; i<3; i++) { const h = spot((x,y) => { const d = man(x,y,...C); return d>=3 && d<=6 && ![shop, smith, inn].some(c => c && man(x,y,...c) <= 2); }); if (h) folk.push(h); } }
   // 4) maisons dans les villages, champs de blé et dallages, mares, petits éléments du décor, puis rochers / arbres
   if (hub) for (const [x,y] of at([[-4,-4],[4,-4],[-4,4],[4,4],[-4,0],[4,0],[0,-5],[-6,-2],[6,2],[-2,6],[2,-6]])) putTile(x, y, 4);
   const patch = (t, w, h, x0, y0) => { for (let y=y0; y<y0+h; y++) for (let x=x0; x<x0+w; x++) if (inS(x,y) && g[y][x]===0 && !nearExit(x,y)) g[y][x] = t; };
@@ -4852,7 +4995,10 @@ function sceneOf(id) {
     let x = rc(), y = rc(); const [a,b] = R()<.5 ? [1,0] : [0,1], len = 2 + (R()*3|0);
     for (let j=0; j<len && i<n; j++, x+=a, y+=b) if (putProp(x, y, kind)) i++; else break; }
   for (let i=0, k=0, n=K.rocks; i<n && k<n*20; k++) { const x = R()*N|0, y = R()*N|0; if (putTile(x,y,1)) i++; }
-  return SCENES[id] = { id, n:N, c:C, grid:g, exits, slots, shop, crystal, bench, nodes, homes, props, chest, herb, secret, smith, inn, folk, tree: K.tree, dead: !!K.dead, foe: homes[0] || null };
+  if (K.dungeon) for (let y=0;y<N;y++) for (let x=0;x<N;x++) if (g[y][x]===0 || g[y][x]===3) g[y][x] = 6; // tout le sol est dallé
+  // entrée du donjon : à la place du chef, dans les zones de boss
+  const dungeon = z.icon==='boss' && homes[0] ? homes[0] : null;
+  return SCENES[id] = { dungeon, boss: z.icon==='boss', dark: !!K.dungeon, id, n:N, c:C, grid:g, exits, slots, shop, crystal, bench, nodes, homes, props, chest, herb, secret, smith, inn, folk, tree: K.tree, dead: !!K.dead, foe: homes[0] || null };
 }
 // PNJ présents dans une zone : ceux qui ont une quête à te confier ici (« ! »), puis les habitués
 const sceneMet = n => (n==='brenna' && forgeOpen()) || QUESTS.some(q => q.npc===n && G.profile.quests[q.id]);
@@ -4861,14 +5007,17 @@ function talkPlace(sc) { const q = questById(sc.quest), mq = q.main ? q : questB
   // le PNJ t'attend au village de la région où tu viens de finir la quête précédente (là où tu es), ou chez lui s'il habite cette région
   const r = regionOf(i > 0 ? MAIN[i-1].goal.zone : 'village'), home = NPC_HOME[sc.npc];
   return home && regionOf(home)===r ? home : hubOf(r); }
+// où trouver Lune (les fleurs de lune se donnent à elle) : là où une scène l'attend, sinon au village de la région de l'histoire
+function lunePlace() { const sc = G.scenes.find(s => s.talk && s.npc==='lune'); return sc ? talkPlace(sc) : NPC_HOME.lune || storyHub(); }
 function storyHub() { const q = MAIN[Math.min(G.profile.story, MAIN.length-1)]; return hubOf(regionOf(q.goal.zone)); }
 let npcCache = { k:'' };
 function sceneNpcs(id) {
-  const k = [id, G.profile.story, Object.keys(G.profile.quests).length, ...G.scenes.map(s => s.talk ? s.npc : '')].join();
+  const k = [id, G.profile.story, Object.keys(G.profile.quests).length, treasure().flowers, ...G.scenes.map(s => s.talk ? s.npc : '')].join();
   if (npcCache.k===k) return npcCache.v;
   const out = [], seen = new Set(), s = sceneOf(id);
   for (const sc of G.scenes) if (sc.talk && !seen.has(sc.npc) && talkPlace(sc)===id) { seen.add(sc.npc); out.push({ id:sc.npc, talk:true }); }
-  for (const n of Object.keys(NPC_IDLE)) if (!seen.has(n) && sceneMet(n) && (NPC_HOME[n] || storyHub())===id) { seen.add(n); out.push({ id:n }); }
+  for (const n of Object.keys(NPC_IDLE)) if (!seen.has(n) && (sceneMet(n) || (n==='lune' && treasure().flowers)) && (NPC_HOME[n] || storyHub())===id) { seen.add(n); out.push({ id:n }); }
+  if (treasure().flowers) out.sort((a,b) => (b.id==='lune') - (a.id==='lune'));
   npcCache = { k, v: out.slice(0, s.slots.length).map((o,i) => ({ ...o, x:s.slots[i][0], y:s.slots[i][1] })) };
   return npcCache.v;
 }
@@ -4883,7 +5032,7 @@ function groupSizes(z) {
   return d < 0 ? [Math.max(1, n-2), n-1] : d <= 5 ? [n-1, n] : [n, n+1];
 }
 function newGroup(z, i, [x,y]) {
-  const pool0 = z.icon==='boss' ? z.foes.slice(1) : z.foes.filter(k => !MONSTERS[k].big), pool = pool0.length ? pool0 : z.foes;
+  const pool0 = (z.icon==='boss' ? z.foes.slice(1) : z.foes.filter(k => !MONSTERS[k].big)).filter(k => !bossOnly(k)), pool = pool0.length ? pool0 : z.foes;
   const foes = i===0 ? z.foes.slice() : Array.from({ length: groupSizes(z)[i-1] }, () => pool[Math.random()*pool.length|0]);
   return { i, chief: i===0, foes, kind: foes.reduce((a,k) => MONSTERS[k].xp > MONSTERS[a].xp ? k : a, foes[0]), aggro: i===2 && (z.tier||0) >= 2,
     x, y, rx:x, ry:y, hx:x, hy:y, off: Math.random()*4, next: performance.now() + Math.random()*3000, dead: 0, moving: false };
@@ -4894,10 +5043,11 @@ function zoneGroups(z) {
   if (!st || st.sig!==sig) st = G.groups[z.id] = { sig, list: s.homes.map((h, i) => newGroup(z, i, h)) };
   const now = performance.now(), h = G.walker;
   for (const g of st.list) if (g.dead && now > g.dead && !(h && G.profile.pos===z.id && man(h.x,h.y,g.hx,g.hy) <= 1)) Object.assign(g, newGroup(z, g.i, [g.hx, g.hy]));
-  return st.list.filter(g => !g.dead);
+  return st.list.filter(g => !g.dead && !(g.chief && z.icon==='boss'));
 }
 function sceneFoes() {
   const z = zoneById(G.profile.pos); if (!z.foes) return [];
+  const run = dunRun(z); if (run && run.done >= z.dun.n) return (G.foes = { zone:z.id, list:[] }).list;
   const list = zoneGroups(z); G.foes = { zone:z.id, list }; return list;
 }
 // un groupe errant vaincu disparaît, puis revient (avec une nouvelle composition)
@@ -4934,6 +5084,7 @@ function sceneFree(x,y) {
   if (s.shop && s.shop[0]===x && s.shop[1]===y) return false;
   if (s.crystal && s.crystal[0]===x && s.crystal[1]===y) return false;
   if (s.bench && s.bench[0]===x && s.bench[1]===y) return false;
+  if (s.dungeon && s.dungeon[0]===x && s.dungeon[1]===y) return false;
   for (const c of [s.chest, s.herb, s.secret, s.smith, s.inn]) if (c && c[0]===x && c[1]===y) return false;
   if (sceneFolk().some(v => v.x===x && v.y===y)) return false;
   if (s.nodes.some(n => n.x===x && n.y===y)) return false;
@@ -4942,6 +5093,7 @@ function sceneFree(x,y) {
 }
 function enterZone(id, from, keepCell) {
   applyPhases();
+  { const dz = zoneById(id); if (dz && dz.dun && !dunRun(dz)) return enterZone(dz.dun.base, id); } // donjon quitté (ou partie rechargée) : retour devant l'entrée
   const p = G.profile, z = zoneById(id), s = sceneOf(id), oldRegion = regionOf(p.pos), N = s.n, top = 200;
   G.walkTok = (G.walkTok||0) + 1; G.walking = false;
   p.pos = id; G.view = 'scene'; G.zone = z; G.seed = strHash(id); G.units = []; G.foes = null; G.sHover = null; G.foeTarget = null;
@@ -4951,14 +5103,58 @@ function enterZone(id, from, keepCell) {
   if (z.foes) for (const g of zoneGroups(z)) { g.x = g.rx = g.hx; g.y = g.ry = g.hy; g.moving = false; }
   G.aggroOk = performance.now() + 4000; G.heroMoved = false; // un groupe agressif ne te repère que si tu bouges près de lui
   const e = from && s.exits.find(e => e.to===from);
-  let c = e ? [e.ix, e.iy] : keepCell && p.cell && sceneFree(...p.cell) ? p.cell : s.c;
+  let c = e ? [e.ix, e.iy] : from && s.dungeon && String(from).startsWith(id + '#') ? s.dungeon : keepCell && p.cell && sceneFree(...p.cell) ? p.cell : s.c;
   if (!sceneFree(...c)) c = [...distFree(c)];
   G.walker = { x:c[0], y:c[1], rx:c[0], ry:c[1], face: e ? (e.ix < e.x || e.iy < e.y ? -1 : 1) : 1 };
   p.cell = c; save();
   buildBg(); refreshMapTitle(); dirty = true; cv.style.cursor = 'default';
   $('#hint').textContent = sceneHint();
   if (from) banner(regionOf(id)!==oldRegion ? REGION_NAMES[regionOf(id)] : z.name);
+  const run = dunRun(z);
+  if (run && z.dun.boss && !run.cine) { run.cine = true; return playCine(bossCine(z.dun.base), () => { dirty = true; showNextScene(); }); }
   showNextScene();
+}
+// ---------- Donjons : une entrée dans la zone du boss, deux salles de monstres, puis la salle du boss ----------
+function enterDungeon(id) {
+  G.dunRun = { id, done:0, hp:null, cine:false }; G.dungeon = null;
+  hideOverlay(); if (G.mode!=='map') { G.profile.pos = id + '#1'; return openMap(); }
+  enterZone(id + '#1', id);
+}
+function leaveDungeon() { const r = G.dunRun; G.dunRun = null; G.dungeon = null; if (r) { G.profile.pos = r.id; G.profile.cell = sceneOf(r.id).dungeon; } }
+function showDungeonGate() {
+  const z = zoneById(G.profile.pos), b = z.foes[0], m = MONSTERS[b];
+  overlay(`<div class="scene">${portraitOf(spriteSrc(m.sprite))}<div class="say"><small class="who">L'entrée du donjon</small><h2>${z.name}</h2>
+    <p>${z.desc}</p>
+    <p class="help">🏰 ${DUNGEON_ROOMS} salles de monstres à traverser avant d'atteindre ${m.name}. Clique sur chaque groupe pour le combattre : la porte de la salle suivante s'ouvre quand il est vaincu. Tes PV se gardent d'un combat à l'autre (+${Math.round(DUNGEON_HEAL*100)} % au début de chaque combat). Une défaite te ramène ici.${BOSS_DROPS[b] ? ` Butin rare : <b style="color:#ff5c8a">${BOSS_DROPS[b].name}</b> (${Math.round(BOSS_DROP*100)} % par victoire).` : ''}</p>
+    ${BOSS_MECHS[b] ? `<p class="help">⚠️ <b>${BOSS_MECHS[b][0]}</b> : ${BOSS_MECHS[b][1]}</p>` : ''}
+    <div style="text-align:right"><button class="btn alt" id="b2">Partir</button><button class="btn" id="b1">Entrer dans le donjon</button></div></div></div>`, true);
+  $('#b1').onclick = () => enterDungeon(z.id); $('#b2').onclick = () => { hideOverlay(); showNextScene(); };
+}
+// courte scène à l'arrivée dans la salle du boss : la salle s'éclaire, le boss se lève et parle
+function bossCine(id) {
+  const b = zoneById(id), k = b.foes[0], m = MONSTERS[k], r = regionOf(id);
+  const tint = { 2:[150,200,255], 5:[120,220,120], 6:[255,120,40], 7:[80,200,220], 8:[190,220,255] }[r] || [255,170,90];
+  const col = a => `rgba(${tint},${a})`;
+  return [{ lines: [`${b.name}. Au fond du donjon, quelque chose remue dans l'ombre…`, `« ${FOE_TALK[k] || 'Tu n\'iras pas plus loin !'} »`],
+    draw(c, t, now, line) {
+      c.fillStyle = '#07060b'; c.fillRect(0, 0, CINE_W, CINE_H);
+      // murs de pierre et piliers
+      for (let y=0; y<418; y+=26) for (let x=(y/26%2)*40; x<CINE_W; x+=80) { c.fillStyle = `rgba(60,58,70,${0.25 + 0.1*((x*7+y)%3)})`; c.fillRect(x, y, 78, 24); }
+      for (const x of [120, 300, 660, 840]) { c.fillStyle = '#151320'; c.fillRect(x-22, 60, 44, 360); c.fillStyle = '#1e1b2a'; c.fillRect(x-28, 60, 56, 16); }
+      // torches qui s'allument une à une
+      [[120,200],[840,200],[300,230],[660,230]].forEach(([x,y],i) => { const on = easeIO((t - 0.4 - i*0.35)/0.6); if (on <= 0) return;
+        cineGlow(c, x, y, (70 + 8*Math.sin(now/120 + i))*on, `rgba(255,170,70,${0.45*on})`); c.fillStyle = `rgba(255,${200+Math.sin(now/90+i)*40|0},90,${on})`; c.fillRect(x-4, y-10, 8, 12); });
+      cineGlow(c, 480, 330, 260, col(0.12 + 0.06*Math.sin(now/500)));
+      c.fillStyle = '#0d0b14'; c.fillRect(0, 418, CINE_W, 122);
+      // le boss : d'abord une ombre, puis il se révèle et s'avance
+      const img = animFrame(m.sprite, false, now), k2 = easeIO((t - 1.2)/2), sz = Math.min(11, 210/(img ? img.height : 30));
+      if (img) { const y = 424 + 10*(1 - k2); cineSprite(c, silhouette(img, '#050409'), 480, y, sz, true, 1); cineSprite(c, img, 480, y, sz, true, line ? 1 : k2*0.95);
+        if (!line && k2 < 0.5) { c.fillStyle = col(0.9); c.fillRect(470, y - img.height*sz*0.66, 5, 4); c.fillRect(486, y - img.height*sz*0.66, 5, 4); } }
+      cineHero(c, 190, 424, 5, { flip:false, shadow: line ? null : '#1a1624' });
+      c.textAlign = 'center'; c.font = 'bold 34px Georgia, "Times New Roman", serif'; c.globalAlpha = easeIO((t - 2.4)/0.8);
+      c.save(); c.shadowColor = col(0.8); c.shadowBlur = 18; c.fillStyle = '#f6dc96'; c.fillText(m.name, 480, 60); c.restore();
+      if (BOSS_MECHS[k]) { c.font = 'italic 18px Georgia, "Times New Roman", serif'; c.fillStyle = '#e9e0c8'; c.fillText(`⚠️ ${BOSS_MECHS[k][0]}`, 480, 92); }
+      c.globalAlpha = 1; } }];
 }
 // case libre la plus proche (si la case voulue est occupée)
 function distFree(c) {
@@ -4981,7 +5177,9 @@ function guideZone() {
   const q = activeQuests().find(q => q.main); return q ? q.goal.zone : null;
 }
 function guideExit() {
-  const tz = guideZone(), cur = G.profile.pos; if (!tz || tz===cur) return null;
+  const tz = guideZone(), cur = G.profile.pos, cz = zoneById(cur);
+  if (cz && cz.dun) return sceneOf(cur).exits.find(e => e.fwd && isOpen(e.to)) || null;
+  if (!tz || tz===cur) return null;
   const r0 = regionOf(cur), s = sceneOf(cur);
   let step = tz;
   if (regionOf(tz)!==r0) { const pz = portalToward(r0, regionOf(tz)); if (!pz) return null; if (pz.id===cur) return s.exits.find(e => e.portal); step = pz.id; }
@@ -5149,6 +5347,18 @@ function drawFoePanel(z, x, yb, grp) {
   else if (sub) { ctx.fillStyle = grp.aggro ? '#ff8a7a' : '#a8a298'; ctx.fillText(sub, px+10, py + 37 + lines.length*19); }
   ctx.textAlign = 'center';
 }
+// enseigne qui flotte doucement au-dessus d'un personnage utile (marchand, forgeron…) : on les repère de loin
+function drawSign(text, x, y, now, col='#ffd36a') {
+  y += Math.sin(now/500 + x) * 2; ctx.font = 'bold 13px Segoe UI, Segoe UI Emoji, sans-serif'; ctx.textAlign = 'center'; const w = ctx.measureText(text).width + 16;
+  ctx.fillStyle = 'rgba(20,24,33,.88)'; ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(x-w/2, y-16, w, 22, 6); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x-5, y+6); ctx.lineTo(x+5, y+6); ctx.lineTo(x, y+12); ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+  ctx.fillStyle = col; ctx.fillText(text, x, y);
+}
+function drawBubble(icon, x, y, now) {
+  y += Math.sin(now/450 + x) * 2.5; ctx.fillStyle = 'rgba(20,24,33,.8)'; ctx.strokeStyle = '#e8b94a'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(x, y, 12, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.font = '13px Segoe UI Emoji, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(icon, x, y+1); ctx.textBaseline = 'alphabetic';
+}
 function drawTag(text, x, y, col='#ece6d6') {
   ctx.font = 'bold 13px Segoe UI, sans-serif'; ctx.textAlign = 'center'; const w = ctx.measureText(text).width + 14;
   ctx.fillStyle = 'rgba(20,24,33,.85)'; ctx.fillRect(x-w/2, y-15, w, 20); ctx.fillStyle = col; ctx.fillText(text, x, y);
@@ -5185,16 +5395,23 @@ function renderScene(now) {
   const cs = s.crystal && crystalState(s.id);
   if (cs) { const [x,y] = s.crystal; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); drawCrystal(cx, cy, cs, now); if (hv && hv.kind==='crystal') tags.push(['Cristal de la Plaine', cx, cy-(cs==='empty' ? 50 : 125)]); } }); }
   if (s.shop) { const [x,y] = s.shop; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y);
-    ctx.filter = 'hue-rotate(150deg)'; drawSprite(animFrame('dwarf_m', false, now, 2), cx+4, cy-4, SC, true); ctx.filter = 'none';
-    drawSprite(STALL, cx, cy+12, SC*.9); if (hv && hv.kind==='shop') tags.push(['Marchand', cx, cy-78]); } }); }
+    drawSprite(STALL, cx-22, cy+4, SC*.9);
+    ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(cx+12,cy+6,17,7,0,0,7); ctx.fill();
+    ctx.filter = 'hue-rotate(150deg)'; drawSprite(animFrame('dwarf_m', false, now, 2), cx+12, cy+10, SC, true); ctx.filter = 'none';
+    if (!(hv && hv.kind==='shop')) drawSign('💰 Marchand', cx+4, cy-72, now); else tags.push(['Marchand : acheter et vendre', cx+4, cy-72]); } }); }
   drawJobThings(s, now, hv, ents, tags);
   drawTreasures(s, now, hv, ents, tags);
+  if (s.dungeon) { const [x,y] = s.dungeon; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); drawDungeonGate(cx, cy, now);
+    const q = activeQuests().find(q => q.main); if (q && q.goal.zone===z.id) drawBang(cx, cy-112, now, '#ef6b5b');
+    if (hv && hv.kind==='dungeon') tags.push([`🏰 Donjon : ${MONSTERS[z.foes[0]].name}`, cx, cy-92]); else drawSign('🏰 Donjon', cx, cy-92, now); } }); }
   for (const n of sceneNpcs(s.id)) ents.push({ d:n.x+n.y, f:() => { const [cx,cy] = iso(n.x,n.y), d = NPCS[n.id], img = npcFrame(n.id, now, n.x);
     ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(cx,cy+2,17,7,0,0,7); ctx.fill();
     if (d.filter) ctx.filter = d.filter;
     if (d.src) drawSprite(img, cx, cy+8, 1.3); else drawSprite(img, cx, cy+6, SC, n.x > G.walker.x);
     ctx.filter = 'none';
     if (n.talk) drawBang(cx, cy-104, now);
+    else if (n.id==='lune' && treasure().flowers && !(hv && hv.kind==='npc' && hv.id===n.id)) drawSign(`🌸 Lune : offre-lui tes fleurs (${treasure().flowers})`, cx, cy-90, now, '#a8d8ff');
+    else if (n.id==='brenna' && typeof forgeOpen==='function' && forgeOpen() && !(hv && hv.kind==='npc' && hv.id===n.id)) drawSign('⚒️ Forge de Brenna', cx, cy-90, now);
     if (hv && hv.kind==='npc' && hv.id===n.id) tags.push([d.name, cx, cy-(n.talk ? 128 : 96)]); } });
   for (const f of sceneFoes()) ents.push({ d:f.rx+f.ry+.01, f:() => { const [cx,cy] = iso(f.rx,f.ry), m = MONSTERS[f.kind], img = animFrame(m.sprite, f.moving, now, f.off), b = m.big||1;
     ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(cx,cy+2,22*b,9*b,0,0,7); ctx.fill();
@@ -5213,15 +5430,30 @@ function renderScene(now) {
     ctx.strokeStyle='#4aa3ff'; ctx.lineWidth=2; ctx.beginPath(); ctx.ellipse(cx,cy+2,20,9,0,0,7); ctx.stroke();
     drawForest(cx - 30*h.face, cy+14, 3, h.face<0, now);
     drawSprite(animFrame(CLASSES[G.profile.cls].sprite, G.walking, now), cx, cy+6, SC, h.face<0);
-    tags.push([heroName(), cx, cy+42]); const ti = heroTitle(); if (ti) tags.push([`« ${ti} »`, cx, cy+62, '#e8b94a']); } });
+    if (G.heroHover) { tags.push([heroName(), cx, cy+42]); const ti = heroTitle(); if (ti) tags.push([`« ${ti} »`, cx, cy+62, '#e8b94a']); } } });
   ents.sort((a,b) => a.d-b.d).forEach(e => e.f());
   for (const e of s.exits) drawExit(e, now, e===ge, true);
-  if (hv && hv.kind==='exit') { const [cx,cy] = iso(hv.e.x, hv.e.y), open = isOpen(hv.e.to); tags.push([open ? '➜ ' + zoneById(hv.e.to).name : '??? (pas encore accessible)', cx, cy-(hv.e.portal ? 66 : 26), open ? '#f3e2b0' : '#8c8778']); }
+  if (hv && hv.kind==='exit') { const [cx,cy] = iso(hv.e.x, hv.e.y), open = isOpen(hv.e.to); tags.push([open ? '➜ ' + (z.dun && !zoneById(hv.e.to).dun ? 'Sortir du donjon' : zoneById(hv.e.to).name) : z.dun ? '🔒 Porte fermée' : '??? (pas encore accessible)', cx, cy-(hv.e.portal ? 66 : 26), open ? '#f3e2b0' : '#8c8778']); }
   ctx.restore();
+  if (s.dark) { const [hx,hy] = iso(G.walker.rx, G.walker.ry), g = ctx.createRadialGradient(hx-camx, hy-camy-30, 120, hx-camx, hy-camy-30, Math.max(cv.width, cv.height)*0.75);
+    g.addColorStop(0, 'rgba(8,6,14,0)'); g.addColorStop(1, 'rgba(8,6,14,.72)'); ctx.fillStyle = g; ctx.fillRect(0, 0, cv.width, cv.height); } // salle sombre : la lumière suit le héros
   for (const [t, x, y, col] of tags) drawTag(t, x - camx, y - camy, col);
   if (foeAt) drawFoePanel(z, foeAt[0] - camx, foeAt[1] - camy, foeAt[2]);
   if (!hv && $('#hint').textContent!==sceneHint()) $('#hint').textContent = sceneHint();
   foeTick(now, s); folkTick(now, s);
+}
+// porte du donjon : arche de pierre, ténèbres à l'intérieur, deux torches
+function drawDungeonGate(cx, cy, now) {
+  ctx.fillStyle='rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(cx,cy+4,34,13,0,0,7); ctx.fill();
+  ctx.fillStyle = '#4a4652'; ctx.fillRect(cx-30, cy-62, 14, 64); ctx.fillRect(cx+16, cy-62, 14, 64);
+  ctx.strokeStyle = '#4a4652'; ctx.lineWidth = 14; ctx.beginPath(); ctx.arc(cx, cy-62, 23, Math.PI, 0); ctx.stroke();
+  ctx.strokeStyle = '#2e2b34'; ctx.lineWidth = 2; for (let y=cy-56; y<cy; y+=10) { ctx.beginPath(); ctx.moveTo(cx-30, y); ctx.lineTo(cx-16, y); ctx.moveTo(cx+16, y+5); ctx.lineTo(cx+30, y+5); ctx.stroke(); }
+  const g = ctx.createLinearGradient(0, cy-80, 0, cy); g.addColorStop(0, '#08060c'); g.addColorStop(1, '#1a1424');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(cx-16, cy+2); ctx.lineTo(cx-16, cy-62); ctx.arc(cx, cy-62, 16, Math.PI, 0); ctx.lineTo(cx+16, cy+2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = `rgba(200,60,60,${.5+.4*Math.sin(now/400)})`; ctx.fillRect(cx-6, cy-46, 4, 3); ctx.fillRect(cx+3, cy-46, 4, 3); // des yeux dans le noir
+  for (const sx of [-38, 38]) { const f = Math.sin(now/90 + sx); ctx.fillStyle = '#5a3a20'; ctx.fillRect(cx+sx-2, cy-52, 4, 14);
+    const gl = ctx.createRadialGradient(cx+sx, cy-58, 1, cx+sx, cy-58, 26); gl.addColorStop(0, 'rgba(255,170,70,.55)'); gl.addColorStop(1, 'rgba(255,170,70,0)'); ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(cx+sx, cy-58, 26, 0, 7); ctx.fill();
+    ctx.fillStyle = `rgb(255,${190+f*40|0},80)`; ctx.fillRect(cx+sx-3, cy-62+f, 6, 8); }
 }
 // ---- souris ----
 function sceneTarget(e) {
@@ -5234,6 +5466,7 @@ function sceneTarget(e) {
   for (const v of sceneFolk()) test(v.rx, v.ry, { kind:'folk', v, at:[v.x,v.y] });
   for (const n of s.nodes) test(n.x, n.y, { kind:'node', n, at:[n.x,n.y] }, n.job==='bucheron' ? 74 : 50);
   if (s.crystal && crystalState(s.id)) test(...s.crystal, { kind:'crystal', at:s.crystal }, 80);
+  if (s.dungeon) test(...s.dungeon, { kind:'dungeon', at:s.dungeon }, 90);
   for (const f of sceneFoes()) test(f.rx, f.ry, { kind:'foe', g:f, at:[f.x,f.y] }, MONSTERS[f.kind].big ? 100 : 74);
   for (const ex of s.exits) if (ex.portal) test(ex.x, ex.y, { kind:'exit', e:ex, cell:[ex.x,ex.y] }, 80);
   // clic sur la case même d'un élément bas (ressource, coffre…), par ex. du blé derrière un groupe de monstres : il passe avant ce qui le cache
@@ -5245,6 +5478,8 @@ function sceneTarget(e) {
   return ex ? { kind:'exit', e:ex, cell:c } : { kind:'ground', cell:c };
 }
 function sceneMove(e) {
+  if (G.walker) { const [mx,my] = scenePoint(e), [hx,hy] = iso(G.walker.rx, G.walker.ry), on = Math.abs(mx-hx) < 24 && my > hy-80 && my < hy+14; // nom du héros au survol
+    if (on !== !!G.heroHover) { G.heroHover = on; dirty = true; } }
   const t = G.travel || !$('#overlay').classList.contains('hide') ? null : sceneTarget(e);
   const sig = t ? t.kind + (t.id||'') + String(t.cell||t.at) : '';
   if (sig === (G.sHover ? G.sHover.sig : '')) return;
@@ -5254,6 +5489,8 @@ function sceneMove(e) {
   $('#hint').textContent = !t || t.kind==='ground' ? sceneHint()
     : t.kind==='exit' ? (isOpen(t.e.to) ? `Vers ${zoneById(t.e.to).name} : ${zoneById(t.e.to).desc}` : (neighbors(t.e.to).some(isCleared) || t.e.portal ? "L'histoire ne t'a pas encore mené par là : suis tes quêtes (touche Q)." : 'Passage bloqué : libère une zone voisine pour y accéder.'))
     : t.kind==='crystal' ? 'Le Cristal de la Plaine : clique pour le regarder de plus près.'
+    : t.kind==='dungeon' ? `L'entrée du donjon : ${MONSTERS[z.foes[0]].name} t'attend au fond, derrière ${DUNGEON_ROOMS} salles de monstres. Clique pour entrer.`
+    : t.kind==='exit' && z.dun && !isOpen(t.e.to) ? 'Porte fermée : bats le groupe de monstres de cette salle pour l\'ouvrir.'
     : t.kind==='shop' ? 'Le marchand : achète de l\'équipement. Son stock change après chaque combat.'
     : t.kind==='chest' ? (chestDone(z.id) ? 'Coffre vide : tu l\'as déjà ouvert.' : 'Un coffre ! Il ne s\'ouvre qu\'une fois : clique pour l\'ouvrir.')
     : t.kind==='herb' ? (herbDone(z.id) ? 'Tu as déjà cueilli la fleur de lune de la région ici.' : 'Une fleur de lune, la seule de la région ! Clique pour la cueillir, puis apporte-la à Lune.')
@@ -5265,6 +5502,7 @@ function sceneMove(e) {
     : t.kind==='node' ? `${nodeText(z.id, t.n)} : clique pour récolter (J : métiers).`
     : t.kind==='npc' ? `${NPCS[t.id].name} : clique pour lui parler.`
     : !t.g.chief ? `Groupe errant de ${t.g.foes.length} monstre${t.g.foes.length > 1 ? 's' : ''}${t.g.aggro ? ', agressif : il t\'attaque si tu passes près de lui' : ''}. Le vaincre rapporte expérience et butin, mais ne libère pas la zone. Clique pour l'affronter.`
+    : z.dun ? `${z.name} : ${z.dun.boss ? MONSTERS[z.foes[0]].name + " t'attend. Clique pour l'affronter." : 'clique sur le groupe pour le combattre.'}`
     : `${z.name} : ${z.desc} Clique pour parler aux ennemis${isCleared(z.id) ? ' (zone déjà libérée, tu peux y refaire des combats)' : ''}.`;
 }
 // chemin le plus court vers la première case qui vérifie goal(x,y)
@@ -5300,7 +5538,7 @@ async function sceneClick(e) {
   const from = G.profile.pos;
   if (t.kind==='ground') { if (sceneFree(...t.cell)) walkTo((x,y) => x===t.cell[0] && y===t.cell[1]); return; }
   if (t.kind==='exit') { if (!isOpen(t.e.to)) return;
-    if (await walkTo((x,y) => x===t.e.x && y===t.e.y) && G.profile.pos===from) enterZone(t.e.to, from); return; }
+    if (await walkTo((x,y) => x===t.e.x && y===t.e.y) && G.profile.pos===from) { if (zoneById(from).dun && !zoneById(t.e.to).dun) G.dunRun = null; enterZone(t.e.to, from); } return; }
   if (t.kind==='foe') { // le groupe s'arrête le temps que le héros le rejoigne
     const g = t.g; G.foeTarget = g;
     const ok = await walkTo((x,y) => man(x,y,g.x,g.y)===1);
@@ -5317,6 +5555,7 @@ async function sceneClick(e) {
   if (!await walkTo((x,y) => man(x,y,tx,ty)===1) || G.profile.pos!==from) return;
   face(G.walker, tx, ty); dirty = true;
   if (t.kind==='crystal') showCrystal();
+  else if (t.kind==='dungeon') showDungeonGate();
   else if (t.kind==='shop') showShop();
   else if (t.kind==='bench') showJobs('fab');
   else if (t.kind==='chest') openChest();
@@ -5373,15 +5612,16 @@ const spriteSrcCache = {};
 function spriteSrc(sprite) { if (spriteSrcCache[sprite]) return spriteSrcCache[sprite]; const img = animFrame(sprite, false, 0); return spriteSrcCache[sprite] = !img ? '' : img.src || img.toDataURL(); }
 function talkFoe(g) {
   const z = zoneById(G.profile.pos); g = g || sceneFoes().find(f => f.chief) || sceneFoes()[0];
-  const lead = g.kind, m = MONSTERS[lead], cleared = isCleared(z.id), extra = !g.chief;
+  const lead = g.kind, m = MONSTERS[lead], cleared = isCleared(z.dun ? z.dun.base : z.id), extra = !g.chief && !z.dun;
   const counts = {}; g.foes.forEach(k => { const n = `${MONSTERS[k].name} niv. ${monsterLevel(k, z)}`; counts[n] = (counts[n]||0)+1; });
   overlay(`<div class="scene">${portraitOf(spriteSrc(m.sprite))}<div class="say"><small class="who">${m.name}</small><h2>${z.name}</h2>
     <p>« ${fillHero(cleared ? FOE_AGAIN : FOE_TALK[lead] || 'Tu n\'iras pas plus loin !')} »</p>
     <div class="foes" style="justify-content:flex-start">${Object.entries(counts).map(([n,c]) => `<span>${c} × ${n}</span>`).join('')}</div>
     <p class="help">${extra ? (g.aggro ? 'Un groupe agressif ! Le vaincre rapporte expérience, or et butin, mais ne libère pas la zone.' : 'Un groupe errant : le vaincre rapporte expérience, or et butin, mais ne libère pas la zone. Il reviendra plus tard.') : cleared ? 'Zone déjà libérée : tu peux refaire ce combat pour gagner de l\'expérience, de l\'or et du butin.' : z.desc}</p>
-    ${z.icon==='boss' && !extra ? `<p class="help">🏰 Donjon : ${DUNGEON_ROOMS} salles de monstres à franchir avant d'atteindre ${MONSTERS[z.foes[0]].name}. Tes PV se gardent d'une salle à l'autre (+${Math.round(DUNGEON_HEAL*100)} % à chaque entrée).${BOSS_DROPS[z.foes[0]] ? ` Butin rare : <b style="color:#ff5c8a">${BOSS_DROPS[z.foes[0]].name}</b> (${Math.round(BOSS_DROP*100)} % par victoire).` : ''}</p>` : ''}
+    ${z.dun ? `<p class="help">${z.dun.boss ? `Le boss du donjon. Tes PV : ${G.dunRun && G.dunRun.hp != null ? G.dunRun.hp : 'pleins'} (+${Math.round(DUNGEON_HEAL*100)} % au début du combat).${BOSS_DROPS[z.foes[0]] ? ` Butin rare : <b style="color:#ff5c8a">${BOSS_DROPS[z.foes[0]].name}</b> (${Math.round(BOSS_DROP*100)} % par victoire).` : ''}` : `Salle ${z.dun.n} sur ${DUNGEON_ROOMS} : la porte suivante s'ouvre quand ce groupe est vaincu.${G.dunRun && G.dunRun.hp != null ? ` Tes PV : ${G.dunRun.hp} (+${Math.round(DUNGEON_HEAL*100)} % au début du combat).` : ''}`}</p>${z.dun.boss && BOSS_MECHS[z.foes[0]] ? `<p class="help">⚠️ <b>${BOSS_MECHS[z.foes[0]][0]}</b> : ${BOSS_MECHS[z.foes[0]][1]}</p>` : ''}` : ''}
+    ${z.icon==='boss' && !extra ? `<p class="help">🏰 Donjon : ${DUNGEON_ROOMS} salles de monstres à franchir avant d'atteindre ${MONSTERS[z.foes[0]].name}. Tes PV se gardent d'une salle à l'autre (+${Math.round(DUNGEON_HEAL*100)} % à chaque entrée).${BOSS_DROPS[z.foes[0]] ? ` Butin rare : <b style="color:#ff5c8a">${BOSS_DROPS[z.foes[0]].name}</b> (${Math.round(BOSS_DROP*100)} % par victoire).` : ''}</p>${BOSS_MECHS[z.foes[0]] ? `<p class="help">⚠️ <b>${BOSS_MECHS[z.foes[0]][0]}</b> : ${BOSS_MECHS[z.foes[0]][1]}</p>` : ''}` : ''}
     <div style="text-align:right"><button class="btn alt" id="b2">Partir</button><button class="btn" id="b1">${z.icon==='boss' && !extra ? 'Entrer dans le donjon' : 'Combattre !'}</button></div></div></div>`, true);
-  $('#b1').onclick = () => { G.fightGroup = g; startFight(z.id, null, extra ? g.foes : undefined); }; $('#b2').onclick = () => { hideOverlay(); showNextScene(); };
+  $('#b1').onclick = () => { G.fightGroup = g; if (z.dun) return startFight(z.dun.base, z.dun.n); startFight(z.id, null, extra ? g.foes : undefined); }; $('#b2').onclick = () => { hideOverlay(); showNextScene(); };
 }
 // ---- le Cristal de la Plaine : volé (acte I), au village, fissuré (actes III-IV), puis restauré ----
 const CRYSTAL_ZONES = ['village', 'antre', 'sanctuaire'];
@@ -5422,6 +5662,7 @@ function showCrystal() {
 }
 function openWorldMap() {
   if (G.mode!=='map' || G.travel) return;
+  if (zoneById(G.profile.pos).dun) return banner('Sors du donjon pour voir la carte du monde');
   G.walkTok = (G.walkTok||0) + 1; G.walking = false; G.view = 'world'; G.mapHover = null; G.mapAll = false; G.mapRegion = null;
   const z = zoneById(G.profile.pos); G.mapHero = { x:z.x, y:z.y };
   if (!mapBg) buildMapBg();
@@ -5456,7 +5697,7 @@ const LUNE_RANKS = [[0,'Inconnue'],[1,'Connaissance'],[3,'Amie'],[5,'Grande amie
 const luneRank = n => LUNE_RANKS.filter(([k]) => n >= k).pop()[1];
 function treasureBox(title, text, it, kept, help) {
   overlay(`<h2>${title}</h2><div class="loot"><img class="chest" src="${SPRITES.chest_full_open_anim_f2}" alt=""><b>${text}</b></div>
-    ${it ? `<div class="items">${itemCard(it, { diff:true, btns: kept ? [['equip','Équiper']] : [['none','Sac plein : vendu',true]] })}</div>` : ''}
+    ${it ? `<div class="items">${itemCard(it, { diff:true, btns: kept ? [['equip','Équiper']] : WAIT_BTNS(it) })}</div>${waitNote(kept ? 0 : 1)}` : ''}
     ${help ? `<p class="help">${help}</p>` : ''}
     <div style="text-align:center"><button class="btn alt" id="b2">Mon équipement</button><button class="btn" id="b1">Reprendre l'exploration</button></div>`, true);
   bindItemButtons();
@@ -5486,7 +5727,7 @@ function pickHerb(n) {
   if (herbDone(id)) return;
   t.flowers++; t.picked.push(id); play('soin'); save(); dirty = true;
   addSceneFloat(n[0], n[1], '+1 fleur de lune');
-  banner(`Fleur de lune cueillie ! Apporte-la à Lune, l'herboriste`);
+  banner(`Fleur de lune cueillie ! Apporte-la à Lune, l'herboriste : elle t'attend à ${zoneById(lunePlace()).name}.`);
 }
 // Lune reçoit les fleurs : l'amitié grandit et le héros gagne plus d'expérience en combat
 function giveFlowers() {
@@ -5502,25 +5743,38 @@ function smithUp(it) { if (typeof forgeUp==='function') return forgeUp(it);
   for (const [st,v] of Object.entries(it.base)) if (st==='vie' || st==='puissance' || st==='resistance') it.stats[st] = v + Math.max(it.up, Math.round(v * 0.1 * it.up));
   it.name = it.name.replace(/ \+\d+$/, '') + ' +' + it.up; it.value = Math.round(it.value * 1.1);
 }
-const smithCost = it => Math.round(Math.max(40, it.value) * 0.5 * ((it.up || 0) + 1));
+const smithCost = it => Math.round(Math.max(40, it.value) * 1.5 * ((it.up || 0) + 1));
 const smithOre = it => { const t = Math.min(JOB_REQ.length-1, it.up || 0); return { id:'mineur'+t, name:resName('mineur', t), n: 4 + 2*(it.up || 0) }; };
+// Enchantement (06/10 : dépense d'or) : une stat au hasard parmi PV / % dégâts / % résistance devient une autre, à puissance égale.
+const enchantCost = it => Math.max(40, it.value) * 2;
+const enchantable = it => Object.keys(it.stats).filter(k => k==='vie' || k==='puissance' || k==='resistance');
+function enchantItem(it) {
+  const ks = enchantable(it); if (!ks.length) return null;
+  const from = ks[Math.random()*ks.length|0], others = ['vie','puissance','resistance'].filter(k => k!==from), to = others[Math.random()*2|0];
+  const conv = v => Math.max(1, Math.round(v / STATS[from][1] * STATS[to][1]));
+  for (const o of [it.stats, it.base].filter(Boolean)) if (o[from] !== undefined) { o[to] = (o[to]||0) + conv(o[from]); delete o[from]; }
+  return [from, to];
+}
 function showSmith() {
   const p = G.profile, j = jobs(), eq = Object.values(p.equip).filter(Boolean);
   const can = it => (it.up || 0) < SMITH_MAX && p.gold >= smithCost(it) && (j.res[smithOre(it).id] || 0) >= smithOre(it).n;
-  const label = it => { if ((it.up || 0) >= SMITH_MAX) return 'Déjà au maximum ici'; const o = smithOre(it); return `Renforcer (+${(it.up||0)+1}) : ${smithCost(it)} or + ${o.n} ${o.name} (tu en as ${j.res[o.id] || 0})`; };
+  const label = it => { if ((it.up || 0) >= SMITH_MAX) return 'Déjà au maximum ici'; const o = smithOre(it); return `Renforcer (+${(it.up||0)+1})<small>${smithCost(it)} or + ${o.n} ${o.name}<br>(tu en as ${j.res[o.id] || 0})</small>`; };
   overlay(`<h2>Le forgeron</h2><p>« Pose ça sur l'enclume, ${heroName()}. Avec de l'or et du minerai, je renforce ce que tu portes, jusqu'à +${SMITH_MAX}. »</p>${statsLine()}
-    <div class="items">${eq.map(it => itemCard(it, { btns:[['smith', label(it), !can(it)]] })).join('')
+    <div class="items smith">${eq.map(it => itemCard(it, { btns:[['smith', label(it), !can(it)], ['enchant', `Enchanter<small>${enchantCost(it)} or · change une stat au hasard</small>`, p.gold < enchantCost(it) || !enchantable(it).length]] })).join('')
       || '<p class="help">Tu ne portes aucun équipement. Équipe-toi d\'abord (touche E).</p>'}</div>
-    <p class="help">Chaque renforcement augmente d'environ 10 % les PV, les dégâts et la résistance de l'objet. Le minerai se récolte avec le métier de Mineur (touche J).</p>
+    <p class="help">Chaque renforcement augmente d'environ 10 % les PV, les dégâts et la résistance de l'objet. Le minerai se récolte avec le métier de Mineur (touche J). L'enchantement transforme une stat au hasard (PV, % dégâts ou % résistance) en une autre de même valeur.</p>
     <div style="text-align:center"><button class="btn alt" id="b2">Mon équipement</button><button class="btn" id="b1">Partir</button></div>`, true);
   $('#overlay').querySelectorAll('[data-act=smith]').forEach(b => b.onclick = () => {
     const it = eq.find(x => x.id===+b.dataset.id); if (!it || !can(it)) return;
     const o = smithOre(it); p.gold -= smithCost(it); j.res[o.id] -= o.n; smithUp(it); play('equip'); save(); refreshMapTitle(); showSmith(); flashMsg(`${it.name} : renforcé !`); });
+  $('#overlay').querySelectorAll('[data-act=enchant]').forEach(b => b.onclick = () => {
+    const it = eq.find(x => x.id===+b.dataset.id); if (!it || p.gold < enchantCost(it) || !enchantable(it).length) return;
+    p.gold -= enchantCost(it); const [a, z] = enchantItem(it); play('buff'); save(); refreshMapTitle(); showSmith(); flashMsg(`${it.name} : ${STATS[a][0]} devient ${STATS[z][0]} !`); });
   $('#b1').onclick = () => { hideOverlay(); showNextScene(); }; $('#b2').onclick = () => showBag(showSmith);
 }
 // ---- auberge : repas chaud (bonus des prochains combats) et rumeurs sur les passages secrets ----
 function showInn() {
-  const p = G.profile, j = jobs(), t = Math.min(JOB_REQ.length-1, regionOf(p.pos)-1), c = CONS['repas'+t], cost = 20 + 40*t;
+  const p = G.profile, j = jobs(), t = Math.min(JOB_REQ.length-1, regionOf(p.pos)-1), c = CONS['repas'+t], cost = 40 + 80*t;
   const here = z => regionOf(z.id)===regionOf(p.pos) && isOpen(z.id), pick = l => l[Math.random()*l.length|0].name;
   const chests = ZONES.filter(z => here(z) && treasureZones().chest.has(z.id) && !chestDone(z.id)), secrets = ZONES.filter(z => here(z) && sceneOf(z.id).secret && !treasure().secrets.includes(z.id));
   const rumor = chests.length && (!secrets.length || Math.random() < .5) ? `Il paraît qu'un vieux coffre attend encore du côté de : <b>${pick(chests)}</b>.`
@@ -5559,7 +5813,7 @@ function folkTick(now, s) {
   const h = G.walker, list = sceneFolk(); if (!list.length) return;
   for (const v of list) { if (v.moving || now < v.next || v===G.folkTarget) continue;
     v.next = now + 1800 + Math.random()*3500; const [a,b] = DIRS[Math.random()*4|0], nx = v.x+a, ny = v.y+b;
-    if (man(nx,ny,v.hx,v.hy) <= 3 && sceneFree(nx,ny) && !(nx===h.x && ny===h.y) && !s.exits.some(e => man(e.x,e.y,nx,ny) <= 1)) {
+    if (man(nx,ny,v.hx,v.hy) <= 3 && ![s.shop, s.smith, s.inn].some(c => c && man(nx,ny,...c) <= 1) && sceneFree(nx,ny) && !(nx===h.x && ny===h.y) && !s.exits.some(e => man(e.x,e.y,nx,ny) <= 1)) {
       const fx = v.x, fy = v.y; v.x = nx; v.y = ny; v.moving = true; v.face = (nx-fx)-(ny-fy) || v.face;
       tween(700, k => { v.rx = fx+(nx-fx)*k; v.ry = fy+(ny-fy)*k; }).then(() => v.moving = false); } }
   // de temps en temps, un habitant dit une phrase à voix haute
@@ -5609,9 +5863,9 @@ function drawTreasures(s, now, hv, ents, tags) {
     if (hv && hv.kind==='secret') tags.push([done ? 'Cache déjà fouillée' : 'Un rocher fendu…', cx, cy-58]); } }); }
   const npcAt = (c, sprite, filter, flip, label, kind, extra) => { const [x,y] = c; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); shadow(cx,cy,17);
     extra && extra(cx, cy); if (filter) ctx.filter = filter; drawSprite(animFrame(sprite, false, now, x), cx, cy+6, SC, flip); ctx.filter = 'none';
-    if (hv && hv.kind===kind) tags.push([label, cx, cy-84]); } }); };
-  if (s.smith) npcAt(s.smith, 'dwarf_m', 'hue-rotate(20deg) saturate(1.4) brightness(.85)', true, 'Forgeron', 'smith', (cx, cy) => drawSprite(propArt().anvil, cx+26, cy+12, SC*.8));
-  if (s.inn) npcAt(s.inn, 'elf_m', 'hue-rotate(30deg) saturate(.8)', false, 'Aubergiste', 'inn', (cx, cy) => drawSprite(A.inn, cx-28, cy+8, SC*.8));
+    if (hv && hv.kind===kind) tags.push([label, cx, cy-84]); else drawSign(label, cx, cy-84, now); } }); };
+  if (s.smith) npcAt(s.smith, 'dwarf_m', 'hue-rotate(20deg) saturate(1.4) brightness(.85)', true, '⚒️ Forgeron', 'smith', (cx, cy) => drawSprite(propArt().anvil, cx+26, cy+12, SC*.8));
+  if (s.inn) npcAt(s.inn, 'elf_m', 'hue-rotate(30deg) saturate(.8)', false, '🍺 Aubergiste', 'inn', (cx, cy) => drawSprite(A.inn, cx-28, cy+8, SC*.8));
   for (const v of sceneFolk()) ents.push({ d:v.rx+v.ry, f:() => { const [cx,cy] = iso(v.rx,v.ry), [sp, filter] = v.look; shadow(cx,cy,17);
     if (filter) ctx.filter = filter; drawSprite(animFrame(sp, v.moving, now, v.off), cx, cy+6, SC, v.face < 0); ctx.filter = 'none';
     if (v.say && now < v.say.until) tags.push([v.say.t, cx, cy-76, '#fff4c8']); else if (hv && hv.kind==='folk' && hv.v===v) tags.push([v.name, cx, cy-76]); } });
