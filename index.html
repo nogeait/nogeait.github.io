@@ -48,8 +48,7 @@
   .spuse { color:#9fb3d6; } .sppre { color:#8fe39b; }
   #endturn { margin-left:auto; padding:10px 18px; font:inherit; font-weight:700; border:none; border-radius:8px; background:var(--gold); color:#2a2110; cursor:pointer; }
   #endturn:disabled { opacity:.4; cursor:default; }
-  #hint { width:100%; font-size:12px; color:var(--muted); min-height:16px; }
-  body:not(.map) #hint { height:48px; line-height:16px; overflow-y:auto; }
+  #hint { width:100%; font-size:12px; color:var(--muted); height:48px; line-height:16px; overflow-y:auto; } /* hauteur fixe : l'écran de jeu ne bouge jamais */
   #overlay { position:fixed; inset:0; background:rgba(10,12,18,.88); display:flex; overflow:auto; padding:16px 0; z-index:10; }
   #overlay > .box { margin:auto; }
   .chip.hov { outline:2px solid #fff; }
@@ -133,6 +132,23 @@
   .savecode { width:100%; height:70px; font:12px monospace; background:var(--panel2); color:var(--text); border:2px solid #3a4459; border-radius:8px; padding:6px; resize:vertical; word-break:break-all; }
   #hfToast { position:absolute; right:12px; top:12px; display:flex; gap:10px; align-items:center; background:rgba(20,24,33,.95); border:2px solid var(--gold); border-radius:10px; padding:8px 14px; max-width:320px; z-index:20; pointer-events:none; opacity:0; transform:translateY(-10px); transition:opacity .3s, transform .3s; }
   #hfToast.on { opacity:1; transform:none; }
+  /* effets du nom (débloqués par les hauts faits) */
+  .nfx { display:inline-flex; align-items:center; white-space:nowrap; }
+  .nfx .t { background:var(--grad); background-size:200% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; font-weight:800; filter:drop-shadow(0 0 5px var(--g)); }
+  .nfx .o { color:var(--g); margin:0 .3em; font-weight:400; text-shadow:0 0 6px var(--g); display:inline-block; animation:nfxBob 2.4s ease-in-out infinite; }
+  .nfx .o.r { animation-delay:-1.2s; }
+  .nfx.shift .t { animation:nfxShift 4s linear infinite; }
+  .nfx.pulse .t { animation:nfxPulse 2.2s ease-in-out infinite; }
+  .nfx.flicker .t { animation:nfxShift 3s linear infinite, nfxFlick 1.3s steps(6) infinite; }
+  @keyframes nfxShift { to { background-position:-200% 0; } }
+  @keyframes nfxPulse { 50% { filter:drop-shadow(0 0 12px var(--g)); } }
+  @keyframes nfxFlick { 0%,100% { filter:drop-shadow(0 0 5px var(--g)); } 33% { filter:drop-shadow(0 0 11px var(--g)); } 66% { filter:drop-shadow(0 0 3px var(--g)); } }
+  @keyframes nfxBob { 50% { transform:translateY(-3px) scale(1.15); } }
+  .fxs { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:4px 0 10px; }
+  .fxc { background:rgba(255,255,255,.05); border:1px solid #ffffff22; border-radius:8px; color:var(--text); padding:5px 8px; font:inherit; font-size:14px; cursor:pointer; }
+  .fxc.on { border-color:var(--gold); background:rgba(232,194,106,.15); }
+  .fxc.locked { opacity:.45; cursor:help; }
+  .sharecard { display:block; margin:8px auto; max-width:100%; max-height:62vh; border-radius:12px; box-shadow:0 4px 24px #000a; }
   #hfToast .ic, .feat .ic { font-size:26px; } #hfToast b { display:block; color:var(--gold); } #hfToast small { display:block; font-size:12px; opacity:.85; }
   .feats { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:8px; }
   .feat { display:flex; gap:10px; align-items:center; background:var(--panel2); border:2px solid #3a4459; border-radius:8px; padding:6px 10px; opacity:.6; }
@@ -156,7 +172,7 @@
   body.touch #spells .spell { flex:1 1 0; min-width:0; width:auto; max-width:138px; padding:5px 4px; overflow:hidden; }
   body.touch #endturn { margin-left:0; padding:8px 10px; flex:none; max-width:96px; line-height:1.2; }
   body.touch .spell .k { display:none; } body.touch #spells .spell .ico { display:none; } body.touch #spells .spell { padding:5px 6px; } body.touch #spells .spell b { font-size:11.5px; hyphens:auto; -webkit-hyphens:auto; }
-  body.touch:not(.map) #hint { height:32px; }
+  body.touch #hint { height:32px; }
   body.touch #log { width:230px; max-height:28%; font-size:11.5px; background:rgba(20,24,33,.55); }
   /* écrans tactiles peu hauts (paysage) : fenêtres plus compactes pour que leurs boutons restent dans l'écran */
   body.touch #overlay { bottom:auto; height:100dvh; }
@@ -449,14 +465,14 @@ const CLASSES = {
     coiffes: ['Capuche','Chapeau pointu','Chapeau d\'arcaniste','Chapeau de givre','Couronne du nécromancien'],
     craft: { bucheron:['Bâton','weapon_green_magic_staff'], mineur:['Sceptre','weapon_red_magic_staff'], coiffe:'Diadème' },
     spells:[
-      { id:'flam', modR:true, icon:'weapon_red_magic_staff', name:'Flammèche', pa:3, minR:2, maxR:6, los:true, dmg:[8,11], perTurn:2, proj:'#ff9a3c', desc:'Portée 2-6, 8-11 dégâts. 2 fois par tour.' },
+      { id:'flam', modR:true, icon:'weapon_red_magic_staff', name:'Flammèche', pa:3, minR:2, maxR:6, los:true, dmg:[7,10], perTurn:2, proj:'#ff9a3c', desc:'Portée 2-6, 7-10 dégâts. 2 fois par tour.' },
       { id:'boule', modR:true, icon:'weapon_green_magic_staff', name:'Boule de feu', pa:4, minR:3, maxR:6, los:true, dmg:[11,15], zone:'cross', perTurn:1, proj:'#ff5a1f', desc:'Portée 3-6, 11-15 dégâts, éclabousse en croix (moitié). 1 fois par tour.' },
       { id:'soin', icon:'flask_big_red', name:'Soin', pa:2, self:true, heal:[10,14], cd:3, desc:'Rend 10-14 PV. Recharge 3 tours.' },
-      { id:'bouclier', icon:'flask_big_green', name:'Bouclier arcanique', lvl:8, pa:2, self:true, effect:'shield', val:30, cd:3, desc:"+30 % de résistance jusqu'à ton prochain tour. Recharge 3 tours. Débloqué au niveau 8." },
-      { id:'meteores', modR:true, icon:'weapon_lavish_sword', name:'Pluie de météores', lvl:14, pa:5, minR:3, maxR:7, los:false, dmg:[16,22], zone:'cross', zoneFull:true, proj:'#ffb03a', cd:3, desc:'Portée 3-7 sans ligne de vue, 16-22 dégâts sur toute une croix. Recharge 3 tours. Débloqué au niveau 14.' },
+      { id:'bouclier', icon:'flask_big_green', name:'Bouclier arcanique', lvl:8, pa:2, self:true, effect:'shield', val:20, cd:3, desc:"+20 % de résistance jusqu'à ton prochain tour. Recharge 3 tours. Débloqué au niveau 8." },
+      { id:'meteores', modR:true, icon:'weapon_lavish_sword', name:'Pluie de météores', lvl:14, pa:5, minR:3, maxR:7, los:false, dmg:[14,19], zone:'cross', zoneFull:true, proj:'#ffb03a', cd:3, desc:'Portée 3-7 sans ligne de vue, 14-19 dégâts sur toute une croix. Recharge 3 tours. Débloqué au niveau 14.' },
       { id:'tp', icon:'flask_big_blue', name:'Téléportation', pa:2, minR:1, maxR:4, los:false, effect:'tp', needEmpty:true, cd:3, desc:'Téléporte sur une case libre à 1-4 cases. Recharge 3 tours.' },
       { id:'blizzard', modR:true, icon:'weapon_spear', name:'Blizzard', lvl:30, pa:5, minR:2, maxR:6, los:true, dmg:[13,18], zone:'square', proj:'#9fe3ff', cd:3, desc:'Portée 2-6, 13-18 dégâts sur la case visée et les 8 cases autour. Recharge 3 tours. Débloqué au niveau 30.' },
-      { id:'lame', modR:true, icon:'weapon_anime_sword', name:'Lame arcanique', lvl:45, pa:4, minR:2, maxR:7, los:true, dmg:[22,28], perTurn:1, proj:'#c58bff', desc:'Portée 2-7, 22-28 dégâts. 1 fois par tour. Débloqué au niveau 45.' },
+      { id:'lame', modR:true, icon:'weapon_anime_sword', name:'Lame arcanique', lvl:45, pa:4, minR:2, maxR:7, los:true, dmg:[19,24], perTurn:1, proj:'#c58bff', desc:'Portée 2-7, 19-24 dégâts. 1 fois par tour. Débloqué au niveau 45.' },
     ] },
   roublard: { name:'Roublard', hp:58, pa:6, pm:4, sprite:'roublard', coiffeIcon:'capuche',
     crit:0.12, critCap:0.4, autoPts:{ vit:0.3, for:0.3, agi:0.3, sag:0.1 },
@@ -915,7 +931,8 @@ ${pips}</b>
       ${pv ? `<small class="sppre">Aperçu du rang ${pv}${pv > r ? ' (pas encore acquis)' : ''} : ${shown.desc.replace(/ \(rang \d\/\d\)/, '')}<br>Par rapport à ton rang ${r} : ${rankDiffText(sp, r, pv)}.</small>` : ''}
       <small>${locked ? `Débloqué au niveau ${sp.lvl}.` : r >= SPELL_MAX_RANK ? 'Rang maximum atteint.' : `Rang ${r+1} : ${rankGainText(sp, r+1)}.`}</small>${sp.modR ? `<small>Portée modifiable par l'équipement${pr ? ` (+${pr} actuellement)` : ''}</small>` : ''}</div>
       <div class="act">${locked || r >= SPELL_MAX_RANK ? '' : `<button class="btn sm" data-rank="${sp.id}" title="Rang ${r+1} : ${rankGainText(sp, r+1)}"${c.sfree >= cost ? '' : ' disabled'}>Améliorer (${cost} pt${cost>1?'s':''})</button>`}</div></div>`; };
-  overlay(`<h2>${heroName()} (${cls.name} niv. ${p.level})</h2>${titleSelectHtml(p)}${statsLine()}
+  overlay(`<h2>${fxHtml(heroName(), heroFx(p))} (${cls.name} niv. ${p.level})</h2>${titleSelectHtml(p)}${fxPickHtml(p)}
+    <p style="text-align:center"><button class="btn" id="cardBtn">Partager ma fiche</button></p>${statsLine()}
     <p class="help">Chaque niveau donne ${CARAC_PER_LV} points de caractéristique et ${SPELL_PTS_PER_LV} point de sort. Les changements s'appliquent au prochain combat.</p>
     ${setsHtml(p)}
     ${collarHtml(p)}
@@ -931,12 +948,13 @@ ${pips}</b>
   ov.querySelectorAll('[data-pv]').forEach(b => b.onclick = () => { const id = b.dataset.pv, k = +b.dataset.k; prev[id] = prev[id] === k ? 0 : k; redo(); });
   ov.querySelectorAll('[data-rank]').forEach(b => b.onclick = () => { const sp = cls.spells.find(s => s.id===b.dataset.rank), r = spellRank(p, sp);
     if (r < SPELL_MAX_RANK && charPoints(p).sfree >= spellRankCost(r+1)) { p.ranks[sp.id] = r+1; play('buff'); } redo(); });
-  if ($('#collarUp')) $('#collarUp').onclick = () => { const ok = upgradeCollar(); if (ok) play('buff'); redo(); if (ok) flashMsg(`Forest ronronne : son collier passe au niveau ${p.collar} !`); };
+  if ($('#collarUp')) $('#collarUp').onclick = () => { const ok = upgradeCollar(); if (ok) play('buff'); redo(); if (ok) flashMsg(`Forest ronronne : il porte maintenant un ${COLLAR_NAMES[p.collar-1].toLowerCase()} (niveau ${p.collar}) !`); };
   $('#ptAuto').onclick = () => { autoPoints(p); play('equip'); redo(); };
   $('#ptReset').onclick = () => { for (const k in p.pts) p.pts[k] = 0; redo(); };
   $('#spReset').onclick = () => { p.ranks = {}; redo(); };
   ov.dataset.menu = 'char';
-  wireTitleSelect(p);
+  wireTitleSelect(p); wireFxPick(p, redo);
+  $('#cardBtn').onclick = () => showShareCard(() => showCharacter(back));
   $('#b1').onclick = back || (() => { hideOverlay(); showNextScene(); });
 }
 
@@ -1388,6 +1406,51 @@ function buildCat() {
   b.drawImage(IMG.forest_anim_f0, 0, 6, 36, 24); return big.toDataURL();
 }
 let CAT_ICON = '';
+// Apparence de Forest : il reste un petit chat noir, mais s'embellit avec l'histoire (actes finis) et avec son collier (niveaux 1 à 12).
+// Paliers de l'histoire (nombre d'actes terminés) : chacun ajoute un détail au sprite ; aura et poussière d'aube sont dessinées par-dessus.
+const FOREST_LOOKS = [[1,'pelage lustré, regard vif'],[2,'petite cape d\'azur'],[4,'anneau d\'or à l\'oreille'],[5,'yeux d\'or'],[6,'étoile d\'aube au front, cape royale'],
+  [7,'queue de lumière, aura'],[8,'cape de l\'Aube, poussière d\'or']];
+const COLLAR_LOOK = [ // couleur du collier, ornement (niveaux pairs), pierre du médaillon (dès le niveau 3), par niveau 1 à 12
+  ['#7a4a22',null,null],['#7a4a22','#c9ccd6',null],['#7d8590',null,'#b0b6c0'],['#7d8590','#3a3f48','#b0b6c0'],['#c9d0dc',null,'#9ad8ff'],['#c9d0dc','#ffffff','#9ad8ff'],
+  ['#e0b030',null,'#ff4a5a'],['#e0b030','#ff4a5a','#ff4a5a'],['#3fae6a',null,'#5aff9a'],['#3fae6a','#a8ffcf','#5aff9a'],['#3a2050','#b46aff','#b46aff'],['#ffd46a','#fff6d0','#fff3b0']];
+function forestActs(story) { let n = 0; for (let i = 1; i <= Math.min(story, FOREST_STEPS.length-1); i++) if (FOREST_STEPS[i].pa || FOREST_STEPS[i].pm) n++; return n; }
+function forestLook(p = G.profile) { const a = p ? forestActs(p.story) : 0, c = p ? Math.min(p.collar||0, COLLAR.length) : 0; return { a, c, key:`forest_${a}_${c}` }; }
+function forestLookText(p) { const l = forestLook(p), t = FOREST_LOOKS.filter(([n]) => l.a >= n).map(([,s]) => s); if (l.c) t.unshift(COLLAR_NAMES[l.c-1].toLowerCase()); return t.join(', '); }
+function buildForestLook(l) {
+  if (IMG[l.key+'_anim_f0']) return l.key;
+  const { a, c } = l, cl = c ? COLLAR_LOOK[c-1] : null;
+  const col = { k:'#1a1a22', g: a>=5 ? '#ffcf4a' : a>=1 ? '#b4ff6a' : '#9be36a', h:'#3a3f5c', e:'#ffd46a', s:'#d8f0ff', l:'#ffb84a',
+    C: a>=8 ? '#a8324e' : a>=6 ? '#5a2a8a' : '#2a4a8a', T: a>=8 ? '#ffe08a' : '#e8c26a', c: cl && cl[0], d: cl && (cl[1]||cl[0]), j: cl && cl[2] };
+  const frames = CAT_PIX.map(rows => {
+    const g = rows.map(r => [...r]), set = (y, x, ch) => { if (g[y] && g[y][x] !== undefined) g[y][x] = ch; };
+    if (a>=1) set(1, 3, 'h');
+    if (a>=4) set(1, 4, 'e');
+    if (a>=6) set(1, 3, 's');
+    if (a>=2) { set(4, 5, 'T'); set(4, 6, 'C'); set(4, 7, 'C'); set(5, 6, 'C'); set(5, 7, 'C'); }
+    if (c) { set(4, 2, 'c'); set(4, 3, cl[1] ? 'd' : 'c'); set(4, 4, 'c'); if (cl[2]) set(5, 3, 'j'); }
+    if (a>=7) { let tip = null; for (let y = 0; y < g.length && !tip; y++) for (let x = 11; x >= 9; x--) if (g[y][x]==='k') { tip = [y, x]; break; } if (tip) set(tip[0], tip[1], 'l'); }
+    return g.map(r => r.join(''));
+  });
+  pixFrames(l.key, frames, col);
+  frames.forEach((rows, f) => { const x = IMG[l.key+'_anim_f'+f].getContext('2d'); x.fillStyle = 'rgba(255,255,255,.25)'; [...rows[4]].forEach((ch, i) => { if (ch==='k' && i>=2 && i<=7) x.fillRect(i, 4, 1, 1); }); });
+  return l.key;
+}
+function forestFrame(now, off=0, p) { return animFrame(buildForestLook(forestLook(p)), false, now, off); }
+const forestIcons = {};
+function forestIcon(p) { const k = buildForestLook(forestLook(p)); return forestIcons[k] || (forestIcons[k] = iconOf(IMG[k+'_anim_f0'])); }
+// Forest à l'écran (carte, exploration, combat) : sprite + aura, éclat du médaillon et poussière d'aube selon ses paliers
+function drawForest(x, yb, scale, flip, now) {
+  const l = forestLook(), img = forestFrame(now, 1.5); if (!img) return;
+  const gold = l.a>=8 || l.c>=12;
+  if (l.a>=7 || l.c>=10) { const r = 9*scale, k = 0.75 + 0.25*Math.sin(now/500), gr = ctx.createRadialGradient(x, yb - 3*scale, 0, x, yb - 3*scale, r);
+    gr.addColorStop(0, gold ? `rgba(255,200,90,${.6*k})` : `rgba(180,120,255,${.55*k})`); gr.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gr; ctx.fillRect(x-r, yb-3*scale-r, 2*r, 2*r); }
+  drawSprite(img, x, yb, scale, flip);
+  const px = (i, j) => [x + (flip ? -1 : 1)*(i + 0.5 - img.width/2)*scale, yb - (img.height - j - 0.5)*scale];
+  if (l.c>=5 && (now % 1600) < 260) { const [sx, sy] = px(3, 5), s = scale*(1 - (now % 1600)/260)*1.6; ctx.fillStyle = '#ffffffdd'; ctx.fillRect(sx - s, sy - scale*0.2, 2*s, scale*0.4); ctx.fillRect(sx - scale*0.2, sy - s, scale*0.4, 2*s); }
+  if (l.a>=8 || l.c>=11) { ctx.fillStyle = gold ? '#ffe08a' : '#d6b0ff';
+    for (let i = 0; i < 3; i++) { const t = ((now/1400) + i/3) % 1, [sx, sy] = px(2 + i*3.2, 6); ctx.globalAlpha = 1 - t; ctx.fillRect(sx + Math.sin(now/300 + i*2)*scale, sy - t*9*scale, scale*0.8, scale*0.8); }
+    ctx.globalAlpha = 1; }
+}
 function pixFrames(name, frames, col) {
   frames.forEach((rows,f) => { const c = document.createElement('canvas'); c.width = rows[0].length; c.height = rows.length; const x = c.getContext('2d');
     rows.forEach((r,y) => [...r].forEach((ch,i) => { if (col[ch]) { x.fillStyle = col[ch]; x.fillRect(i,y,1,1); } })); IMG[name+'_anim_f'+f] = c; });
@@ -1698,7 +1761,7 @@ function drawUnit(u, isCur, now) {
   const hit = u.flash && now-u.flash < 260;
   const hitImg = hit && IMG[u.sprite+'_hit_anim_f0'];
   const img = hitImg || animFrame(u.sprite, u.moving, now, u.animOff);
-  if (u.team==='hero') drawSprite(animFrame('forest', false, now, 1.5), cx - 30*u.face, cy+14, 3, u.face<0);
+  if (u.team==='hero') drawForest(cx - 30*u.face, cy+14, 3, u.face<0, now);
   drawSprite(img, cx, cy+6, SC, u.face<0, hit && !hitImg);
   // barre de vie
   const top = cy + 6 - (img ? img.height*SC : 60);
@@ -2154,7 +2217,7 @@ function renderRegion(R0, now, small) {
     const hx = G.mapHero.x-26, hy = G.mapHero.y+10;
     ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(hx,hy,12,5,0,0,7); ctx.fill();
     drawSprite(animFrame(CLASSES[G.profile.cls].sprite, G.travel, now), hx, hy+1, 2, G.mapFace<0);
-    drawSprite(animFrame('forest', false, now, 1.5), hx - 17*(G.mapFace<0 ? -1 : 1), hy+3, 1.9, G.mapFace<0);
+    drawForest(hx - 17*(G.mapFace<0 ? -1 : 1), hy+3, 1.9, G.mapFace<0, now);
   }
 }
 function drawZoneIcon(z, open) {
@@ -2603,7 +2666,7 @@ function collarHtml(p) {
     next = `<small>Niveau ${lv+1} (${COLLAR_NAMES[lv]}) : ${statText(COLLAR[lv])}</small>
       <small>Donne à Forest : ${Object.entries(need).map(([id,n]) => { const has = j.res[id]||0, boss = id.startsWith('m_') && MONSTERS[id.slice(2)].big; return `<span style="color:${has>=n ? '#5ad16a' : '#e2554a'}"${id.startsWith('m_') ? ` title="Sur : ${MONSTERS[id.slice(2)].name}${boss ? ' (boss)' : ''}"` : ''}>${boss ? '👑 ' : id.startsWith('m_') ? '🐾 ' : ''}${ingName(id)} ${has}/${n}</span>`; }).join(' · ')}</small>`;
     next += `</div><div class="act"><button class="btn sm" id="collarUp"${ok ? '' : ' disabled'}>Donner</button>`; }
-  return `<h3>Collier de Forest</h3><div class="items"><div class="item" style="border-color:#b77dff88;grid-column:1/-1"><img src="${CAT_ICON}" alt=""><div class="txt">
+  return `<h3>Collier de Forest</h3><div class="items"><div class="item" style="border-color:#b77dff88;grid-column:1/-1"><img src="${forestIcon(p)}" alt=""><div class="txt">
     <b style="color:#c99bff">${lv ? COLLAR_NAMES[lv-1] : 'Collier simple'} · niveau ${lv}/${COLLAR.length}</b><small>${cur ? `Bonus du collier : ${cur}` : 'Pas encore de bonus : donne des ressources à Forest pour renforcer son collier.'}</small>
     ${next}</div></div></div>`;
 }
@@ -2624,8 +2687,8 @@ function relicCards(p) {
     : `<div class="item empty"><div class="txt"><b>Relique de l'Aube ${i+1}</b><small>Emplacement vide · lieu inconnu</small></div></div>`).join('');
 }
 function forestCard(p) {
-  return `<div class="item" style="border-color:#b77dff88"><img src="${CAT_ICON}" alt=""><div class="txt"><b style="color:#c99bff">Forest, ton chat noir</b>
-    <small>Familier unique · grandit avec l'histoire${p.collar ? ` · ${COLLAR_NAMES[p.collar-1]} (niv. ${p.collar})` : ''}</small><div>${statText(forestStats(p))}</div></div></div>`;
+  return `<div class="item" style="border-color:#b77dff88"><img src="${forestIcon(p)}" alt=""><div class="txt"><b style="color:#c99bff">Forest, ton chat noir</b>
+    <small>Familier unique · grandit avec l'histoire${p.collar ? ` · ${COLLAR_NAMES[p.collar-1]} (niv. ${p.collar})` : ''}</small><div>${statText(forestStats(p))}</div>${forestLookText(p) ? `<small>Allure : ${forestLookText(p)}</small>` : ''}</div></div>`;
 }
 function gearTotals(p) {
   const t = { vie:0, puissance:0, resistance:0, pa:0, pm:0, portee:0 };
@@ -3704,6 +3767,8 @@ function completeQuest(q) {
   if (q.main) {
     const fb = FOREST_STEPS[MAIN.indexOf(q)+1];
     if (fb) G.scenes[G.scenes.length-1].last += `<p class="lvup">🐈‍⬛ Forest grandit avec toi : ${statText(fb)}${fb.pa||fb.pm ? ' (bonus de fin d\'acte)' : ''}.</p>`;
+    const look = fb && (fb.pa||fb.pm) && FOREST_LOOKS.find(([n]) => n === forestActs(MAIN.indexOf(q)+1));
+    if (look) G.scenes[G.scenes.length-1].last += `<p class="lvup">✨ Forest a une nouvelle allure : ${look[1]} !</p>`;
     const rel = RELICS.find(r => r.chapter === MAIN.indexOf(q)+1);
     if (rel) G.scenes[G.scenes.length-1].last += `<p class="goal">✨ Tu as obtenu une Relique de l'Aube (${RELICS.indexOf(rel)+1}/${RELIC_SLOTS}) : <b>${rel.name}</b> (${statText(rel.stats)}). Elle occupe son emplacement dans ton équipement.</p>`;
     if (q.vision) G.scenes.push({ npc:'vision', title:q.vision.title, pages:q.vision.pages, btn:'Continuer' });
@@ -3944,9 +4009,9 @@ function cineFig(c, sprite, x, yb, s, o={}) { // personnage : sprite (ou ombre),
   if (o.mask) { c.fillStyle = `rgba(235,230,220,${o.alpha ?? 1})`; c.beginPath(); c.ellipse(x, yb - img.height*s*0.72, img.width*s*0.12, img.height*s*0.07, 0, 0, 7); c.fill(); }
 }
 function cineHero(c, x, yb, s, o={}) { const p = G.profile; if (!p) return; cineFig(c, CLASSES[p.cls].sprite, x, yb, s, o);
-  const cat = IMG['forest_anim_f' + (Math.floor(performance.now()/260)%4)];
+  const cat = IMG[buildForestLook(forestLook()) + '_anim_f' + (Math.floor(performance.now()/260)%4)];
   if (cat) { cineSprite(c, o.shadow ? silhouette(cat, o.shadow) : cat, x + (o.flip ? -1 : 1)*s*11, yb, s*0.75, o.flip, o.alpha ?? 1);
-    if (o.catEyes) { c.fillStyle = o.catEyes; const cx = x + (o.flip ? -1 : 1)*s*11, w = cat.width*s*0.75; c.fillRect(cx + (o.flip ? 1 : -1)*(w/2 - 3*s*0.75) - s*0.75, yb - cat.height*s*0.75 + 2*s*0.75, s*0.75*1.2, s*0.75); } } }
+    if (o.catEyes) { c.fillStyle = o.catEyes; const cx = x + (o.flip ? -1 : 1)*s*11, w = cat.width*s*0.75; c.fillRect(cx + (o.flip ? 1 : -1)*(w/2 - 3*s*0.75) - s*0.75, yb - 6*s*0.75, s*0.75*1.2, s*0.75); } } }
 function cineTrees(c, base, n, col, seed, h=1) { const r = seeded(seed);
   for (let i=0; i<n; i++) { const x = (i+r()*0.8)*CINE_W/n, t = (90 + r()*110)*h, w = t*0.32;
     c.fillStyle = col; c.fillRect(x-w*0.12, base-t*0.3, w*0.24, t*0.3);
@@ -4206,6 +4271,175 @@ function titleSelectHtml(p) { const t = hfTitles(p);
   return `<p class="help"><label for="hfTitle">Titre porté : </label><select id="hfTitle"><option value="">(aucun)</option>${t.map(x => `<option${x===heroTitle(p) ? ' selected' : ''}>${x}</option>`).join('')}</select>
     ${t.length ? ` ${t.length} titre${t.length>1?'s':''} débloqué${t.length>1?'s':''} sur ${hfList().filter(h => h.title).length}.` : ' Certains hauts faits (touche F) donnent un titre à porter sous ton nom.'}</p>`; }
 function wireTitleSelect(p) { const s = $('#hfTitle'); if (s) s.onchange = e => { p.hfTitle = e.target.value || null; save(); refreshMapTitle(); dirty = true; }; }
+// ---------- Effets du nom : purement cosmétiques, débloqués par les hauts faits (ou un total de points) ----------
+// p.nameFx = id choisi ; undefined = jamais choisi (le premier effet obtenu est porté tout seul), null = « aucun ».
+// cols = dégradé du texte, glow = halo, orn = ornement de chaque côté, anim = animation à l'écran, part = particules sur la fiche partagée.
+const NAME_FX = [
+  { id:'eclat', name:'Éclat doré', hf:'premier', cols:['#fff3c4','#ffc94a','#fff3c4'], glow:'#ffb52e', orn:'✦', anim:'pulse', part:'spark' },
+  { id:'aurore', name:'Première aurore', hf:'acte1', cols:['#ffe2b0','#ff9ec4','#ffe2b0'], glow:'#ff8ab8', orn:'✺', anim:'shift', part:'spark' },
+  { id:'sylve', name:'Souffle de la Sylve', hf:'acte5', cols:['#e0ffb8','#5fd16a','#e0ffb8'], glow:'#3fae4f', orn:'❦', anim:'shift', part:'leaf' },
+  { id:'braises', name:'Braises', hf:'acte6', cols:['#ffe6a8','#ff7a2e','#ffe6a8'], glow:'#ff5a1e', orn:'✶', anim:'flicker', part:'ember' },
+  { id:'givre', name:'Givre', hf:'acte8', cols:['#ffffff','#9fe3ff','#ffffff'], glow:'#5fbfff', orn:'❄', anim:'pulse', part:'flake' },
+  { id:'ombres', name:'Ombres dévorantes', hf:'boss_eclipse', cols:['#eedcff','#9a5ce8','#eedcff'], glow:'#7a32d8', orn:'☾', anim:'pulse', part:'smoke' },
+  { id:'dragon', name:'Flammes du dragon', hf:'boss_ignarok', cols:['#fff4a8','#ff8a1e','#ff3a1e'], glow:'#ff3a12', orn:'✹', anim:'flicker', part:'flame' },
+  { id:'abysses', name:'Abysses', hf:'boss_kraken', cols:['#d0fff6','#2fc4b8','#d0fff6'], glow:'#1aa0b0', orn:'≈', anim:'shift', part:'bubble' },
+  { id:'orage', name:'Orage', hf:'veteran', cols:['#ffffff','#b8c8ff','#ffffff'], glow:'#7f9cff', orn:'ϟ', anim:'flicker', part:'bolt' },
+  { id:'etoiles', name:'Ciel étoilé', hf:'cartographe', cols:['#fffbe0','#c8b8ff','#fffbe0'], glow:'#9a8cff', orn:'★', anim:'pulse', part:'star' },
+  { id:'legende', name:'Aura légendaire', hf:'armure', cols:['#ffe7b0','#ff9a3c','#ffe7b0'], glow:'#ff9a3c', orn:'◆', anim:'shift', part:'spark' },
+  { id:'couronne', name:"Couronne de l'Aube", pts:400, cols:['#fff6d0','#ffd04a','#ff8ac0','#9fe3ff','#fff6d0'], glow:'#ffd04a', orn:'♛', anim:'shift', part:'crown' },
+];
+const fxForHf = id => NAME_FX.find(f => f.hf===id);
+const fxHas = (p, f) => f.hf ? !!(p.hf && p.hf[f.hf]) : hfPoints(p) >= f.pts;
+const fxNeed = f => { const h = f.hf && hfList().find(h => h.id===f.hf); return h ? `haut fait « ${h.name} » (${h.desc.charAt(0).toLowerCase() + h.desc.slice(1)})` : `${f.pts} points de hauts faits`; };
+const heroFx = (p = G.profile) => { const f = p && p.nameFx && NAME_FX.find(f => f.id===p.nameFx); return f && fxHas(p, f) ? f : null; };
+const ORN = s => s + '︎'; // force le dessin en texte (pas en emoji coloré)
+function fxHtml(text, f) {
+  if (!f) return text;
+  return `<span class="nfx ${f.anim}" style="--g:${f.glow};--grad:linear-gradient(90deg,${f.cols.join(',')})"><span class="o">${ORN(f.orn)}</span><span class="t">${text}</span><span class="o r">${ORN(f.orn)}</span></span>`;
+}
+function fxPickHtml(p) {
+  const cur = heroFx(p), got = NAME_FX.filter(f => fxHas(p, f)).length;
+  return `<p class="help">Effet autour du nom : ${got} débloqué${got>1?'s':''} sur ${NAME_FX.length}. Les autres s'obtiennent avec les hauts faits (touche F).</p>
+    <div class="fxs"><button class="fxc${cur ? '' : ' on'}" data-fx="">(aucun)</button>${NAME_FX.map(f => { const ok = fxHas(p, f);
+      return `<button class="fxc${f===cur ? ' on' : ''}${ok ? '' : ' locked'}" data-fx="${f.id}" title="${ok ? f.name : `🔒 Débloqué par le ${fxNeed(f)}`}">${ok ? fxHtml(f.name, f) : '🔒 ' + f.name}</button>`; }).join('')}</div>`;
+}
+function wireFxPick(p, redo) { $('#overlay').querySelectorAll('[data-fx]').forEach(b => b.onclick = () => { const f = NAME_FX.find(f => f.id===b.dataset.fx);
+  if (f && !fxHas(p, f)) return flashMsg(`« ${f.name} » se débloque avec le ${fxNeed(f)}.`);
+  p.nameFx = f ? f.id : null; play('equip'); save(); redo(); }); }
+
+// ---------- Fiche de personnage à partager (image PNG dessinée sur un canvas) ----------
+const loadImg = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
+function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x+r, y); c.arcTo(x+w, y, x+w, y+h, r); c.arcTo(x+w, y+h, x, y+h, r); c.arcTo(x, y+h, x, y, r); c.arcTo(x, y, x+w, y, r); c.closePath(); }
+function starPath(c, x, y, n, ro, ri, rot = -Math.PI/2) { c.beginPath(); for (let i = 0; i < n*2; i++) { const a = rot + i*Math.PI/n, r = i % 2 ? ri : ro; c.lineTo(x + Math.cos(a)*r, y + Math.sin(a)*r); } c.closePath(); }
+// une particule de l'effet, centrée en (x, y), taille s
+function fxParticle(c, part, x, y, s, R, f) {
+  c.save(); c.translate(x, y); c.fillStyle = c.strokeStyle = f.cols[1]; c.shadowColor = f.glow; c.shadowBlur = s;
+  if (part==='spark' || part==='crown') { starPath(c, 0, 0, 4, s, s*0.28, R()*Math.PI); c.fill(); }
+  else if (part==='star') { starPath(c, 0, 0, 5, s, s*0.45); c.fill(); }
+  else if (part==='leaf') { c.rotate(R()*Math.PI*2); c.beginPath(); c.ellipse(0, 0, s, s*0.45, 0, 0, 7); c.fill(); c.strokeStyle = 'rgba(20,60,20,.6)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-s, 0); c.lineTo(s, 0); c.stroke(); }
+  else if (part==='ember') { c.fillStyle = R() < .5 ? f.cols[1] : f.cols[0]; c.beginPath(); c.arc(0, 0, s*0.35, 0, 7); c.fill(); }
+  else if (part==='flake') { c.lineWidth = Math.max(1, s/6); c.strokeStyle = f.cols[0]; c.rotate(R()); for (let k = 0; k < 3; k++) { c.rotate(Math.PI/3); c.beginPath(); c.moveTo(-s, 0); c.lineTo(s, 0); c.stroke(); } }
+  else if (part==='smoke') { c.shadowBlur = 0; const g = c.createRadialGradient(0, 0, 0, 0, 0, s*2); g.addColorStop(0, f.glow + '88'); g.addColorStop(1, f.glow + '00'); c.fillStyle = g; c.beginPath(); c.arc(0, 0, s*2, 0, 7); c.fill(); }
+  else if (part==='flame') { const g = c.createLinearGradient(0, s, 0, -s*1.6); g.addColorStop(0, f.cols[2]); g.addColorStop(.6, f.cols[1]); g.addColorStop(1, f.cols[0]); c.fillStyle = g;
+    c.beginPath(); c.moveTo(0, -s*1.6); c.quadraticCurveTo(s*0.9, -s*0.2, s*0.6, s*0.5); c.quadraticCurveTo(0, s*1.1, -s*0.6, s*0.5); c.quadraticCurveTo(-s*0.9, -s*0.2, 0, -s*1.6); c.fill(); }
+  else if (part==='bubble') { c.lineWidth = 1.5; c.strokeStyle = f.cols[0]; c.beginPath(); c.arc(0, 0, s*0.6, 0, 7); c.stroke(); c.fillStyle = f.cols[0]; c.beginPath(); c.arc(-s*0.2, -s*0.2, s*0.15, 0, 7); c.fill(); }
+  else if (part==='bolt') { c.lineWidth = 2; c.strokeStyle = f.cols[0]; c.rotate((R()-.5)*0.8); c.beginPath(); c.moveTo(0, -s*1.2); c.lineTo(-s*0.4, -s*0.1); c.lineTo(s*0.3, s*0.1); c.lineTo(-s*0.2, s*1.2); c.stroke(); }
+  c.restore();
+}
+// nom du héros avec son effet, centré en (cx, cy) ; la taille baisse si le nom est long
+function drawFxName(c, text, cx, cy, f, maxW) {
+  let size = 56; c.font = `800 ${size}px "Segoe UI",Tahoma,sans-serif`;
+  while (c.measureText(text).width > maxW - 120 && size > 26) { size -= 2; c.font = `800 ${size}px "Segoe UI",Tahoma,sans-serif`; }
+  const w = c.measureText(text).width; c.textAlign = 'center'; c.textBaseline = 'middle';
+  if (f) {
+    const R = seeded(77 + f.id.length*31), n = f.part==='flame' ? 16 : 26;
+    // halo derrière le nom
+    const hg = c.createRadialGradient(cx, cy, 10, cx, cy, w/2 + 80); hg.addColorStop(0, f.glow + '55'); hg.addColorStop(1, f.glow + '00');
+    c.fillStyle = hg; c.fillRect(cx - w/2 - 100, cy - 90, w + 200, 180);
+    for (let i = 0; i < n; i++) {
+      const a = R()*Math.PI*2, rx = w/2 + 20 + R()*50, ry = size*0.55 + R()*30;
+      let x = cx + Math.cos(a)*rx, y = cy + Math.sin(a)*ry;
+      if (f.part==='flame') { x = cx - w/2 + R()*w; y = cy + size*0.5 + R()*8; }
+      if (y > cy + size*0.4) y = 2*cy - y; // pas de particules sur le titre en dessous
+      if (f.part==='ember' || f.part==='bubble') y -= R()*20;
+      c.globalAlpha = .55 + R()*.45; fxParticle(c, f.part, x, y, 5 + R()*(f.part==='flame' ? 12 : 7), R, f);
+    }
+    c.globalAlpha = 1;
+    if (f.part==='crown') { c.save(); c.translate(cx, cy - size*0.95); c.fillStyle = f.cols[1]; c.shadowColor = f.glow; c.shadowBlur = 14;
+      c.beginPath(); c.moveTo(-30, 12); c.lineTo(-34, -12); c.lineTo(-15, 0); c.lineTo(0, -18); c.lineTo(15, 0); c.lineTo(34, -12); c.lineTo(30, 12); c.closePath(); c.fill();
+      c.fillStyle = '#ff5c8a'; for (const dx of [-17, 0, 17]) { c.beginPath(); c.arc(dx, 6, 3.5, 0, 7); c.fill(); } c.restore(); }
+    // ornements de chaque côté
+    c.save(); c.font = `400 ${Math.round(size*0.6)}px "Segoe UI Symbol","Segoe UI",sans-serif`; c.fillStyle = f.cols[1]; c.shadowColor = f.glow; c.shadowBlur = 12;
+    c.fillText(ORN(f.orn), cx - w/2 - size*0.6, cy); c.fillText(ORN(f.orn), cx + w/2 + size*0.6, cy); c.restore();
+    const g = c.createLinearGradient(cx - w/2, 0, cx + w/2, 0); f.cols.forEach((col, i) => g.addColorStop(i/(f.cols.length-1), col));
+    c.save(); c.shadowColor = f.glow; c.shadowBlur = 22; c.fillStyle = g; c.fillText(text, cx, cy); c.shadowBlur = 6; c.fillText(text, cx, cy); c.restore();
+  } else { c.fillStyle = '#f3ead2'; c.shadowColor = '#000'; c.shadowBlur = 8; c.fillText(text, cx, cy); c.shadowBlur = 0; }
+}
+async function drawShareCard(p) {
+  const W = 800, H = 1100, cv2 = document.createElement('canvas'); cv2.width = W; cv2.height = H;
+  const c = cv2.getContext('2d'), f = heroFx(p), cls = CLASSES[p.cls], st = heroStats(p), t = gearTotals(p), gold = '#e8c26a', font = (w, s) => `${w} ${s}px "Segoe UI",Tahoma,sans-serif`;
+  c.imageSmoothingEnabled = false;
+  // fond et cadre
+  const bg2 = c.createLinearGradient(0, 0, 0, H); bg2.addColorStop(0, '#232a3a'); bg2.addColorStop(1, '#0e1017'); c.fillStyle = bg2; c.fillRect(0, 0, W, H);
+  const ray = c.createRadialGradient(W/2, 250, 20, W/2, 250, 420); ray.addColorStop(0, (f ? f.glow : '#e8c26a') + '40'); ray.addColorStop(1, '#00000000'); c.fillStyle = ray; c.fillRect(0, 0, W, 700);
+  c.strokeStyle = gold; c.lineWidth = 3; roundRect(c, 14, 14, W-28, H-28, 18); c.stroke();
+  c.strokeStyle = gold + '55'; c.lineWidth = 1; roundRect(c, 24, 24, W-48, H-48, 12); c.stroke();
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillStyle = gold; c.font = font(700, 18); c.fillText("H É R I T I E R S   D E   L ' A U B E", W/2, 58);
+  c.fillStyle = '#9aa0b0'; c.font = font(400, 14); c.fillText('Fiche de personnage', W/2, 82);
+  // héros et Forest sur un socle
+  c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(W/2 - 10, 318, 120, 22, 0, 0, 7); c.fill();
+  c.strokeStyle = (f ? f.glow : gold) + '99'; c.lineWidth = 2; c.beginPath(); c.ellipse(W/2 - 10, 318, 120, 22, 0, 0, 7); c.stroke();
+  const hero = animFrame(cls.sprite, false, 0), cat = forestFrame(0, 0, p);
+  if (hero) { const k = Math.min(8, 220 / hero.height); c.drawImage(hero, W/2 + 10 - hero.width*k/2, 322 - hero.height*k, hero.width*k, hero.height*k); }
+  if (cat) { const k = 6; c.save(); c.translate(W/2 - 95, 0); c.scale(-1, 1); const fl = forestLook(p); c.shadowColor = fl.a>=8 || fl.c>=12 ? '#ffd27a' : fl.a>=7 || fl.c>=10 ? '#c89bff' : '#c8d0ff'; c.shadowBlur = fl.a>=7 || fl.c>=10 ? 18 : 10; c.drawImage(cat, -cat.width*k/2, 326 - cat.height*k, cat.width*k, cat.height*k); c.restore(); }
+  // nom, titre, classe
+  drawFxName(c, heroName(), W/2, 400, f, W - 60);
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  const title = heroTitle(p); let y = 452;
+  if (title) { c.fillStyle = gold; c.font = `italic 600 24px "Segoe UI",Tahoma,sans-serif`; c.fillText(`« ${title} »`, W/2, y); y += 34; }
+  c.fillStyle = '#d8d2c0'; c.font = font(600, 20); c.fillText(`${cls.name} · niveau ${p.level} · chapitre ${Math.min(p.story+1, MAIN.length)}/${MAIN.length}`, W/2, y);
+  // caractéristiques principales
+  y += 40;
+  const boxes = [['PV', st.hp, '#ff6b6b'], ['PA', st.pa, '#5aa8ff'], ['PM', st.pm, '#5ad16a'], ['Dégâts', `+${Math.round((st.mul-1)*100)} %`, '#ffb44a'], ['Résistance', `${st.res} %`, '#b8c0d0'], ['Critique', `${Math.round(st.crit*100)} %`, '#ffd04a']];
+  const bw = 112, gap = 10, bx = (W - boxes.length*bw - (boxes.length-1)*gap) / 2;
+  boxes.forEach(([lbl, v, col], i) => { const x = bx + i*(bw+gap); c.fillStyle = 'rgba(255,255,255,.06)'; roundRect(c, x, y, bw, 70, 10); c.fill(); c.strokeStyle = col + '66'; c.stroke();
+    c.fillStyle = col; c.font = font(800, 26); c.fillText(v, x + bw/2, y + 28); c.fillStyle = '#9aa0b0'; c.font = font(400, 14); c.fillText(lbl, x + bw/2, y + 54); });
+  y += 96;
+  const pts = charPoints(p).pts;
+  c.fillStyle = '#c9c4b5'; c.font = font(400, 16);
+  c.fillText(Object.keys(CARACS).map(k => `${CARACS[k].name} ${pts[k]}`).join('   ·   ') + (t.portee ? `   ·   Portée +${t.portee}` : ''), W/2, y);
+  // équipement (2 colonnes)
+  y += 30; c.textAlign = 'left'; c.fillStyle = gold; c.font = font(700, 18); c.fillText('Équipement', 50, y); y += 18;
+  const slots = Object.keys(SLOTS), icons = await Promise.all(slots.map(s => p.equip[s] ? loadImg(itemIcon(p.equip[s])) : null));
+  slots.forEach((s, i) => { const it = p.equip[s], x = 50 + (i % 2)*360, yy = y + Math.floor(i/2)*62, col = it ? RARITIES[it.rarity].color : '#555';
+    c.fillStyle = 'rgba(255,255,255,.05)'; roundRect(c, x, yy, 340, 54, 8); c.fill(); c.strokeStyle = col + '88'; c.lineWidth = 1.5; c.stroke();
+    if (icons[i]) c.drawImage(icons[i], x + 8, yy + 7, 40, 40);
+    c.textBaseline = 'middle'; let nm = it ? it.name : 'Aucun objet'; c.font = font(700, 16);
+    while (c.measureText(nm).width > 270 && nm.length > 4) nm = nm.slice(0, -2) + '…';
+    c.fillStyle = it ? col : '#777'; c.fillText(nm, x + 58, yy + 19);
+    c.fillStyle = '#9aa0b0'; c.font = font(400, 13); c.fillText(`${SLOTS[s]}${it ? ' · ' + RARITIES[it.rarity].name : ''}`, x + 58, yy + 38); });
+  y += 3*62 + 20;
+  // sorts débloqués et leur rang
+  c.fillStyle = gold; c.font = font(700, 18); c.fillText('Sorts', 50, y); y += 18;
+  const spells = spellOrder(p).filter(sp => !sp.lvl || p.level >= sp.lvl), sicons = await Promise.all(spells.map(sp => loadImg(SPRITES[sp.icon])));
+  const sw = Math.min(86, (W - 100) / Math.max(1, spells.length));
+  spells.forEach((sp, i) => { const x = 50 + i*sw, r = spellRank(p, sp);
+    c.fillStyle = 'rgba(255,255,255,.06)'; roundRect(c, x, y, sw - 10, sw - 10, 8); c.fill();
+    if (sicons[i]) { const k = (sw - 26) / Math.max(sicons[i].width, sicons[i].height); c.drawImage(sicons[i], x + (sw - 10 - sicons[i].width*k)/2, y + (sw - 10 - sicons[i].height*k)/2, sicons[i].width*k, sicons[i].height*k); }
+    for (let k = 0; k < SPELL_MAX_RANK; k++) { c.fillStyle = k < r ? '#ffd04a' : '#3a3f4c'; c.beginPath(); c.arc(x + (sw-10)/2 + (k - (SPELL_MAX_RANK-1)/2)*11, y + sw + 2, 4, 0, 7); c.fill(); } });
+  y += sw + 48;
+  // hauts faits, effet et exploration
+  const L = hfList(), max = L.reduce((a, h) => a + h.pts, 0), zones = FIGHT_ZONES.filter(z => p.cleared.includes(z.id)).length;
+  c.textAlign = 'center'; c.fillStyle = '#d8d2c0'; c.font = font(600, 17);
+  c.fillText(`🏆 ${hfPoints(p)} / ${max} points de hauts faits   ·   ${L.filter(h => p.hf && p.hf[h.id]).length} / ${L.length} hauts faits   ·   ${zones} / ${FIGHT_ZONES.length} zones`, W/2, y);
+  c.fillStyle = '#7d8394'; c.font = font(400, 14);
+  c.fillText(`${f ? `Effet « ${f.name} »   ·   ` : ''}Fiche du ${new Date().toLocaleDateString('fr-FR')}`, W/2, y + 30);
+  return cv2;
+}
+const cardFile = p => `fiche-${(p.name || p.cls).replace(/[^\w-]+/g, '_')}-niv${p.level}.png`;
+async function showShareCard(back) {
+  const p = G.profile;
+  overlay(`<h2>Fiche de ${heroName()}</h2><p class="help">Préparation de la fiche…</p><button class="btn" id="b1">Retour</button>`, true);
+  $('#overlay').dataset.menu = 'cardwait'; $('#b1').onclick = back;
+  // image en data: (les liens blob: sont bloqués dans certains aperçus et navigateurs) ; le fichier pour le partage est reconstruit à partir de ces données
+  const cnv = await drawShareCard(p), url = cnv.toDataURL('image/png'), bin = atob(url.split(',')[1]), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const blob = new Blob([bytes], { type:'image/png' });
+  if ($('#overlay').dataset.menu !== 'cardwait') return; // fermée pendant le dessin
+  const file = new File([blob], cardFile(p), { type:'image/png' });
+  const canShare = !!(navigator.canShare && navigator.canShare({ files:[file] }));
+  overlay(`<h2>Fiche de ${heroName()}</h2>
+    <p class="help">${canShare ? 'Partage-la avec tes amis (Messages, WhatsApp…) ou enregistre l\'image.' : 'Enregistre l\'image pour l\'envoyer à tes amis.'}</p>
+    <img class="sharecard" src="${url}" alt="Fiche de ${heroName()}">
+    <p style="text-align:center">${canShare ? '<button class="btn" id="cardShare">Partager</button>' : ''}<button class="btn${canShare ? ' alt' : ''}" id="cardSave">Enregistrer l'image</button>
+    ${navigator.clipboard && window.ClipboardItem ? '<button class="btn alt" id="cardCopy">Copier l\'image</button>' : ''}<button class="btn alt" id="b1">Retour</button></p>`, true);
+  $('#overlay').dataset.menu = 'card';
+  if ($('#cardShare')) $('#cardShare').onclick = () => navigator.share({ files:[file], title:`${heroName()} · Héritiers de l'Aube` }).catch(() => {});
+  $('#cardSave').onclick = () => { const a = document.createElement('a'); a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); };
+  if ($('#cardCopy')) $('#cardCopy').onclick = () => navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]).then(() => flashMsg('Image copiée : colle-la dans ta conversation.'), () => flashMsg('Copie impossible ici : utilise « Enregistrer l\'image ».'));
+  $('#b1').onclick = back;
+}
 // Vérifie les hauts faits (appelé à chaque sauvegarde) ; silent = rattrapage d'une ancienne sauvegarde, sans notification
 function checkHF() {
   const p = G.profile; if (!p) return;
@@ -4214,6 +4448,7 @@ function checkHF() {
   for (const h of hfList()) if (!p.hf[h.id]) { let ok = false; try { ok = h.test(p); } catch (e) {} if (ok) { p.hf[h.id] = Date.now(); now.push(h); } }
   // premier titre obtenu : porté automatiquement (le joueur peut le changer ou l'enlever)
   if (p.hfTitle === undefined) { const t = hfTitles(p); if (t.length) p.hfTitle = t[t.length-1]; }
+  if (p.nameFx === undefined) { const f = NAME_FX.filter(f => fxHas(p, f)); if (f.length) p.nameFx = f[f.length-1].id; }
   if (!silent) now.forEach(hfToast);
 }
 // Compteurs de combat (victoire ou défaite : les monstres vaincus comptent toujours)
@@ -4231,7 +4466,7 @@ function hfToast(h) { hfQueue.push(h); if (!hfTimer) hfNext(); }
 function hfNext() {
   const t = $('#hfToast'); if (!hfQueue.length) { t.classList.remove('on'); hfTimer = null; return; }
   const h = hfQueue.shift(), more = hfQueue.length > 2 ? hfQueue.splice(0).length : 0;
-  t.innerHTML = `<span class="ic">🏆</span><div><small>Haut fait débloqué ! (+${h.pts} points)</small><b>${h.name}</b>${more ? `<small>et ${more} autre${more>1?'s':''} : touche F pour les voir</small>` : `<small>${h.desc}${h.title ? ` · nouveau titre « ${h.title} »` : ''}</small>`}</div>`;
+  t.innerHTML = `<span class="ic">🏆</span><div><small>Haut fait débloqué ! (+${h.pts} points)</small><b>${h.name}</b>${more ? `<small>et ${more} autre${more>1?'s':''} : touche F pour les voir</small>` : `<small>${h.desc}${h.title ? ` · nouveau titre « ${h.title} »` : ''}${fxForHf(h.id) ? ` · nouvel effet de nom « ${fxForHf(h.id).name} »` : ''}</small>`}</div>`;
   t.classList.add('on');
   hfTimer = setTimeout(() => { t.classList.remove('on'); hfTimer = setTimeout(hfNext, 350); }, 3200);
 }
@@ -4240,7 +4475,7 @@ function showFeats() {
   checkHF();
   const L = hfList(), got = L.filter(h => p.hf[h.id]), max = L.reduce((a, h) => a + h.pts, 0);
   const card = h => { const d = p.hf[h.id], pr = !d && h.prog ? h.prog(p) : null;
-    return `<div class="feat${d ? ' got' : ''}"><span class="ic">${d ? '🏆' : '🔒'}</span><div class="txt"><b>${h.name}</b><small>${h.desc}${h.title ? ` · titre « ${h.title} »` : ''}</small>
+    return `<div class="feat${d ? ' got' : ''}"><span class="ic">${d ? '🏆' : '🔒'}</span><div class="txt"><b>${h.name}</b><small>${h.desc}${h.title ? ` · titre « ${h.title} »` : ''}${fxForHf(h.id) ? ` · effet de nom « ${fxForHf(h.id).name} »` : ''}</small>
       ${pr ? `<div class="fbar"><div style="width:${100*pr[0]/pr[1]}%"></div></div><small>${pr[0]} / ${pr[1]}</small>` : d ? `<small>Débloqué le ${new Date(d).toLocaleDateString('fr-FR')}</small>` : ''}</div><span class="pts">${h.pts}</span></div>`; };
   overlay(`<h2>Hauts faits de ${heroName()}</h2>
     <p class="help"><b style="color:var(--gold)">${hfPoints(p)} / ${max} points</b> · ${got.length} / ${L.length} hauts faits débloqués</p>
@@ -4955,7 +5190,7 @@ function renderScene(now) {
   ents.push({ d:h.rx+h.ry+.02, f:() => { const [cx,cy] = iso(h.rx,h.ry);
     ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(cx,cy+2,17,7,0,0,7); ctx.fill();
     ctx.strokeStyle='#4aa3ff'; ctx.lineWidth=2; ctx.beginPath(); ctx.ellipse(cx,cy+2,20,9,0,0,7); ctx.stroke();
-    drawSprite(animFrame('forest', false, now, 1.5), cx - 30*h.face, cy+14, 3, h.face<0);
+    drawForest(cx - 30*h.face, cy+14, 3, h.face<0, now);
     drawSprite(animFrame(CLASSES[G.profile.cls].sprite, G.walking, now), cx, cy+6, SC, h.face<0);
     tags.push([heroName(), cx, cy+42]); const ti = heroTitle(); if (ti) tags.push([`« ${ti} »`, cx, cy+62, '#e8b94a']); } });
   ents.sort((a,b) => a.d-b.d).forEach(e => e.f());
