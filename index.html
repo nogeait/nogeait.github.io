@@ -59,6 +59,7 @@
   .box h2 { margin:0 0 10px; color:var(--gold); }
   .box p { color:#cfc8b6; line-height:1.45; }
   .classes { display:flex; gap:14px; justify-content:center; margin:18px 0; flex-wrap:wrap; }
+  .box:has(.classes) { max-width:900px; } /* écran d'accueil : les cartes de classe tiennent sur une ligne */
   .cls { width:260px; padding:14px; border-radius:10px; background:var(--panel2); border:2px solid #3a4459; cursor:pointer; text-align:left; color:var(--text); font:inherit; }
   .cls:hover { border-color:var(--gold); }
   .cls h3 { margin:0 0 6px; color:var(--gold); }
@@ -205,6 +206,16 @@ const SPRITES = {
   coin_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAHCAYAAAArkDztAAAAAXNSR0IArs4c6QAAABxJREFUCJljYICCX6ft/r/r0/sP4zMx4AADKgEAnwkFuL4s7YcAAAAASUVORK5CYII=',
   coin_anim_f3:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAHCAYAAAArkDztAAAAAXNSR0IArs4c6QAAADNJREFUCJljYICCd316//9+f/sfxmeECfLYCjAwMDAwMOusZ2DmFGZkYsABqCgBB+iuAgCnixEc9jS88AAAAABJRU5ErkJggg==',
   dwarf_m_idle_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAUlJREFUOI1jYBgFwwAwEqtQSUnpPzL/3r17jAwMDAwsxGrcoSMGF/O48grOxmkANo3YAIYBxGrEaoCSktJ/YjXCABOy5kM+ggQ1eFx5BQ9AFAPIBRQbgJIOYN749oCVgYGBgeGlvQVWTfFTNxFOBy/tLRhEJXixym1rjmbwql36H8UA9JQmKsHLwLRyN06n79ARY/C48grVBduaoxm+MDAwMD2AaPwX7srgVbsULgcDMLF79+4xYg3Ef+GueG1HBhiBuENHjOFfuCtc7PWLz3AvIYvBAhKrC5BtF5XgxQhMZD5GLHAp/Gb49oAVwwvIrkKWwzBgunQiQybDfHhawKYJRRyb4HTpRIaF1jFYNcBcidMFfy4fZGBgYGBYfewsw3KoGHoms9vyHn9KXH3sLEqOs9ui9D/UyhhDHAMoKSn9R0+R+MQZGBgYAIoYebjQTLSRAAAAAElFTkSuQmCC',
+  roublard_idle_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAABI0lEQVR4nO2TMUvDQBiGn5MQOnSQ4uQgcogYKV0KTuLWP+AYcNLVrav/QXC1HRQ6dsioa6dClhAodDiqg5M4dQgucai55ppLbZ3zTrkv97z38t13UKlSJQBhK0op0zJAKWUwjg1u1s+LpvvHAAT007yRsMHZ5nUKpn2UUmJnW1h9TI21yOBHt6GL9+4pw17HanB5/UoQPQkpZWokyGvY6+CHHn7oGXU/9Ijno0WS3x5YDbaRk7ndSHQPLoBBe1LYPGhPWO2QNUH37m3jBLqJ2d3nb+FlFgAQPd/SunoA4Mg9IZ6PlnNgg6NkTKt2RpSMCyfWv3YBtImwje3hQbM08uw91t9KKVGYxL/g1bdgTOI6uEy6iTV3byMg+f40Ujj5H//RD7BjbP3DACQlAAAAAElFTkSuQmCC',
+  roublard_idle_anim_f1:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAABHElEQVR4nO2SsUvDQBTGfychdMgg4uQgcogYCF0Ep+LWf8Ax4KSrW1f/ClfbRXDskNG5UyFLCAoZjurgJE4dQpc4lDt63gWLOOabjo/3fe997x506NDhXyB8pJSyaRMopSxN4BMn0cA1PTgBIGNimRs33TWJBqb4N2TVZD2BlLJ5CPfW7OqFjHYD9VFRLmcmjhNBF03HQ6/B5XVl7WHHVzQdD0nzmDSPLT7NY9NdI9Cj3Eganf+iNYALbwSAp7NXL/dzO94Io7u3rScQYP/95hc+LzIAisdb+lf3AByHp5TLmVmk8ImLek6/d05Rz52O0dcugDERvrM9OkxaR168l+atlBLOJW4j3rwDIaVseuF+q8iHevVpTAJN/BXf9TJnZ9bRcMkAAAAASUVORK5CYII=',
+  roublard_idle_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAABHklEQVR4nO2SMUvDUBSFvychdOgg4uQg8pBioHQpOIlbVwfHgIu6unXtfxBcbRahY4eMzp0KWUKwkOFRHToVpw4hSzqUPJrmRaqTQ854uefcc++5UKNGjf8BYSpKKbMqglJKbPdYJnK7eVUWPWkB4ONlADete/zYKzrIyXnzT/BjD6WU0A6qJpdWWMREq4lexcrJr/YRpB8APC9gPOwZBW4fYk0GODA1jYc93MDBDZxC3Q0cotWkUDMK/AYWbKJ5lOgDXgOj7qzUPOrO2D2v0UF/8Lm3A/0UeQLbEb7PfQDCtyc6dy8AnNsXhRSEiRwmUzqNS8JkWprY/D4E0CLC9LZnp+1Ky/OvqLiClDJr2Md77buLJF1uUkjS5Z8EANZrU2IH7VOQLAAAAABJRU5ErkJggg==',
+  roublard_idle_anim_f3:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAABJUlEQVR4nO2Sv0vDQBiGn5QQOnQQcXIQOaQYKF0KTuLW1cEx4KJd3Rz1fyi42i5Cxw6ZxLlTIUsIFjIc1aFTceoQssQpR85cMIJj3unu+J73vl/QqFGjf5FlehRCZFWAlFJjbBPc65yXTQ+7APhMs6KJ5pbDeXCV/HiqMmn99nOphE3MZfdGlWnn8LOzD+k7AOMNzCdDo8HVbazdW6ag+WSIF7h4gau9e4FLtFswfn1QpRsN6ijvgZ1fRgLVwAtgNliVoNlgxc/2GjO4f/yonYkF+gSKI3xb+wCEL3f0r58AOHFOiXYLVYJlgsNkSb99RpgsSz92vvYAlIllWtvjo15lyuvPSJ2llJYaR25UB9ZWWQiRtZ2DSsikJN3qY0zS7Z8MivoG1d9rS2S6SToAAAAASUVORK5CYII=',
+  roublard_run_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAABI0lEQVR4nO2SoWvDQBSHv5QQKirGmAiTYZRljJrC1JirnZgMzGyzc5Xd/1CYXWsGlRVRY7qqEBNCCxFHNjEixlRFqOnUHUlzKZ2byE/de9z3u/fePahVq9b/kKFLOo6zqQKEEAXG1MHnrcuy6XEbAJ/xJm9ScJOwvFwlPx6rShp/hcVXzHX7TrVpSvjFOoT1ApIFQ+uM6ainNbi5jwtxQ3dpOurhBS5e4BbyXuASrWYM3waqda3BPpIzMGXw4KBmcAVMussSNOku2Z6QtoL+08felRhQ/Pv8L7wnPgDh6yOd22cATqxTotVMtWDo4DCb02leEGbz0outnwMAZWJsr23TOsK27cqSk89InYUQhimhvNI03dl3fpVNgGz9vROoggF+Afk3Zr8J0vvyAAAAAElFTkSuQmCC',
+  roublard_run_anim_f1:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAABLElEQVR4nO2TsUvDQBTGfychdOgg4uQgcogYKV0KTuLWf8Ax4KSrm2v/B8HVdlDo2CGjrp0KWUKg0OGoDpJBnDoElzjYxFxyaa1u0m+6e7zve9+99w7WWONfQJiCUsqkiqCU0jiWidyon5RFdw4A8OgleSFhIqfJi+BNeiilxMaqZPU60e4iJd/ZW1nwxj5i0G0bBc4unvCCeyGlTDQHeQy6bVzfwfUdLe76DuFs+OVk3gOjwCqwUrVLSdaDU6DfGpeS+60xxQ4ZHVx3nn/sIGtiOvv8FB6nHgDBwxXN81sA9u1Dwtnwew9M5CAe0awdE8SjUsX6+yZAJiJMa7u326i0PH0Js7NSSpQ2cRm5+Bf+PEZtlRdVr4KVkmv2NlEU/U4AIP54W5pcfD/AJyohbNwxBFpVAAAAAElFTkSuQmCC',
+  roublard_run_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAABKUlEQVR4nO2TMUvDUBSFv0gIHTqIODmIPESMhC4Fp+LWP+AYcNLVzdX/ILjaLkLHDhmdOxWyhNBChkd0kAzi1CF0SYfiK0leTLrnTJfLPefed+590KJFCwBDlxRCZFUEKWWOY+qITndQFj25AMBjnBPPqQkhMqc7UMV18KLxTqApWX5HhKvZNpbSMP/Ib9YRrBcQL3ixrpiOhlqB2/so58OBrmg6GuL6Nq5v5/Kub6vu/wrsAxO2b3kQKA9ugEl/WSqe9JcUHdJO8PT82XgCA3YbAHJb+Ig9AIL3R3p3rwCcW5eEq5ky0tCRg3ROr3NNkM5LHbu/hwBKxNCd7dmpUzly/BWqWEpplC6xjlz8C8rEOnIVTCFE1rGOAUiSZH8BgHT906i4OD7ABp+PaksgZmsYAAAAAElFTkSuQmCC',
+  roublard_run_anim_f3:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAABEklEQVR4nO2SoU/DQBTGf0eaZqJiISjkhSw0WWZIUAtuFoFsggEsDstfgWU1JMiJk+ipJTXNAknFBQxqQU00NUUsd7T0ugxL+sl33/fd+9570KFDh38C4SpKKcs2gdZaVDmeSzwMxk3TwwEAirgEOB9cobL4pwPjOAzGlrwNKovRWgvPiB/9/c1L8Yqi3UB/ZizXcxulEcGQZtOJ0+DiOrNigD0XaTadECUhURLW6lESslzPazUPNpO9kZQm/1lrgCacEQCeT96ctd/TcUa4u//YuQN7FGb31RW+vCsA0qdbRpcPABz5x7UtCJc4zReMeqek+aLxY/DVB7AmQkpZ9vyDnVsGyItV/Q7yYvUng+odfAP20WMAUXkmEwAAAABJRU5ErkJggg==',
+  roublard_hit_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAABQ0lEQVR4nO2SsWvCQBjFf5EgDg6ldBAX4SjSgLgEOkk31w4dhS6tq1vX/hVdaxfB0SFjZyfBJUgFh6NdOok4KISApIPckTR3rV3bvu3evfe+77vv4B9/DUKIRAiRpLnCT0Mu6zekQxxbJRPfKLf299U6weIJKaXjmsxKmOGrdWNHugNVtVFuWcUKqjqAq8yPxeP9bfxCgD1Avi8y59wISjTqt40BV7cLXR0sWxj123SmHp2pl+E7U4/ZZmzuoBuv9PwX1gHycAGklM7n1Q39eU489Oe51zGOcHf/dnAHDmR3n17h82sAQDjo0bx+AOC0eMZsM9YP6ZjMYTShWTonjCa5iuXVEYAOcdUBYBOttdBkTmsVXNWK7f+bkP4H2lwqnhzqJ4qXOqSQJqN4yXa9Ixz02K53Vu5L1Cp+Uqv4yXfcL8IHrN+QTrgNZ4kAAAAASUVORK5CYII=',
+  weapon_throwing_axe:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAOCAYAAAAWo42rAAAAAXNSR0IArs4c6QAAAL5JREFUKJGtkC0OwkAQRt+WJpyCv02qmuCKQHACBALLEZAYrkCC4QhYBIITIGoIpgmKZAjtKUggxbCbbdmgeHL3zTeZT/FBa13iICJKa12KiAII3M95u8l21LCD18vJBqh6kmFy2LHqdQCI4oTQPAIUWQpAqz8EYHG7Wzl0U4zgw4pFlnJeriurv8T9eGqPGXSfzI4vALsWIBARZSpwMcNRnCAiKqgLBhFRRoJajz7Zrv4luvxfrBS+yR+Q+8U3MVQ84RQ9QKYAAAAASUVORK5CYII=',
   elf_f_idle_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAARxJREFUOI1jYBgFo2AUMDAwMDBiE1RSUvqPS8O9e/dQ9LBg03wmhwdDI4+tAAMDAwODRjjDf2SDGLFphinGBzTCnzDcu3ePkYlUzV8Of0Dhs8A079ARY3hzgIHhzYFfDCIO3xj4bEtxGNHNwGZ6iBEWTkzYlPDZljJEndVkiDqriSIedVaTwWTKFwYGBkQYYDWAFAAPROQwYGJIxalBLbweJSqxuuAfw2zSXIAc98ix4LxCkIGBgYFhf0QIg+OKNQwMDAwMG6XvM5hM+YJIB9g0B97hZFiv8p0h8A4nho2Lnz9nYGBggBvCiC3Zaraq4nTy9erbcPa9e/cYMVIiIc3oeQElJeLTjAvAA1E6UJcoDU/XX0ZxBQuyBDkAAKYYacvBHKyGAAAAAElFTkSuQmCC',
   elf_m_idle_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAWRJREFUOI3tlL9Kw1AUxr+UDkIDcQlIlAoXlGRwkXYUfIVMgT5Ap8xdHMTBpRanTn2DuuQNXLoUmoLQRRwuFGwWF1PSUeJQ7iXn5sYqOPZbkvPn+yU55xJgr73+QYaaYIzlu0ycc+mrq+Y4NEmzeXVYArgBcgGRpKJZZypD3sE5N+q6Yjb53F7drswd2U+y1hpmeB2fwA2QkzcAgDg0pdGxLQlIPlIAwHX4CM65wRjLOedGTZjfxnfyqY5tEbOAFXNiBjURnAe3EBAA6Mw9dOYegaixBKhP+osIYD15kPeD5hSD5pQ0q7EEFFcohlU1hzg0yWGTa2wNMwCAdfpMTLO+T2LRJ0SOMmMs9+7PSEMyamDW99HuRQCAdPlSfZR1crobtHsRnO5mC7ih9dIWqiDJqKGt/QrwE6T0Cev4oBJiXn4hXe4ACK2iBYmP/QttnxawihZk0mLvar4kxliu+yNV5QHgG/6nhf2i4yAhAAAAAElFTkSuQmCC',
   flask_big_blue:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAANBJREFUOI1jYBjygBFdQElJ6T8+Dffu3UPRw4JNUa4cOwMDAwODmcIfFPHYQ38x1GI1IG/7EYadVx4xfEQSc9eRY2DQNsXnOARQUlL6//f72//bTp//v+30+f9/v7/9j8trWF0AA4u730FsXyhHnM3ItkeG7YXTMDY2VzCia7599TRDTPwFhiULDRhi4i+gKP7rxM9wpisMJSaYsLnirxM/3BAYHxfAGgbM+yDhH7nwPgODEz+cjw1gTUi3r56GaEYD6M7HagDMEGzi6JoHBwAALH1fcKAb+yIAAAAASUVORK5CYII=',
@@ -384,9 +395,19 @@ const key = (x,y) => x + ',' + y;
 const man = (a,b,c,d) => Math.abs(a-c) + Math.abs(b-d);
 
 // ---------- Données de jeu ----------
+// Classes jouables. Pour en ajouter une, il suffit d'une entrée ici (le reste du jeu et les tests la prennent tout seuls) :
+//   sprite (animations _idle/_run/_hit dans SPRITES), coiffeIcon (icône de ICON_ART), weapons (du plus faible au plus fort),
+//   coiffes (5 paliers), craft (armes et coiffe fabriquées par les métiers), spells (+ leurs rangs dans SPELL_RANK_UPS),
+//   et au besoin crit / critCap (critique de base et plafond) et autoPts (répartition automatique des points).
+//   Une quête réservée à la classe se déclare dans QUESTS avec cls:'<id de la classe>'.
 const CLASSES = {
-  guerrier: { name:'Guerrier', hp:62, pa:6, pm:3, sprite:'knight_m',
+  guerrier: { name:'Guerrier', hp:62, pa:6, pm:3, sprite:'knight_m', coiffeIcon:'casque',
     desc:'Robuste, frappe fort au corps à corps et bondit sur ses ennemis.',
+    weapons: [['weapon_rusty_sword','Épée rouillée'],['weapon_regular_sword','Épée longue'],['weapon_axe','Hache'],['weapon_mace','Masse'],['weapon_cleaver','Couperet'],
+      ['weapon_baton_with_spikes','Gourdin clouté'],['weapon_waraxe','Hache de guerre'],['weapon_saw_sword','Épée-scie'],['weapon_katana','Katana'],['weapon_duel_sword','Épée de duel'],
+      ['weapon_red_gem_sword','Épée de rubis'],['weapon_golden_sword','Épée dorée'],['weapon_double_axe','Double hache'],['weapon_anime_sword','Lame héroïque']],
+    coiffes: ['Casque de cuir','Casque de fer','Heaume','Heaume du Nord','Heaume démoniaque'],
+    craft: { bucheron:['Hache','weapon_axe'], mineur:['Épée','weapon_regular_sword'], coiffe:'Casque' },
     spells:[
       { id:'epee', icon:'weapon_knight_sword', name:"Coup d'épée", pa:3, minR:1, maxR:1, los:true, dmg:[9,13], perTurn:2, desc:'Corps à corps, 9-13 dégâts. 2 fois par tour.' },
       { id:'bond', modR:true, icon:'flask_big_green', name:'Bond', pa:2, minR:2, maxR:4, los:false, effect:'tp', needEmpty:true, cd:2, desc:'Saute sur une case libre à 2-4 cases. Recharge 2 tours.' },
@@ -397,8 +418,11 @@ const CLASSES = {
       { id:'hachejet', modR:true, icon:'weapon_axe', name:'Hache de jet', lvl:30, pa:4, minR:2, maxR:5, los:true, dmg:[16,22], perTurn:1, proj:'#c0c0c0', desc:'Portée 2-5, 16-22 dégâts. 1 fois par tour. Débloqué au niveau 30.' },
       { id:'execution', icon:'weapon_cleaver', name:'Exécution', lvl:45, pa:5, minR:1, maxR:1, los:true, dmg:[30,40], cd:3, desc:'Corps à corps, 30-40 dégâts. Recharge 3 tours. Débloqué au niveau 45.' },
     ] },
-  mage: { name:'Mage', hp:52, pa:6, pm:3, sprite:'wizzard_m',
+  mage: { name:'Mage', hp:52, pa:6, pm:3, sprite:'wizzard_m', coiffeIcon:'chapeau',
     desc:'Fragile, mais attaque de loin et sait se soigner et se téléporter.',
+    weapons: [['weapon_knife','Dague runique'],['weapon_red_magic_staff','Bâton de feu'],['weapon_spear','Lance runique'],['weapon_green_magic_staff','Bâton de jade'],['weapon_lavish_sword',"Lame d'arcane"]],
+    coiffes: ['Capuche','Chapeau pointu','Chapeau d\'arcaniste','Chapeau de givre','Couronne du nécromancien'],
+    craft: { bucheron:['Bâton','weapon_green_magic_staff'], mineur:['Sceptre','weapon_red_magic_staff'], coiffe:'Diadème' },
     spells:[
       { id:'flam', modR:true, icon:'weapon_red_magic_staff', name:'Flammèche', pa:3, minR:2, maxR:6, los:true, dmg:[8,11], perTurn:2, proj:'#ff9a3c', desc:'Portée 2-6, 8-11 dégâts. 2 fois par tour.' },
       { id:'boule', modR:true, icon:'weapon_green_magic_staff', name:'Boule de feu', pa:4, minR:3, maxR:6, los:true, dmg:[11,15], zone:'cross', perTurn:1, proj:'#ff5a1f', desc:'Portée 3-6, 11-15 dégâts, éclabousse en croix (moitié). 1 fois par tour.' },
@@ -408,6 +432,22 @@ const CLASSES = {
       { id:'tp', icon:'flask_big_blue', name:'Téléportation', pa:2, minR:1, maxR:4, los:false, effect:'tp', needEmpty:true, cd:3, desc:'Téléporte sur une case libre à 1-4 cases. Recharge 3 tours.' },
       { id:'blizzard', modR:true, icon:'weapon_spear', name:'Blizzard', lvl:30, pa:5, minR:2, maxR:6, los:true, dmg:[13,18], zone:'square', proj:'#9fe3ff', cd:3, desc:'Portée 2-6, 13-18 dégâts sur la case visée et les 8 cases autour. Recharge 3 tours. Débloqué au niveau 30.' },
       { id:'lame', modR:true, icon:'weapon_anime_sword', name:'Lame arcanique', lvl:45, pa:4, minR:2, maxR:7, los:true, dmg:[22,28], perTurn:1, proj:'#c58bff', desc:'Portée 2-7, 22-28 dégâts. 1 fois par tour. Débloqué au niveau 45.' },
+    ] },
+  roublard: { name:'Roublard', hp:58, pa:6, pm:4, sprite:'roublard', coiffeIcon:'capuche',
+    crit:0.12, critCap:0.4, autoPts:{ vit:0.3, for:0.3, agi:0.3, sag:0.1 },
+    desc:'Agile et fragile : arrive vite au contact, empoisonne, enchaîne les coups critiques puis disparaît.',
+    weapons: [['weapon_knife','Dague rouillée'],['weapon_duel_sword','Kriss'],['weapon_saw_sword','Lames jumelles'],['weapon_katana','Dague de givre'],['weapon_red_gem_sword','Croc de la Faille']],
+    coiffes: ['Capuche de cuir','Capuche de voleur',"Masque d'ombre",'Capuche du Nord','Masque démoniaque'],
+    craft: { bucheron:['Gourdin léger','weapon_baton_with_spikes'], mineur:['Dague','weapon_knife'], coiffe:'Masque' },
+    spells:[
+      { id:'dagues', icon:'weapon_knife', name:'Dagues jumelles', pa:2, minR:1, maxR:1, los:true, dmg:[6,9], perTurn:3, desc:'Corps à corps, 6-9 dégâts. 3 fois par tour.' },
+      { id:'lameempo', icon:'flask_big_green', name:'Lame empoisonnée', pa:3, minR:1, maxR:1, los:true, dmg:[7,10], poison:[4,2], perTurn:1, desc:'Corps à corps, 7-10 dégâts, puis poison : 4 PV par tour pendant 2 tours. 1 fois par tour.' },
+      { id:'ombre', modR:true, icon:'flask_big_blue', name:"Pas de l'ombre", pa:2, minR:1, maxR:5, los:false, effect:'tp', needEmpty:true, cd:2, desc:'Se téléporte sur une case libre à 1-5 cases, sans ligne de vue. Recharge 2 tours.' },
+      { id:'fumigene', icon:'flask_big_yellow', name:'Fumigène', pa:2, self:true, effect:'shield', val:25, cd:3, desc:"+25 % de résistance jusqu'à ton prochain tour. Recharge 3 tours." },
+      { id:'coupbas', icon:'weapon_saw_sword', name:'Coup bas', lvl:8, pa:4, minR:1, maxR:1, los:true, dmg:[14,18], vsPoison:2, perTurn:1, desc:'Corps à corps, 14-18 dégâts, doublés si la cible est empoisonnée. 1 fois par tour. Débloqué au niveau 8.' },
+      { id:'instinct', icon:'skull', name:'Instinct du prédateur', lvl:14, pa:1, self:true, effect:'crit', val:20, cd:4, desc:"+20 % de chance de coup critique jusqu'à la fin du tour. Recharge 4 tours. Débloqué au niveau 14." },
+      { id:'eventail', modR:true, icon:'weapon_throwing_axe', name:'Éventail de dagues', lvl:30, pa:4, minR:2, maxR:4, los:true, dmg:[12,16], zone:'cross', perTurn:1, proj:'#c0c0c0', desc:'Portée 2-4, 12-16 dégâts, éclabousse en croix (moitié). 1 fois par tour. Débloqué au niveau 30.' },
+      { id:'assassinat', icon:'weapon_red_gem_sword', name:'Assassinat', lvl:45, pa:5, minR:1, maxR:1, los:true, dmg:[28,38], execute:1.5, cd:3, desc:'Corps à corps, 28-38 dégâts, +50 % si la cible a moins de 30 % de ses PV. Recharge 3 tours. Débloqué au niveau 45.' },
     ] },
 };
 const MONSTERS = {
@@ -494,6 +534,41 @@ const MONSTERS = {
     spells:[{ id:'griffe2', name:'Griffes de lave', pa:3, minR:1, maxR:1, los:true, dmg:[17,22], perTurn:2 },
             { id:'souffle2', name:'Souffle du dragon', pa:3, minR:2, maxR:5, los:true, dmg:[15,20], perTurn:1, proj:'#ff5a1a', poison:[5,2], burn:true },
             { id:'braises', name:'Enfants des braises', pa:2, self:true, summon:'elemfeu', max:1, cd:5 }] },
+  // Côte d'Écume (acte VII)
+  marin: { name:"Marin de l'Ordre", xp:76, hp:115, pa:4, pm:3, sprite:'marin_spr',
+    spells:[{ id:'sabre', name:"Coup de sabre", pa:4, minR:1, maxR:1, los:true, dmg:[18,23] },
+            { id:'abordage', name:"À l'abordage !", pa:1, minR:2, maxR:3, los:false, effect:'tp', needEmpty:true, charge:true, cd:3 }] },
+  pirate: { name:'Pirate noyé', xp:72, hp:85, pa:4, pm:3, sprite:'pirate_spr', ranged:true,
+    spells:[{ id:'tromblon', name:'Tromblon rouillé', pa:3, minR:2, maxR:5, los:true, dmg:[15,19], perTurn:1, proj:'#c0c0c0' },
+            { id:'crochet', name:'Crochet', pa:0, minR:2, maxR:3, los:true, pull:2, cd:3, proj:'#888888' }] },
+  crabe: { name:'Crabe géant', xp:74, hp:150, pa:4, pm:2, sprite:'crabe',
+    spells:[{ id:'pince', name:'Pince broyeuse', pa:4, minR:1, maxR:1, los:true, dmg:[17,22] },
+            { id:'carapace2', name:'Carapace', pa:0, self:true, effect:'ward', val:30, cd:3 }] },
+  anguille: { name:'Anguille électrique', xp:70, hp:80, pa:4, pm:4, sprite:'anguille', ranged:true,
+    spells:[{ id:'decharge', name:'Décharge', pa:3, minR:1, maxR:3, los:true, dmg:[15,19], perTurn:1, proj:'#ffe84a', slowPm:1 }] },
+  meduse: { name:'Méduse', xp:66, hp:72, pa:4, pm:3, sprite:'meduse',
+    spells:[{ id:'filaments', name:'Filaments urticants', pa:4, minR:1, maxR:2, los:true, dmg:[13,17], poison:[6,2] }] },
+  triton: { name:'Triton corrompu', xp:78, hp:120, pa:4, pm:3, sprite:'triton_spr',
+    spells:[{ id:'trident', name:'Trident', pa:4, minR:1, maxR:2, los:true, dmg:[17,21] },
+            { id:'harpon2', name:'Harpon', pa:0, minR:2, maxR:4, los:true, pull:2, cd:3, proj:'#c0c0c0' }] },
+  kraken: { name:'Le Kraken', xp:520, hp:470, pa:6, pm:2, sprite:'kraken', big:2.4,
+    spells:[{ id:'tentacules', name:'Tentacules', pa:3, minR:1, maxR:2, los:true, dmg:[18,23], perTurn:2 },
+            { id:'encre', name:"Jet d'encre", pa:3, minR:2, maxR:5, los:true, dmg:[15,20], perTurn:1, proj:'#2a1a3a', slowPm:1 },
+            { id:'etreinte', name:'Étreinte', pa:0, minR:2, maxR:4, los:true, pull:3, cd:3 },
+            { id:'anguilles', name:'Appel des profondeurs', pa:2, self:true, summon:'anguille', max:1, cd:5 }] },
+  // Mont Givreval (acte VIII)
+  loup: { name:'Loup des neiges', xp:76, hp:110, pa:4, pm:5, sprite:'loup',
+    spells:[{ id:'morsure', name:'Morsure glacée', pa:4, minR:1, maxR:1, los:true, dmg:[17,21] },
+            { id:'bond', name:'Bond', pa:1, minR:2, maxR:4, los:false, effect:'tp', needEmpty:true, charge:true, cd:2 }] },
+  yeti: { name:'Yéti', xp:94, hp:225, pa:4, pm:2, sprite:'yeti_spr', big:1.4,
+    spells:[{ id:'coupyeti', name:'Coup de patte', pa:4, minR:1, maxR:1, los:true, dmg:[19,24], push:1 }] },
+  golemglace: { name:'Golem de glace', xp:96, hp:240, pa:4, pm:2, sprite:'golemglace_spr', big:1.4,
+    spells:[{ id:'poingglace', name:'Poing de glace', pa:4, minR:1, maxR:1, los:true, dmg:[18,23], slowPm:1 },
+            { id:'givre2', name:'Armure de givre', pa:0, self:true, effect:'ward', val:35, cd:3 }] },
+  hrimgar: { name:'Hrimgar, le géant des glaces', xp:580, hp:520, pa:6, pm:2, sprite:'hrimgar_spr', big:2.2,
+    spells:[{ id:'massue', name:'Massue de glace', pa:3, minR:1, maxR:1, los:true, dmg:[20,26], perTurn:2, push:1 },
+            { id:'blizzard', name:'Blizzard', pa:3, minR:2, maxR:5, los:true, dmg:[16,21], perTurn:1, proj:'#d8f0ff', slowPm:1 },
+            { id:'meute', name:'Appel de la meute', pa:2, self:true, summon:'loup', max:1, cd:5 }] },
   // Forêt ancienne (acte V)
   feufollet: { name:'Feu follet noir', xp:52, hp:46, pa:4, pm:4, sprite:'feufollet', ranged:true,
     spells:[{ id:'flammeche', name:'Flamme noire', pa:3, minR:1, maxR:3, los:true, dmg:[11,15], perTurn:1, proj:'#9a5aff' },
@@ -533,9 +608,11 @@ const ZONES = [
   { id:'est', chapter:18, name:"Route des Hauts de l'Aube", x:808, y:432, icon:'portal', to:'redescendre', desc:"Une route de montagne qui grimpe vers les Hauts de l'Aube, à l'est." },
   { id:'sylve', chapter:24, name:'Sentier de la Sylve', x:622, y:512, icon:'portal', to:'sortiesylve', desc:'Un sentier oublié qui mène à la Forêt ancienne.' },
   { id:'brasier', chapter:30, name:'Route du Mont Brasier', x:445, y:112, icon:'portal', to:'descendrebrasier', desc:'Une route poussiéreuse qui monte vers le Mont Brasier, un volcan au nord.' },
+  { id:'cote', chapter:36, name:"Route de la côte", x:175, y:165, icon:'portal', to:'remontercote', desc:"Une route qui file vers l'ouest, jusqu'à la mer et Port-Écume." },
   { id:'sud', chapter:14, name:'Chemin de la Vallée', x:215, y:500, icon:'portal', to:'ermitage', desc:'Un vieux sentier qui descend vers la Vallée oubliée, au sud de la Plaine.' },
   // Terres du Nord (région 2)
   { id:'camp', chapter:6, region:2, name:'Camp de Garrick', x:130, y:420, icon:'village', desc:"Le camp de base de Garrick. Un marchand ambulant s'y est installé." },
+  { id:'givreval', chapter:42, region:2, name:'Sentier du Givreval', x:175, y:160, icon:'portal', to:'descendregivre', desc:'Un sentier enneigé qui monte vers le Mont Givreval.' },
   { id:'retour', chapter:6, region:2, name:'Retour vers la Plaine', x:95, y:300, icon:'portal', to:'passage', desc:'Le sentier qui redescend vers la Plaine et Aubépine, ton village.' },
   { id:'col', chapter:6, region:2, name:'Col des brumes', x:265, y:330, tier:5, icon:'fight', foes:['squelette','squelette','zombie'], desc:'Un col noyé dans la brume, où rôdent des morts-vivants.' },
   { id:'cimetiere', chapter:7, region:2, name:'Cimetière oublié', x:360, y:180, tier:6, icon:'fight', foes:['zombie','squelette','givre','zombie'], desc:'Chaque nuit, de nouveaux morts sortent de terre.' },
@@ -577,8 +654,26 @@ const ZONES = [
   { id:'grandeforge', chapter:33, region:6, name:'Grande forge', x:520, y:250, tier:22, icon:'fight', foes:['fidele','fidele','eclaireur','pretre'], desc:'Une embuscade de l\'Ordre au cœur de Forgefeu.' },
   { id:'forgeoubliee', chapter:34, region:6, name:'Forge oubliée', x:690, y:350, tier:23, icon:'fight', foes:['golem','golem','elemfeu','salamandre'], desc:'Une forge très ancienne, gardée par des golems de lave.' },
   { id:'cratere', chapter:35, region:6, name:'Cratère', x:690, y:170, tier:24, icon:'boss', foes:['ignarok','golem','pretre'], desc:"Ignarok, le dragon de lave, garde la Braise d'Aube. Dernier combat de l'acte VI !" },
+  // Côte d'Écume (région 7)
+  { id:'remontercote', chapter:36, region:7, name:'Retour vers la Plaine', x:105, y:440, icon:'portal', to:'cote', desc:'La route qui ramène vers la Plaine et Aubépine.' },
+  { id:'portecume', chapter:36, region:7, name:'Port-Écume', x:205, y:355, icon:'village', desc:"Un port de pêcheurs battu par les vents. On y échange de l'équipement." },
+  { id:'quais', chapter:36, region:7, name:'Quais de Port-Écume', x:330, y:430, tier:25, icon:'fight', foes:['marin','marin','pirate','marin'], desc:"Des marins de l'Ordre recrutent de force sur les quais." },
+  { id:'recifs', chapter:37, region:7, name:'Récifs des tritons', x:445, y:300, tier:25, icon:'fight', foes:['crabe','crabe','anguille','crabe'], desc:"Des créatures corrompues par l'Ordre envahissent les récifs." },
+  { id:'thalassar', chapter:38, region:7, name:'Thalassar, la cité engloutie', x:585, y:395, tier:26, icon:'fight', deep:true, foes:['marin','anguille','anguille','pretre'], desc:"Une cité ancienne, gardée au sec par une bulle de lumière. L'Ordre y fouille." },
+  { id:'jardins', chapter:39, region:7, name:'Jardins de corail', x:560, y:200, tier:26, icon:'fight', deep:true, foes:['meduse','meduse','triton','crabe'], desc:'Les jardins des tritons, envahis par des méduses et des tritons corrompus.' },
+  { id:'amphitheatre', chapter:40, region:7, name:'Grand amphithéâtre', x:720, y:300, tier:27, icon:'fight', deep:true, foes:['marin','marin','pretre','eclaireur'], desc:"L'Ordre attaque le chœur des tritons." },
+  { id:'abysses', chapter:41, region:7, name:'Sanctuaire des abysses', x:790, y:150, tier:28, icon:'boss', deep:true, foes:['kraken','triton','anguille'], desc:"Le Kraken garde la Perle d'Aube. Dernier combat de l'acte VII !" },
+  // Mont Givreval (région 8)
+  { id:'descendregivre', chapter:42, region:8, name:'Retour vers le Nord', x:105, y:440, icon:'portal', to:'givreval', desc:'Le sentier qui redescend vers le camp de Garrick.' },
+  { id:'refuge', chapter:42, region:8, name:'Refuge du Givreval', x:210, y:365, icon:'village', desc:"Un refuge de montagne où s'arrêtent les voyageurs. On y échange de l'équipement." },
+  { id:'sentiers', chapter:42, region:8, name:'Sentiers du nord', x:330, y:320, tier:29, icon:'fight', foes:['loup','loup','eclaireur','loup'], desc:'Des loups des neiges rôdent le long des sentiers.' },
+  { id:'monastere', chapter:43, region:8, name:'Monastère des Neiges', x:455, y:430, tier:29, icon:'fight', foes:['yeti','yeti','loup','givre'], desc:'Des yétis en colère attaquent le monastère.' },
+  { id:'bibliogelee', chapter:44, region:8, name:'Bibliothèque gelée', x:565, y:330, tier:30, icon:'fight', foes:['golemglace','golemglace','givre','yeti'], desc:'La bibliothèque du monastère, prise par les glaces et gardée par des golems.' },
+  { id:'coltempetes', chapter:45, region:8, name:'Col des tempêtes', x:590, y:190, tier:30, icon:'fight', foes:['fidele','eclaireur','pretre','marin'], desc:"L'Ordre tient le col, en plein blizzard." },
+  { id:'sanctgivre', chapter:46, region:8, name:'Sanctuaire de givre', x:735, y:300, tier:31, icon:'fight', foes:['golemglace','pretre','fidele','yeti'], desc:'Le sanctuaire où reposait le Flocon de l\'Aube.' },
+  { id:'sommet', chapter:47, region:8, name:'Sommet du Givreval', x:770, y:140, tier:32, icon:'boss', foes:['hrimgar','golemglace','pretre'], desc:"Hrimgar, le géant des glaces, couvre la fuite de l'Ordre. Dernier combat de l'acte VIII !" },
 ];
-const REGION_NAMES = { 1:'La Plaine', 2:'Les Terres du Nord', 3:'La Vallée oubliée', 4:"Les Hauts de l'Aube", 5:'La Forêt ancienne', 6:'Le Mont Brasier' };
+const REGION_NAMES = { 1:'La Plaine', 2:'Les Terres du Nord', 3:'La Vallée oubliée', 4:"Les Hauts de l'Aube", 5:'La Forêt ancienne', 6:'Le Mont Brasier', 7:"La Côte d'Écume", 8:'Le Mont Givreval' };
 // Une zone peut changer avec l'histoire (ex. le sanctuaire attaqué par le Bourreau à l'acte IV)
 const ZONE_PHASES = { sanctuaire: [{ chapter:23, name:"Sanctuaire d'Aubépine", tier:17, icon:'boss', foes:['bourreau','eclaireur','pretre'], desc:"Le Bourreau du Soleil noir attaque Aubépine pendant que Maela et Lune réparent le Cristal !" }] };
 const ZONE_BASE = {};
@@ -587,13 +682,18 @@ function applyPhases() {
     Object.assign(z, ZONE_BASE[id], ...phases.filter(ph => G.profile && G.profile.story >= ph.chapter).map(ph => { const { chapter, ...rest } = ph; return rest; })); }
 }
 // Portail à prendre depuis la région `from` pour se rapprocher de la région `to` (on repasse par la Plaine)
-const portalToward = (from, to) => ZONES.find(z => z.icon==='portal' && regionOf(z.id)===from && regionOf(z.to)===to) || ZONES.find(z => z.icon==='portal' && regionOf(z.id)===from && regionOf(z.to)===1);
+const portalToward = (from, to) => { const ps = ZONES.filter(z => z.icon==='portal'), first = new Map([[from, null]]), q = [from];
+  while (q.length) { const r = q.shift(); if (r===to) return first.get(r); for (const z of ps) if (regionOf(z.id)===r && !first.has(regionOf(z.to))) { first.set(regionOf(z.to), first.get(r) || z); q.push(regionOf(z.to)); } }
+  return portalTowardOld(from, to); };
+const portalTowardOld = (from, to) => ZONES.find(z => z.icon==='portal' && regionOf(z.id)===from && regionOf(z.to)===to) || ZONES.find(z => z.icon==='portal' && regionOf(z.id)===from && regionOf(z.to)===1);
 const LINKS = [['village','lisiere'],['lisiere','champs'],['lisiere','marais'],['champs','moulin'],['marais','bois'],['moulin','bois'],['bois','antre'],['antre','passage'],
   ['retour','camp'],['camp','col'],['col','cimetiere'],['col','lac'],['cimetiere','forteresse'],['lac','tour'],['forteresse','tour'],['tour','faille'],['tour','miroir'],
   ['village','sanctuaire'],['village','sud'],['remonter','ermitage'],['ermitage','entree'],['entree','bibliotheque'],['entree','temple'],['bibliotheque','temple'],['temple','coeur'],
   ['bois','est'],['marais','sylve'],['redescendre','pelerins'],['pelerins','chemin'],['chemin','templeoublie'],['templeoublie','epreuves'],['templeoublie','forge'],['epreuves','remparts'],['forge','remparts'],
   ['sortiesylve','fees'],['fees','oree'],['oree','bosquet'],['oree','boiscorrompus'],['bosquet','licornes'],['boiscorrompus','licornes'],['licornes','racines'],['racines','coeursylve'],['licornes','coeursylve'],
-  ['champs','brasier'],['descendrebrasier','haltecendres'],['haltecendres','plainescendres'],['plainescendres','portes'],['portes','tunnels'],['portes','grandeforge'],['tunnels','forgeoubliee'],['grandeforge','forgeoubliee'],['grandeforge','cratere'],['forgeoubliee','cratere']];
+  ['champs','brasier'],['descendrebrasier','haltecendres'],['haltecendres','plainescendres'],['plainescendres','portes'],['portes','tunnels'],['portes','grandeforge'],['tunnels','forgeoubliee'],['grandeforge','forgeoubliee'],['grandeforge','cratere'],['forgeoubliee','cratere'],
+  ['champs','cote'],['remontercote','portecume'],['portecume','quais'],['quais','recifs'],['recifs','thalassar'],['recifs','jardins'],['thalassar','amphitheatre'],['jardins','amphitheatre'],['amphitheatre','abysses'],
+  ['camp','givreval'],['descendregivre','refuge'],['refuge','sentiers'],['sentiers','monastere'],['monastere','bibliogelee'],['bibliogelee','coltempetes'],['bibliogelee','sanctgivre'],['coltempetes','sanctgivre'],['sanctgivre','sommet']];
 const FIGHT_ZONES = ZONES.filter(z => z.foes);
 const zoneById = id => ZONES.find(z => z.id===id);
 const neighbors = id => LINKS.filter(l => l.includes(id)).map(l => l[0]===id ? l[1] : l[0]);
@@ -683,7 +783,7 @@ function heroStats(p) {
   const g = gearTotals(p);
   const t = charPoints(p).pts, ml = mealBonus(p);
   return { hp: Math.round((c.hp + (lv-1)*LV_HP + t.vit*CARACS.vit.per + g.vie) * (1 + ml.vie/100)), pa: c.pa + (lv>=5) + (lv>=10) + (lv>=20) + g.pa, pm: c.pm + (lv>=3) + (lv>=15) + (lv>=25) + g.pm,
-    mul: 1 + (lv-1)*LV_DMG + (t.for*CARACS.for.per + g.puissance + ml.puissance)/100, res: Math.min(50, g.resistance + Math.floor(t.sag*CARACS.sag.per)), crit: Math.min(0.3, CRIT_CHANCE + t.agi*CARACS.agi.per/100) };
+    mul: 1 + (lv-1)*LV_DMG + (t.for*CARACS.for.per + g.puissance + ml.puissance)/100, res: Math.min(50, g.resistance + Math.floor(t.sag*CARACS.sag.per)), crit: Math.min(c.critCap || CRIT_CAP, (c.crit || CRIT_CHANCE) + t.agi*CARACS.agi.per/100) };
 }
 // ---------- Points de caractéristique et de sort (gagnés à chaque niveau) ----------
 const LV_HP = 4, LV_DMG = 0.05;                 // gain automatique par niveau, le reste vient des points
@@ -691,7 +791,7 @@ const CARAC_PER_LV = 5, SPELL_PTS_PER_LV = 1, SPELL_MAX_RANK = 5;
 const CARACS = {
   vit: { name:'Vitalité', per:2, desc:'+2 PV max par point' },
   for: { name:'Force', per:2, desc:'+2 % de dégâts et de soins par point' },
-  agi: { name:'Agilité', per:0.5, desc:'+0,5 % de chance de coup critique par point (30 % au plus)' },
+  agi: { name:'Agilité', per:0.5, desc:'+0,5 % de chance de coup critique par point (30 % au plus, 40 % pour le Roublard)' },
   sag: { name:'Sagesse', per:0.5, desc:'+1 % de résistance tous les 2 points (50 % au plus, équipement compris)' },
 };
 const spellRankCost = r => r - 1;               // passer au rang r coûte r-1 points (façon Dofus)
@@ -706,16 +806,25 @@ function charPoints(p) {
 }
 const spellRank = (p, sp) => Math.max(1, Math.min(SPELL_MAX_RANK, (p.ranks && p.ranks[sp.id]) || 1));
 // copie du sort améliorée selon son rang : dégâts et soins +8 % par rang, recharge -1 aux rangs 3 et 5, effets plus forts
+// gains de rang en plus des dégâts : rangs où le sort gagne +1 de portée, -1 tour de relance ou +1 lancer par tour.
+// Choisis sort par sort pour rester raisonnable : pas de portée au corps à corps, pas de lancer en plus sur les gros sorts.
+const SPELL_RANK_UPS = {
+  epee:{ tours:[5] }, bond:{ portee:[2,4,5], cd:[3] }, fracas:{}, cri:{ cd:[3,5] }, tourb:{}, rage:{ cd:[4] }, hachejet:{ portee:[3,5] }, execution:{ cd:[4] },
+  flam:{ portee:[2,4], tours:[5] }, boule:{ portee:[2,4] }, soin:{ cd:[3] }, bouclier:{ cd:[4] }, meteores:{ portee:[3], cd:[5] }, tp:{ portee:[2,4], cd:[3,5] }, blizzard:{ portee:[3], cd:[5] }, lame:{ portee:[3,5] },
+  dagues:{ tours:[5] }, lameempo:{}, ombre:{ portee:[2,4] }, fumigene:{ cd:[4] }, coupbas:{}, instinct:{ cd:[4] }, eventail:{ portee:[3,5] }, assassinat:{ cd:[4] },
+};
+const rankUps = (sp, kind, r) => ((SPELL_RANK_UPS[sp.id] || {})[kind] || []).filter(x => x <= r).length;
 function rankedSpell(sp, r) {
   if (r <= 1) return Object.assign({}, sp, { rank:1 });
   const o = Object.assign({}, sp, { rank:r }), k = 1 + 0.08*(r-1); let d = sp.desc;
   const sw = (a, b) => { d = d.replace(a, b); };
   if (sp.dmg) { o.dmg = sp.dmg.map(v => Math.round(v*k)); sw(`${sp.dmg[0]}-${sp.dmg[1]} dégâts`, `${o.dmg[0]}-${o.dmg[1]} dégâts`); }
   if (sp.heal) { o.heal = sp.heal.map(v => Math.round(v*k)); sw(`${sp.heal[0]}-${sp.heal[1]} PV`, `${o.heal[0]}-${o.heal[1]} PV`); }
-  if (sp.cd) { o.cd = Math.max(1, sp.cd - (r>=3) - (r>=5)); sw(`Recharge ${sp.cd} tours`, o.cd > 1 ? `Recharge ${o.cd} tours` : 'Recharge 1 tour'); }
-  if (sp.effect==='rage' || sp.effect==='shield') { o.val = sp.val + 5*(r-1); sw(`+${sp.val} %`, `+${o.val} %`); }
+  if (sp.cd) { o.cd = Math.max(1, sp.cd - rankUps(sp, 'cd', r)); if (o.cd !== sp.cd) sw(`Recharge ${sp.cd} tours`, o.cd > 1 ? `Recharge ${o.cd} tours` : 'Recharge 1 tour'); }
+  if (sp.perTurn && rankUps(sp, 'tours', r)) { o.perTurn = sp.perTurn + rankUps(sp, 'tours', r); sw(`${sp.perTurn} fois par tour`, `${o.perTurn} fois par tour`); }
+  if (!sp.self && rankUps(sp, 'portee', r)) { o.maxR = sp.maxR + rankUps(sp, 'portee', r); sw(`${sp.minR}-${sp.maxR}`, `${sp.minR}-${o.maxR}`); }
+  if (sp.effect==='rage' || sp.effect==='shield' || sp.effect==='crit') { o.val = sp.val + 5*(r-1); sw(`+${sp.val} %`, `+${o.val} %`); }
   if (sp.effect==='pm') { o.val = sp.val + (r>=2) + (r>=4); sw(`+${sp.val} PM`, `+${o.val} PM`); }
-  if (sp.effect==='tp') { o.maxR = sp.maxR + (r>=2) + (r>=4) + (r>=5 && sp.cd<=2); sw(`${sp.minR}-${sp.maxR} cases`, `${sp.minR}-${o.maxR} cases`); }
   o.desc = d + ` (rang ${r}/${SPELL_MAX_RANK})`;
   return o;
 }
@@ -732,9 +841,10 @@ function rankDiffText(sp, ra, rb) {
   const a = rankedSpell(sp, ra), b = rankedSpell(sp, rb), t = [];
   if (sp.dmg) t.push(`${a.dmg[0]}-${a.dmg[1]} → ${b.dmg[0]}-${b.dmg[1]} dégâts`);
   if (sp.heal) t.push(`${a.heal[0]}-${a.heal[1]} → ${b.heal[0]}-${b.heal[1]} PV`);
-  if (sp.cd && a.cd !== b.cd) t.push(`recharge ${a.cd} → ${b.cd} tours`);
+  if (sp.cd && a.cd !== b.cd) t.push(`relance ${a.cd} → ${b.cd} tour${b.cd>1?'s':''}`);
   if (sp.val != null && a.val !== b.val) t.push(`${a.val} → ${b.val} ${sp.effect==='pm' ? 'PM' : '%'}`);
-  if (sp.effect==='tp' && a.maxR !== b.maxR) t.push(`portée ${a.maxR} → ${b.maxR}`);
+  if (a.maxR !== b.maxR) t.push(`portée ${a.minR}-${a.maxR} → ${b.minR}-${b.maxR}`);
+  if (a.perTurn !== b.perTurn) t.push(`${a.perTurn} → ${b.perTurn} lancers par tour`);
   return t.join(', ') || 'aucun changement';
 }
 // ordre des sorts choisi par le joueur (écran Personnage) : il fixe la barre de combat et les raccourcis & é " ' ( §
@@ -752,7 +862,7 @@ function withRange(sp, pr) {
 }
 // répartition automatique (bouton du joueur et robot de test) : surtout Vitalité et Force, un peu d'Agilité et de Sagesse
 function autoPoints(p) {
-  const cp = charPoints(p), w = { vit:0.4, for:0.4, agi:0.1, sag:0.1 };
+  const cp = charPoints(p), w = CLASSES[p.cls].autoPts || { vit:0.4, for:0.4, agi:0.1, sag:0.1 };
   for (let n = cp.free; n > 0; n--) { const tot = Object.values(p.pts).reduce((a,b) => a+b, 0) + 1;
     const k = Object.keys(w).sort((a,b) => (p.pts[a]/tot - w[a]) - (p.pts[b]/tot - w[b]))[0]; p.pts[k]++; }
   let sf = cp.sfree;
@@ -785,7 +895,7 @@ ${pips}</b>
     ${setsHtml(p)}
     ${collarHtml(p)}
     <h3>Caractéristiques : ${c.free} point${c.free>1?'s':''} à répartir</h3><div class="pts">${Object.keys(CARACS).map(row).join('')}</div>
-    <h3>Sorts : ${c.sfree} point${c.sfree>1?'s':''} de sort</h3><p class="help">Monter un sort au rang suivant coûte autant de points que son rang actuel (rang 2 : 1 point, rang 3 : 2 points…). Chaque rang donne +8 % de dégâts ou de soins, et les rangs 3 et 5 réduisent la recharge. Clique sur les chiffres 1 à 5 à côté d'un sort pour voir ses effets à ce rang. Les flèches ↑ ↓ changent l'ordre des sorts dans la barre de combat et leurs raccourcis.</p>
+    <h3>Sorts : ${c.sfree} point${c.sfree>1?'s':''} de sort</h3><p class="help">Monter un sort au rang suivant coûte autant de points que son rang actuel (rang 2 : 1 point, rang 3 : 2 points…). Chaque rang donne +8 % de dégâts ou de soins. Selon le sort, certains rangs ajoutent aussi de la portée, réduisent la relance ou donnent un lancer de plus par tour. Clique sur les chiffres 1 à 5 à côté d'un sort pour voir ses effets à ce rang. Les flèches ↑ ↓ changent l'ordre des sorts dans la barre de combat et leurs raccourcis.</p>
     <div class="pts one">${order.map(srow).join('')}</div>
     <p><button class="btn alt" id="ptAuto"${c.free || c.sfree ? '' : ' disabled'}>Répartir automatiquement</button><button class="btn alt" id="ptReset">Réinitialiser les caractéristiques</button><button class="btn alt" id="spReset">Réinitialiser les sorts</button></p>
     <button class="btn" id="b1">${back ? 'Retour' : 'Fermer'}</button>`, true);
@@ -944,6 +1054,8 @@ async function cast(u,sp,tx,ty) {
     u.alpha = 1;
   } else if (sp.effect==='rage') {
     u.turnBonus = sp.val/100; play('buff'); addFloat(u.x,u.y,`+${sp.val} % dégâts`,'#ff9a3c');
+  } else if (sp.effect==='crit') {
+    u.turnCrit = sp.val/100; play('buff'); addFloat(u.x,u.y,`+${sp.val} % critique`,'#ffd04a');
   } else if (sp.effect==='shield') {
     u.tempRes = sp.val; play('bouclier'); addFloat(u.x,u.y,`+${sp.val} % résistance`,'#4aa3ff');
   } else if (sp.effect==='pm') {
@@ -964,12 +1076,12 @@ async function cast(u,sp,tx,ty) {
     if (sp.proj) { play('sort'); await projectile(u.x,u.y,tx,ty,sp.proj); if (sp.zone) play('boum'); }
     else { play('swing'); const sx=u.x, sy=u.y; await tween(180, k => { const s=Math.sin(Math.PI*k)*.35; u.rx=sx+(tx-sx)*s; u.ry=sy+(ty-sy)*s; }); u.rx=u.x; u.ry=u.y; }
     if (sp.dmg) {
-      const crit = Math.random() < (u.crit || CRIT_CHANCE); // un coup critique touche toutes les cibles du sort
+      const crit = Math.random() < (u.crit || CRIT_CHANCE) + (u.turnCrit || 0); // un coup critique touche toutes les cibles du sort
       if (crit) log(`Coup critique de ${u.name} !`);
       for (const [x,y,f] of zoneCells(sp,tx,ty)) {
         const t = unitAt(x,y);
         if (!t || t===u) continue;
-        const v = hurt(t, Math.max(1, Math.round(rnd(...sp.dmg)*(u.mul + (u.turnBonus||0))*f*(crit ? CRIT_MUL : 1))), crit);
+        const v = hurt(t, Math.max(1, Math.round(rnd(...sp.dmg)*(u.mul + (u.turnBonus||0))*f*(crit ? CRIT_MUL : 1)*condMul(sp, t))), crit);
         if (sp.drain && u.alive) { const g = Math.min(u.maxHp-u.hp, Math.round(v*sp.drain)); if (g > 0) { u.hp += g; addFloat(u.x,u.y,`+${g}`,'#5ad16a'); log(`${u.name} récupère ${g} PV.`); } }
         if (!t.alive) continue;
         if (sp.poison) addDot(t, sp, u);
@@ -982,9 +1094,11 @@ async function cast(u,sp,tx,ty) {
   dirty = true; updateUI();
 }
 // dégâts min/max d'un sort sur une cible (même calcul que cast + hurt)
+// bonus de certains sorts selon l'état de la cible (Coup bas : empoisonnée ; Assassinat : moins de 30 % de PV)
+const condMul = (sp, t) => (sp.vsPoison && t.dots && t.dots.length ? sp.vsPoison : 1) * (sp.execute && t.hp < t.maxHp*0.3 ? sp.execute : 1);
 function dmgRange(u,sp,t,f,m=1) {
   const res = resOf(t);
-  return sp.dmg.map(d => { let v = Math.max(1, Math.round(d*(u.mul + (u.turnBonus||0))*f*m)); if (res) v = Math.max(1, Math.round(v*(1-res/100))); return v; });
+  return sp.dmg.map(d => { let v = Math.max(1, Math.round(d*(u.mul + (u.turnBonus||0))*f*m*condMul(sp, t))); if (res) v = Math.max(1, Math.round(v*(1-res/100))); return v; });
 }
 function dmgPreview() {
   const h = G.hero, sp = G.sel;
@@ -995,10 +1109,10 @@ function dmgPreview() {
   return out;
 }
 // chance de coup critique d'un sort pour une unité (u.crit = base + Agilité), affichée dans les descriptions
-const critPct = u => Math.round(((u && u.crit) || CRIT_CHANCE)*100);
+const critPct = u => Math.round((((u && u.crit) || CRIT_CHANCE) + ((u && u.turnCrit) || 0))*100);
 const critLine = (sp, u) => sp.dmg ? ` Coup critique : ${critPct(u)} % de chance (+${Math.round((CRIT_MUL-1)*100)} % de dégâts).` : '';
 const MONSTER_BOOST = 1.15; // combats normaux (hors boss) : +15 % de vie et de dégâts pour les monstres
-const CRIT_CHANCE = 0.05, CRIT_MUL = 1.5; // 1 chance sur 20 de faire 50 % de dégâts en plus
+const CRIT_CHANCE = 0.05, CRIT_MUL = 1.5, CRIT_CAP = 0.3; // 1 chance sur 20 de faire 50 % de dégâts en plus
 // résistance totale : équipement + bouclier du tour + protection posée par un allié (dure jusqu'à la fin du tour suivant)
 const resOf = t => Math.min(75, (t.res||0) + (t.tempRes||0) + (t.ward && t.ward.r >= G.round ? t.ward.v : 0));
 function hurt(t,v,crit) {
@@ -1030,7 +1144,7 @@ async function runTurns(token) {
   }
 }
 function beginTurn(u) {
-  u.pa = u.maxPa; u.pm = u.maxPm; u.uses = {}; u.turnBonus = 0; u.tempRes = 0;
+  u.pa = u.maxPa; u.pm = u.maxPm; u.uses = {}; u.turnBonus = 0; u.turnCrit = 0; u.tempRes = 0;
   if (u.malus) { u.pm = Math.max(0, u.pm - u.malus); addFloat(u.x,u.y,`-${u.malus} PM`,'#9fe3ff'); log(`${u.name} est ralenti : -${u.malus} PM ce tour.`); u.malus = 0; u.slowFree = G.round; } // pas de nouveau ralentissement avant le tour suivant
   if (u.dots && u.dots.length) { for (const d of u.dots) { if (!u.alive) break; log(`${d.name} sur ${u.name}.`); hurt(u, d.v); d.n--; } u.dots = u.dots.filter(d => d.n > 0); }
   for (const k in u.cds) { u.cds[k]--; if (u.cds[k]<=0) delete u.cds[k]; }
@@ -1255,7 +1369,7 @@ function pixFrames(name, frames, col) {
 }
 function iconOf(img, w=36, h=36) { const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
   const k = Math.min(w/img.width, h/img.height); g.drawImage(img, (w-img.width*k)/2, (h-img.height*k)/2, img.width*k, img.height*k); return c.toDataURL(); }
-let DEER_ICON = '', GEM_ICON = '', LIGHT_ICON = '', EMBER_ICON = '';
+let DEER_ICON = '', GEM_ICON = '', LIGHT_ICON = '', EMBER_ICON = '', PEARL_ICON = '', FLAKE_ICON = '';
 function buildExtraSprites() {
   const W1 = ['....pp....','...pPPp...','..pPwwPp..','..PwwwwP..','.pPwkwkPp.','.pPwwwwPp.','..pPwwPp..','...pPPp...','....pp....'];
   const W2 = ['...p..p...','...pPPp...','..pPwwPp..','.pPwwwwP..','.pPwkwkPp.','..PwwwwPp.','..pPwwPp..','...pPPp...','.....p....'];
@@ -1283,12 +1397,40 @@ function buildExtraSprites() {
   const rg = lg.createRadialGradient(24,24,2,24,24,22); rg.addColorStop(0,'#fffbe0'); rg.addColorStop(.4,'#f4c84a'); rg.addColorStop(1,'rgba(244,200,74,0)'); lg.fillStyle = rg; lg.fillRect(0,0,48,48);
   LIGHT_ICON = lc.toDataURL();
   EMBER_ICON = iconOf(IMG.elemfeu_anim_f0);
+  // créatures de la mer (acte VII)
+  const CR = ['.oo........oo.','oRRo......oRRo','.oRo.w..w.oRo.','..oooKooKooo..','.oRRRRRRRRRRo.','oRRrRRRRRRrRRo','oRRRRRRRRRRRRo','.oorrrrrrrroo.'];
+  pixFrames('crabe', [[...CR,'.o.o.o..o.o.o.','o.o.o....o.o.o'],[...CR,'..o.o.oo.o.o..','.o.o......o.o.'],[...CR,'.o.o.o..o.o.o.','o.o.o....o.o.o'],[...CR,'..o.o.oo.o.o..','.o.o......o.o.']],
+    { o:'#4a1408', R:'#d0542a', r:'#a83a1a', w:'#e8e0d0', K:'#111' });
+  const A1 = ['..........y.....','.ooo.....y.y....','oBBbo...........','oBkBbooo....ooo.','.obBBBBbbo.oBBbo','..oooooobBBBbo.o','........ooooo...'];
+  const A2 = ['.....y..........','.ooo..y.........','oBBbo...........','oBkBbo.....oo...','.obBBBbooooBBo..','..ooooBBBBBbobo.','......oooooo.oo.'];
+  pixFrames('anguille', [A1,A2,A1,A2], { o:'#1a2a4a', b:'#3a6ad0', B:'#6aa8ff', k:'#111', y:'#ffe84a' });
+  const JB = ['...pppp...','..pPPPPp..','.pPwPPPPp.','.pPPPPPPp.','pPPPPPPPPp','pppppppppp'];
+  pixFrames('meduse', [[...JB,'.t.t..t.t.','.t..t.t..t','t..t..t.t.','.t.t.t..t.','..t...t...'],['..........',...JB,'t.t..t.t..','.t.t..t.t.','.t..t..t.t','..t.t.t...'],
+    [...JB,'.t.t..t.t.','t..t.t..t.','.t..t..t.t','..t.t.t...','.t...t....'],['..........',...JB,'.t.t..t.t.','t..t..t.t.','.t.t..t..t','..t...t...']], { p:'#7a3aa0', P:'#d088ff', w:'#fff0ff', t:'#c890f0' });
+  const KH = ['.......oooooooo.......','......oPPPPPPPPo......','.....oPPlPPPPlPPo.....','....oPPPPPPPPPPPPo....','....oPPPPPPPPPPPPo....','....oPyyPPPPPPyyPo....',
+    '....oPykPPPPPPkyPo....','....oPPPPPPPPPPPPo....','.....opPPPPPPPPpo.....','......oppppppppo......'];
+  const KT1 = ['...opo.opo..opo.opo...','..opo..opo..opo..opo..','..opo.opo....opo.opo..','.opo..opo....opo..opo.','.opo.opo......opo.opo.','opo..opo......opo..opo','opo.opo........opo.opo','.opo.opo......opo.opo.','..oo..oo......oo..oo..'];
+  const KT2 = ['...opo.opo..opo.opo...','...opo.opo..opo.opo...','...opo..opo.opo..opo..','....opo.opo.opo..opo..','...opo..opo..opo.opo..','..opo..opo...opo..opo.','.opo..opo.....opo..opo','.opo...opo...opo...opo','..oo....oo...oo....oo.'];
+  pixFrames('kraken', [[...KH,...KT1],[...KH,...KT1],[...KH,...KT2],[...KH,...KT2]], { o:'#1a1030', p:'#5a2a7a', P:'#8a4ab0', l:'#b07ad8', y:'#ffd84a', k:'#111' });
+  // loup des neiges (acte VIII)
+  const LB = ['..o.o...........','.oWoWo..........','.owwwwo.........','owbwwwwooooooo..','.wwwwwwwwwwwwWo.','..oowwwwwwwwwWWo','....oWwwwwwwWo.o'];
+  pixFrames('loup', [[...LB,'....oWo.oWo.Wo..','....oWo.oWo..o..','....oo..oo......'],[...LB,'...oWo...oWoWo..','..oWo.....oWo...','..oo......oo....'],
+    [...LB,'....oWo.oWo.Wo..','....oWo.oWo..o..','....oo..oo......'],[...LB,'.....oWooWo.Wo..','.....oWoWo...o..','.....oo.oo......']], { o:'#4a5a6a', W:'#b8c4d0', w:'#eef3f8', b:'#3aa8ff' });
+  // la Perle d'Aube
+  const pc = document.createElement('canvas'); pc.width = 48; pc.height = 48; const pg = pc.getContext('2d');
+  const prg = pg.createRadialGradient(20,18,2,24,24,16); prg.addColorStop(0,'#ffffff'); prg.addColorStop(.5,'#f4e8ff'); prg.addColorStop(1,'#b8a0d8');
+  pg.fillStyle = prg; pg.beginPath(); pg.arc(24,24,15,0,7); pg.fill(); pg.strokeStyle = '#f4c84a'; pg.lineWidth = 2; pg.stroke();
+  PEARL_ICON = pc.toDataURL();
+  const fc = document.createElement('canvas'); fc.width = 48; fc.height = 48; const fg = fc.getContext('2d'); fg.strokeStyle = '#a8d8f8'; fg.lineWidth = 3; fg.lineCap = 'round';
+  for (let k=0;k<6;k++) { const a = k*Math.PI/3; fg.beginPath(); fg.moveTo(24,24); fg.lineTo(24+16*Math.cos(a), 24+16*Math.sin(a)); fg.stroke(); }
+  FLAKE_ICON = fc.toDataURL();
   NPCS.cerf.src = DEER_ICON; NPCS.vision.src = LIGHT_ICON;
 }
 // Variantes recolorées : 'shadow' = créature d'ombre (violet sombre, yeux lumineux), 'cult' = robe pourpre de l'Ordre du Soleil noir
 const VARIANTS = [['wogol','ombre_spr','shadow'],['ogre','gardien_spr','shadow'],['big_demon','eclipse_spr','shadow'],['wizzard_f','pretre_spr','cult'],
   ['elf_m','eclaireur_spr','cult'],['masked_orc','pierre_spr','stone'],['masked_orc','bourreau_spr','cult'],['chort','bete_spr','corrupt'],
-  ['lizard_m','salamandre_spr','fire'],['big_zombie','golem_spr','lava'],['big_demon','ignarok_spr','lava']];
+  ['lizard_m','salamandre_spr','fire'],['big_zombie','golem_spr','lava'],['big_demon','ignarok_spr','lava'],
+  ['lizard_m','triton_spr','sea'],['orc_warrior','marin_spr','cult'],['skelet','pirate_spr','sea'],['big_zombie','yeti_spr','frost'],['ogre','golemglace_spr','ice'],['big_demon','hrimgar_spr','ice']];
 function buildVariants() {
   for (const [base, name, mode] of VARIANTS) for (const k of Object.keys(IMG)) {
     if (!k.startsWith(base+'_')) continue;
@@ -1297,6 +1439,9 @@ function buildVariants() {
     for (let i=0;i<a.length;i+=4) { if (!a[i+3]) continue; const l = (a[i]+a[i+1]+a[i+2])/3;
       if (mode==='fire') { if (l>190) { a[i]=255; a[i+1]=240; a[i+2]=150; } else { a[i]=120+l*.55; a[i+1]=30+l*.45; a[i+2]=10+l*.1; } }
       else if (mode==='lava') { if (l>175) { a[i]=255; a[i+1]=110+(l-175)*1.5; a[i+2]=20; } else if (a[i] > a[i+1]+70 && l>80) { a[i]=200; a[i+1]=60; a[i+2]=10; } else { a[i]=30+l*.35; a[i+1]=24+l*.28; a[i+2]=22+l*.26; } }
+      else if (mode==='sea') { if (l>190) { a[i]=220; a[i+1]=255; a[i+2]=240; } else { a[i]=20+l*.2; a[i+1]=60+l*.5; a[i+2]=80+l*.55; } }
+      else if (mode==='frost') { if (a[i] > a[i+1]+60) { a[i]=90; a[i+1]=200; a[i+2]=255; } else if (l<50) { a[i]=40; a[i+1]=50; a[i+2]=70; } else { const v = 120+l*.55; a[i]=v*.92; a[i+1]=v*.97; a[i+2]=v; } }
+      else if (mode==='ice') { if (l>170) { a[i]=230; a[i+1]=250; a[i+2]=255; } else { a[i]=40+l*.4; a[i+1]=90+l*.55; a[i+2]=140+l*.5; } }
       else if (mode==='stone') { const v = 70+l*.65; a[i]=v; a[i+1]=v*.97; a[i+2]=v*.9; if (l>200) { a[i]=255; a[i+1]=220; a[i+2]=120; } }
       else if (mode==='corrupt') { if (l>200) { a[i]=200; a[i+1]=255; a[i+2]=90; } else { a[i]=40+l*.35; a[i+1]=30+l*.45; a[i+2]=50+l*.35; } }
       else if (mode==='shadow') { if (l>190) { a[i]=230; a[i+1]=150; a[i+2]=255; } else { a[i]=30+l*.35; a[i+1]=14+l*.15; a[i+2]=58+l*.5; } }
@@ -1367,8 +1512,9 @@ function makeTree(seed, snow) {
 }
 const DECOR = { rocks:[], trees:[], snowTrees:[] };
 function buildDecor() { for (let i=0;i<3;i++) { DECOR.rocks.push(makeRock(i+1)); DECOR.trees.push(makeTree(i+1)); DECOR.snowTrees.push(makeTree(i+1, true)); } }
-const isNorth = () => G.zone && (G.zone.region===2 || G.zone.region===4);
+const isNorth = () => G.zone && (G.zone.region===2 || G.zone.region===4 || G.zone.region===8);
 const isVolcano = () => G.zone && G.zone.region===6;
+const isSea = () => G.zone && G.zone.region===7, isDeep = () => isSea() && !!G.zone.deep;
 
 function buildBg() {
   const [BW, BH] = G.bgSize || [cv.width, cv.height], LOX = OX/PX, LOY = OY/PX;
@@ -1386,7 +1532,7 @@ function buildBg() {
     for (let i=-LTW/2; i<LTW/2; i++) {
       if (i<0 && !sideL || i>=0 && !sideR) continue;
       const ey = i<0 ? ty + LTH/2 + Math.floor((i+LTW/2)/2) : ty + LTH - 1 - Math.floor(i/2);
-      for (let k=1;k<=6;k++) px(tx+i, ey+k, k===1 ? (isVolcano() ? '#3a302c' : isNorth() ? '#c3d2dd' : '#3f7a2a') : (R()<.12 ? '#4a3020' : (i<0 ? '#7a5236' : '#5e3e28')));
+      for (let k=1;k<=6;k++) px(tx+i, ey+k, k===1 ? (isVolcano() ? '#3a302c' : isDeep() ? '#2a4a5a' : isSea() ? '#d8c08a' : isNorth() ? '#c3d2dd' : '#3f7a2a') : (R()<.12 ? '#4a3020' : (i<0 ? '#7a5236' : '#5e3e28')));
     }
     const alt = (x+y)%2;
     for (let r=0;r<LTH;r++) for (let i=-hw(r); i<hw(r); i++) {
@@ -1394,7 +1540,9 @@ function buildBg() {
       const v=R();
       if (t===5) col = r%3===0 ? '#b8952e' : v<.2 ? '#f0d878' : (alt ? '#e2c25a' : '#dcbb52');
       else if (t===6) col = r===0 || i===-hw(r) ? (isVolcano() ? '#221c1a' : '#6d675f') : isVolcano() ? (v<.1 ? '#2a2422' : alt ? '#4a403c' : '#443a36') : isNorth() ? (v<.1 ? '#a8b0b8' : alt ? '#c8d0d8' : '#bcc4cc') : (v<.1 ? '#7d776f' : alt ? '#a29c92' : '#97918a');
-      else if (t===3) col = isVolcano() ? (v<.15 ? '#3a302c' : '#5a4a40') : isNorth() ? (v<.15 ? '#a8a49a' : '#c2bcae') : (v<.12 ? '#8a6a3e' : v<.2 ? '#c09a62' : '#a8834f');
+      else if (t===3) col = isDeep() ? (v<.15 ? '#3a5a68' : '#4a6a78') : isSea() ? (v<.15 ? '#a88a56' : '#b89a62') : isVolcano() ? (v<.15 ? '#3a302c' : '#5a4a40') : isNorth() ? (v<.15 ? '#a8a49a' : '#c2bcae') : (v<.12 ? '#8a6a3e' : v<.2 ? '#c09a62' : '#a8834f');
+      else if (isDeep()) col = t===2 ? (v<.1 ? '#2a5a8a' : v<.16 ? '#0e2a4a' : '#1a3a62') : (v<.1 ? '#2a4a58' : v<.17 ? '#5a8a90' : (alt ? '#3a6270' : '#365c6a'));
+      else if (isSea() && t!==2) col = v<.1 ? '#c8ae74' : v<.17 ? '#ecd8a4' : (alt ? '#dcc58e' : '#d6be86');
       else if (isVolcano()) col = t===2 ? (v<.1 ? '#ffd04a' : v<.16 ? '#c8400a' : '#ff6a1a') : (v<.1 ? '#2a2422' : v<.17 ? '#6a5a52' : (alt ? '#4a3e38' : '#463a34'));
       else if (isNorth()) col = t===2 ? (v<.1 ? '#e2f4fd' : v<.16 ? '#8cc6e6' : '#b4def3') : (v<.1 ? '#c3d2dd' : v<.17 ? '#ffffff' : (alt ? '#e6eef4' : '#dde7ee'));
       else if (t===2) col = v<.1 ? '#4f9ad8' : v<.16 ? '#2f6dab' : '#3a80c2';
@@ -1406,9 +1554,11 @@ function buildBg() {
     else if (t===6) { if (v>.6) px(tx-2+(v*50|0)%5, ty+3+(v*70|0)%4, '#5f5a52'); }
     else if (t===2 && isVolcano()) { px(tx-3,ty+4,'#fff0a0'); px(tx-2,ty+4,'#fff0a0'); px(tx+3,ty+6,'#fff0a0'); }
     else if (t===2) { px(tx-3,ty+4,'#a8d8f8'); px(tx-2,ty+4,'#a8d8f8'); px(tx-1,ty+4,'#a8d8f8'); px(tx+3,ty+6,'#a8d8f8'); px(tx+4,ty+6,'#a8d8f8'); }
+    else if (v>.7 && isDeep()) { px(tx-2,ty+3,'#ff7a9a'); px(tx-1,ty+2,'#ff7a9a'); px(tx+2,ty+5,'#f0a85a'); }
+    else if (v>.7 && isSea()) { px(tx-2,ty+3,'#f4ead8'); px(tx-1,ty+3,'#f4ead8'); px(tx+2,ty+5,'#b89a62'); }
     else if (v>.7 && isVolcano()) { px(tx-2,ty+3,'#7a6a62'); px(tx+2,ty+5,'#1e1a18'); }
     else if (v>.7) { const tc = isNorth() ? '#9fb2c0' : '#3b7428'; const ox = tx-4+(v*40|0)%8, oy = ty+3+(v*70|0)%4; px(ox,oy,tc); px(ox+1,oy-1,tc); px(ox+2,oy,tc); px(ox+3,oy-1,tc); }
-    else if (v<.08 && !isNorth() && !isVolcano()) { const col = v<.04 ? '#f4e36b' : '#f07aa0'; const ox = tx-3+(v*400|0)%6, oy = ty+4; px(ox,oy,col); px(ox+1,oy+1,'#fff4c8'); }
+    else if (v<.08 && !isNorth() && !isVolcano() && !isSea()) { const col = v<.04 ? '#f4e36b' : '#f07aa0'; const ox = tx-3+(v*400|0)%6, oy = ty+4; px(ox,oy,col); px(ox+1,oy+1,'#fff4c8'); }
   }
   bg = document.createElement('canvas'); bg.width=BW; bg.height=BH;
   const g = bg.getContext('2d'); g.imageSmoothingEnabled = false;
@@ -1508,7 +1658,7 @@ function hpLabel(u, txt, col, skull, sub) {
 }
 
 function drawRock(x,y) {
-  const [cx,cy]=iso(x,y), v=hash(y,x), tree = v>.55 && !isVolcano();
+  const [cx,cy]=iso(x,y), v=hash(y,x), tree = v>.55 && !isVolcano() && !isDeep();
   const img = tree ? (isNorth() ? DECOR.snowTrees : DECOR.trees)[(v*30|0)%3] : DECOR.rocks[(v*30|0)%3];
   ctx.fillStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx,cy+3,tree?20:26,tree?8:10,0,0,7); ctx.fill();
   drawSprite(img, cx, cy + (tree ? 8 : 10), SC, v*100%2<1);
@@ -1761,6 +1911,8 @@ const MUSIC_STYLE = {
   4: { scale:[0,2,4,6,7,9,11], root:349.23, bpm:92, lead:'triangle' },  // les Hauts de l'Aube : lydien, lumineux
   5: { scale:[0,3,5,7,10], root:196.00, bpm:88, lead:'triangle' },      // la Forêt ancienne : pentatonique
   6: { scale:[0,2,3,5,7,8,11], root:261.63, bpm:110, lead:'square' },   // le Mont Brasier : mineur harmonique
+  7: { scale:[0,2,4,7,9], root:233.08, bpm:84, lead:'sine' },           // la Côte d'Écume : pentatonique, berceuse marine
+  8: { scale:[0,2,3,5,7,8,10], root:207.65, bpm:76, lead:'sine' },      // le Mont Givreval : éolien, froid
 };
 const PROGS = [[0,3,4,0],[0,5,3,4],[0,4,5,3],[5,3,0,4],[0,2,3,4],[0,5,1,4]];
 function strSeed(t) { let h = 2166136261; for (const c of t) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return (h>>>0) % 2147483646 + 1; }
@@ -1901,26 +2053,26 @@ function buildMapBg() {
 // carte du monde : une région en grand, ou toutes les régions dézoomées (G.mapAll) pour en choisir une
 const viewRegion = () => G.mapRegion || curRegion();
 const regionKnown = r => ZONES.some(z => regionOf(z.id)===r && isOpen(z.id));
-const RG = { w:300, h:280 }; // case d'une région dans la vue dézoomée (3 × 2)
-const regionCell = r => [((r-1)%3)*RG.w, Math.floor((r-1)/3)*RG.h];
+const RG = { w:225, h:280 }; // case d'une région dans la vue dézoomée (4 × 2)
+const regionCell = r => [((r-1)%4)*RG.w, Math.floor((r-1)/4)*RG.h];
 function renderMap(now) {
   $('#mapZoom').style.display = G.view==='world' ? 'flex' : 'none';
   $('#zoomOut').disabled = !!G.mapAll; $('#zoomIn').disabled = !G.mapAll;
   if (!G.mapAll) return renderRegion(viewRegion(), now);
   ctx.fillStyle = '#1a2a3a'; ctx.fillRect(0, 0, cv.width, cv.height);
   const k = RG.w/cv.width, oy = (RG.h - cv.height*k)/2;
-  for (let r=1; r<=6; r++) { const [x0,y0] = regionCell(r), known = regionKnown(r), hov = G.mapHoverRegion===r;
+  for (let r=1; r<=8; r++) { const [x0,y0] = regionCell(r), known = regionKnown(r), hov = G.mapHoverRegion===r;
     ctx.save(); ctx.beginPath(); ctx.rect(x0+3, y0+3, RG.w-6, RG.h-6); ctx.clip();
     ctx.translate(x0, y0+oy); ctx.scale(k, k); renderRegion(r, now, true); ctx.restore();
     if (!known) { ctx.fillStyle = 'rgba(10,12,18,.92)'; ctx.fillRect(x0+3, y0+3, RG.w-6, RG.h-6); }
     ctx.lineWidth = 3; ctx.strokeStyle = hov && known ? '#fff' : r===curRegion() ? '#e8b94a' : '#2a2110'; ctx.strokeRect(x0+3, y0+3, RG.w-6, RG.h-6);
     const label = known ? REGION_NAMES[r] : '???';
-    ctx.font = 'bold 15px Segoe UI, sans-serif'; ctx.textAlign = 'center'; const w = ctx.measureText(label).width + 16;
+    ctx.font = 'bold 13px Segoe UI, sans-serif'; ctx.textAlign = 'center'; const w = ctx.measureText(label).width + 16;
     ctx.fillStyle = 'rgba(20,24,33,.85)'; ctx.fillRect(x0+RG.w/2-w/2, y0+10, w, 24);
     ctx.fillStyle = known ? (r===curRegion() ? '#e8b94a' : '#ece6d6') : '#8c8778'; ctx.fillText(label + (r===curRegion() ? ' (tu es ici)' : ''), x0+RG.w/2, y0+27); }
 }
 function renderRegion(R0, now, small) {
-  ctx.drawImage(R0===2 ? (northBg || (northBg = buildNorthBg())) : R0===3 ? (valleyBg || (valleyBg = buildValleyBg())) : R0===4 ? (hautsBg || (hautsBg = buildHautsBg())) : R0===5 ? (sylveBg || (sylveBg = buildSylveBg())) : R0===6 ? (brasierBg || (brasierBg = buildBrasierBg())) : mapBg, 0, 0);
+  ctx.drawImage(R0===2 ? (northBg || (northBg = buildNorthBg())) : R0===3 ? (valleyBg || (valleyBg = buildValleyBg())) : R0===4 ? (hautsBg || (hautsBg = buildHautsBg())) : R0===5 ? (sylveBg || (sylveBg = buildSylveBg())) : R0===6 ? (brasierBg || (brasierBg = buildBrasierBg())) : R0===7 ? (coteBg || (coteBg = buildCoteBg())) : R0===8 ? (givreBg || (givreBg = buildGivreBg())) : mapBg, 0, 0);
   // repère « ! » : zone de la quête principale, ou passage vers l'autre région
   const qz = (activeQuests().find(q => q.main) || {}).goal?.zone;
   const markId = qz && (regionOf(qz)===R0 ? qz : (portalToward(R0, regionOf(qz)) || {}).id);
@@ -1977,7 +2129,7 @@ function drawZoneIcon(z, open) {
 }
 function mapPoint(e) { const r = cv.getBoundingClientRect(); return [(e.clientX-r.left)*cv.width/r.width, (e.clientY-r.top)*cv.height/r.height]; }
 function zoneAt(e) { if (G.mapAll) return null; const [x,y] = mapPoint(e); const z = ZONES.find(z => regionOf(z.id)===viewRegion() && Math.hypot(z.x-x, z.y-y) < 28); return z ? z.id : null; }
-function regionAt(e) { const [x,y] = mapPoint(e); const r = Math.floor(y/RG.h)*3 + Math.floor(x/RG.w) + 1; return r>=1 && r<=6 ? r : null; }
+function regionAt(e) { const [x,y] = mapPoint(e); const r = Math.floor(y/RG.h)*4 + Math.floor(x/RG.w) + 1; return r>=1 && r<=8 ? r : null; }
 function setMapZoom(all, r) {
   if (G.view!=='world' || G.travel) return;
   G.mapAll = all; G.mapRegion = all ? null : (r && r!==curRegion() ? r : null); G.mapHover = null; G.mapHoverRegion = null; dirty = true;
@@ -2065,7 +2217,50 @@ function openMap() {
   ensureStory(); showNextScene(); renderDbg();
 }
 
-let northBg = null, valleyBg = null, hautsBg = null, sylveBg = null, brasierBg = null;
+let northBg = null, valleyBg = null, hautsBg = null, sylveBg = null, brasierBg = null, coteBg = null, givreBg = null;
+function buildCoteBg() {
+  const cnv = document.createElement('canvas'); cnv.width=cv.width; cnv.height=cv.height; const c = cnv.getContext('2d'), R = seeded(707);
+  c.fillStyle='#163a5a'; c.fillRect(0,0,900,560);
+  const pts=[[55,290],[110,100],[330,55],[580,50],[800,90],[870,260],[845,450],[640,525],[380,530],[150,510]];
+  islandPath(c,pts); c.strokeStyle='#0e2a44'; c.lineWidth=20; c.stroke();
+  const gr=c.createLinearGradient(0,0,900,0); gr.addColorStop(0,'#2a6a9a'); gr.addColorStop(1,'#123a62'); islandPath(c,pts); c.fillStyle=gr; c.fill();
+  c.save(); islandPath(c,pts); c.clip();
+  // la côte et la plage, à l'ouest
+  c.fillStyle='#e6d29a'; c.beginPath(); c.moveTo(0,0); c.lineTo(250,0); c.quadraticCurveTo(300,200,250,300); c.quadraticCurveTo(220,420,300,560); c.lineTo(0,560); c.closePath(); c.fill();
+  c.fillStyle='#6aa84a'; c.beginPath(); c.moveTo(0,0); c.lineTo(190,0); c.quadraticCurveTo(230,200,180,290); c.quadraticCurveTo(150,420,210,560); c.lineTo(0,560); c.closePath(); c.fill();
+  // vagues
+  c.strokeStyle='rgba(220,240,255,.35)'; c.lineWidth=2;
+  for (let i=0;i<70;i++) { const x=300+R()*560, y=60+R()*460; if (nearZone(x,y,40)) continue; c.beginPath(); c.arc(x,y,6,Math.PI*1.1,Math.PI*1.9); c.stroke(); }
+  // tourbillon au-dessus de la cité engloutie
+  c.strokeStyle='rgba(200,240,255,.5)'; c.lineWidth=3;
+  for (let k=0;k<4;k++) { c.beginPath(); c.ellipse(660,300,40+k*28,20+k*14,-.2,k,k+4.2); c.stroke(); }
+  // récifs
+  for (let i=0;i<26;i++) { const x=380+R()*460, y=120+R()*380; if (nearZone(x,y,40)) continue; c.fillStyle = R()<.5 ? '#ff7a9a' : '#f0a85a'; c.beginPath(); c.arc(x,y,3+R()*3,0,7); c.fill(); }
+  // le port : jetée et bateaux
+  c.fillStyle='#8a6a42'; c.fillRect(230,385,90,10); c.fillRect(300,395,10,50);
+  for (const [x,y] of [[265,420],[340,470]]) { c.fillStyle='#5a3a22'; c.beginPath(); c.moveTo(x-14,y); c.lineTo(x+14,y); c.lineTo(x+9,y+7); c.lineTo(x-9,y+7); c.fill(); c.fillStyle='#f4ead8'; c.beginPath(); c.moveTo(x,y-20); c.lineTo(x,y-2); c.lineTo(x+11,y-4); c.fill(); }
+  c.restore(); return cnv;
+}
+function buildGivreBg() {
+  const cnv = document.createElement('canvas'); cnv.width=cv.width; cnv.height=cv.height; const c = cnv.getContext('2d'), R = seeded(808);
+  c.fillStyle='#1d3550'; c.fillRect(0,0,900,560);
+  c.fillStyle='rgba(255,255,255,.5)'; for (let i=0;i<110;i++) c.fillRect(R()*900, R()*560, 2, 2);
+  const pts=[[55,290],[110,100],[330,55],[580,50],[800,90],[870,260],[845,450],[640,525],[380,530],[150,510]];
+  islandPath(c,pts); c.strokeStyle='#8fa3b3'; c.lineWidth=18; c.stroke();
+  const gr=c.createLinearGradient(0,40,0,540); gr.addColorStop(0,'#f4f8fb'); gr.addColorStop(1,'#b9c9d6'); islandPath(c,pts); c.fillStyle=gr; c.fill();
+  c.save(); islandPath(c,pts); c.clip();
+  // montagnes, le Givreval au nord-est
+  for (const [x,y,w,h] of [[380,230,120,110],[480,170,140,140],[640,240,130,120],[770,200,170,190],[260,180,100,80],[160,200,90,70]]) {
+    c.fillStyle='#8a9aaa'; c.beginPath(); c.moveTo(x-w/2,y); c.lineTo(x,y-h); c.lineTo(x+w/2,y); c.closePath(); c.fill();
+    c.fillStyle='#ffffff'; c.beginPath(); c.moveTo(x-w*.18,y-h*.64); c.lineTo(x,y-h); c.lineTo(x+w*.18,y-h*.64); c.closePath(); c.fill(); }
+  // sapins enneigés
+  for (let i=0;i<40;i++) { const x=60+R()*800, y=260+R()*260; if (nearZone(x,y,40)) continue;
+    c.fillStyle='#2f4a44'; c.beginPath(); c.moveTo(x-7,y); c.lineTo(x,y-18); c.lineTo(x+7,y); c.closePath(); c.fill(); c.fillStyle='#f4f8fb'; c.fillRect(x-2,y-16,4,3); }
+  // le monastère
+  c.fillStyle='#8a7a6a'; c.fillRect(425,395,60,26); c.fillStyle='#6a4a3a'; c.beginPath(); c.moveTo(420,395); c.lineTo(455,375); c.lineTo(490,395); c.fill();
+  c.fillStyle='#ffd88a'; for (let k=0;k<3;k++) c.fillRect(433+k*18,403,6,8);
+  c.restore(); return cnv;
+}
 function buildBrasierBg() {
   const cnv = document.createElement('canvas'); cnv.width=cv.width; cnv.height=cv.height; const c = cnv.getContext('2d'), R = seeded(606);
   const sky=c.createLinearGradient(0,0,0,560); sky.addColorStop(0,'#3a1a14'); sky.addColorStop(1,'#1a0d0a'); c.fillStyle=sky; c.fillRect(0,0,900,560);
@@ -2227,14 +2422,7 @@ const RARITIES = [
   { name:'Unique', color:'#ff5c8a', mult:2.1, suffix:'' }, // butin rare des boss
 ];
 const STATS = { vie:['PV',6,1], puissance:['% dégâts',4,2], resistance:['% résistance',3,2.5], pa:['PA',0,40], pm:['PM',0,30], portee:['Portée',0,40] }; // libellé, valeur de base, prix par point
-const WEAPONS = {
-  guerrier: [['weapon_rusty_sword','Épée rouillée'],['weapon_regular_sword','Épée longue'],['weapon_axe','Hache'],['weapon_mace','Masse'],['weapon_cleaver','Couperet'],
-    ['weapon_baton_with_spikes','Gourdin clouté'],['weapon_waraxe','Hache de guerre'],['weapon_saw_sword','Épée-scie'],['weapon_katana','Katana'],['weapon_duel_sword','Épée de duel'],
-    ['weapon_red_gem_sword','Épée de rubis'],['weapon_golden_sword','Épée dorée'],['weapon_double_axe','Double hache'],['weapon_anime_sword','Lame héroïque']],
-  mage: [['weapon_knife','Dague runique'],['weapon_red_magic_staff','Bâton de feu'],['weapon_spear','Lance runique'],['weapon_green_magic_staff','Bâton de jade'],['weapon_lavish_sword',"Lame d'arcane"]],
-};
 const ARMOR_NAMES = {
-  coiffe: { guerrier:['Casque de cuir','Casque de fer','Heaume','Heaume du Nord','Heaume démoniaque'], mage:['Capuche','Chapeau pointu','Chapeau d\'arcaniste','Chapeau de givre','Couronne du nécromancien'] },
   anneau: ['Anneau de cuivre','Anneau d\'argent','Anneau d\'or','Anneau de givre','Anneau de la Faille'],
   bottes: ['Bottes de cuir','Bottes ferrées','Bottes de voyageur','Bottes fourrées','Bottes de la Faille'],
   amulette: ['Amulette de bois','Amulette d\'argent','Amulette runique','Amulette du Nord','Amulette démoniaque'],
@@ -2287,6 +2475,7 @@ const ICON_ART = {
   casque: ["......CC....",".....CCo....","...oooooo...","..ommmmmmo..",".ommhmmmmmo.",".omhmmmmmmo.",".ommmmmmmmo.",".oooooooooo.",".omkkkkkkmo.",".ommmmmmmmo.","..ommmmmmo..","...oooooo..."],
   amulette: ["..o......o..","...o....o...","...g....g...","....g..g....","....g..g....",".....gg.....","....oooo....","...oGGwGo...","...oGGGGo...","...oGGGGo...","....oGGo....",".....oo....."],
   cape: ["...oooooo...","..oCCCCCCo..","..orrrrrro..",".orrrrrrrro.",".orrrrrrrro.",".orrrsrrrro.","orrrrsrrrrro","orrrrsrrrrro","orrrrsrrrrro","orrrsrrsrrro","orrsrrrrsrro","oooooooooooo"],
+  capuche: ["....oooo....","...oNNNNo...","..oNnnnnNo..",".oNnoooonNo.",".oNokkkkoNo.",".oNokwkwoNo.",".oNokkkkoNo.",".oNnokkonNo.","oNnnnoonnnNo","oNnnnnnnnnNo","oCCCCCCCCCCo","oooooooooooo"],
   chapeau: ["......oo....",".....oPo....","....oPPo....","....oPPPo...","...oPqPPo...","...oPqPPPo..","..oPqPPPPo..","..oCCCCCCo..",".oPPPPPPPPo.","oPPPPPPPPPPo","oooooooooooo","............"],
 };
 const iconCache = {};
@@ -2294,7 +2483,7 @@ function itemIcon(it) {
   if (it.slot==='arme') return SPRITES[it.icon];
   const k = it.icon + it.rarity;
   if (!iconCache[k]) {
-    const pal = { o:'#1d1b22', g:'#e8b94a', h:'#fff1b8', b:'#8a5a32', d:'#5e3b20', m:'#9aa3b5', k:'#20232b', P:'#5b3590', q:'#8458c4', r:'#8c2f39', s:'#5e1d26',
+    const pal = { o:'#1d1b22', g:'#e8b94a', h:'#fff1b8', b:'#8a5a32', d:'#5e3b20', m:'#9aa3b5', k:'#20232b', P:'#5b3590', q:'#8458c4', n:'#3e3a4e', N:'#5d5674', r:'#8c2f39', s:'#5e1d26',
       G:RARITIES[it.rarity].color, C:RARITIES[it.rarity].color, w:'#ffffff' };
     const c = pixelCanvas(12,12,(px) => ICON_ART[it.icon].forEach((row,y) => [...row].forEach((ch,x) => { if (pal[ch]) px(x,y,pal[ch]); })));
     iconCache[k] = c.toDataURL();
@@ -2311,8 +2500,8 @@ function genItem(tier, cls, slot, forcedRarity) {
   const st = {}, add = (s,v) => st[s] = (st[s]||0) + v;
   const lvl = Math.min(4, Math.floor(tier/2 + Math.random()));
   let name, icon;
-  if (slot==='arme') { add('puissance', roll(4)); const pool = WEAPONS[cls], w = pool[Math.min(pool.length-1, Math.floor((Math.min(tier,9)/9*0.7 + Math.random()*0.3)*pool.length))]; icon = w[0]; name = w[1]; }
-  else if (slot==='coiffe') { add('vie', roll(6)); icon = cls==='mage' ? 'chapeau' : 'casque'; name = ARMOR_NAMES.coiffe[cls][lvl]; }
+  if (slot==='arme') { add('puissance', roll(4)); const pool = CLASSES[cls].weapons, w = pool[Math.min(pool.length-1, Math.floor((Math.min(tier,9)/9*0.7 + Math.random()*0.3)*pool.length))]; icon = w[0]; name = w[1]; }
+  else if (slot==='coiffe') { add('vie', roll(6)); icon = CLASSES[cls].coiffeIcon; name = CLASSES[cls].coiffes[lvl]; }
   else if (slot==='anneau') { add('puissance', roll(2)); add('vie', roll(3)); icon = 'anneau'; name = ARMOR_NAMES.anneau[lvl]; }
   else if (slot==='amulette') { add('puissance', roll(3)); icon = 'amulette'; name = ARMOR_NAMES.amulette[lvl]; }
   else if (slot==='cape') { add('vie', roll(4)); add('resistance', roll(1)); icon = 'cape'; name = ARMOR_NAMES.cape[lvl]; }
@@ -2331,7 +2520,9 @@ const FOREST_STEPS = [{vie:3},{vie:4},{puissance:2},{resistance:2},{vie:4},{puis
   {vie:6},{puissance:3},{resistance:3},{vie:6},{puissance:3},{pm:1},
   {vie:7},{puissance:3},{resistance:3},{vie:7},{puissance:3},{pa:1},
   {vie:8},{puissance:4},{resistance:3},{vie:8},{puissance:4},{pm:1},
-  {vie:9},{puissance:4},{resistance:3},{vie:9},{puissance:4},{pa:1}];
+  {vie:9},{puissance:4},{resistance:3},{vie:9},{puissance:4},{pa:1},
+  {vie:10},{puissance:5},{resistance:3},{vie:10},{puissance:5},{pm:1},
+  {vie:11},{puissance:5},{resistance:3},{vie:11},{puissance:5},{pa:1}];
 function forestStats(p) {
   const t = {};
   FOREST_STEPS.slice(0, Math.min(p.story, FOREST_STEPS.length-1) + 1).forEach(st => { for (const [k,v] of Object.entries(st)) t[k] = (t[k]||0) + v; });
@@ -2380,13 +2571,18 @@ function collarHtml(p) {
 }
 // Reliques de l'Aube : 6 emplacements, révélés à la forge de lumière (chapitre 22) ; la première est obtenue à la fin de l'acte V
 const RELICS = [{ id:'sylve', name:'Cœur de Sylve', chapter:30, stats:{ vie:220, puissance:95, resistance:18, pa:1 }, desc:'Une gemme verte et dorée. Sa lumière garde la forêt en vie.' },
-  { id:'braise', name:"Braise d'Aube", chapter:36, stats:{ vie:260, puissance:110, resistance:18, pm:1 }, desc:'Une flamme dorée qui ne s\'éteint jamais.', icon:'ember' }];
+  { id:'braise', name:"Braise d'Aube", chapter:36, stats:{ vie:260, puissance:110, resistance:18, pm:1 }, desc:'Une flamme dorée qui ne s\'éteint jamais.', icon:'ember' },
+  { id:'perle', name:"Perle d'Aube", chapter:42, stats:{ vie:300, puissance:125, resistance:18, portee:1 }, desc:'Une perle nacrée qui tenait la mer loin de Thalassar.', icon:'pearl' }];
+// reliques prises par l'Ordre : leur emplacement s'affiche, mais elles ne donnent rien
+const RELICS_LOST = [{ id:'flocon', name:"Flocon de l'Aube", chapter:48, desc:'Volé par la silhouette masquée au sommet du Givreval.' }];
 const RELIC_SLOTS = 6, RELICS_REVEALED = 22;
 const relicsOwned = p => RELICS.filter(r => p.story >= r.chapter);
 function relicCards(p) {
-  const own = relicsOwned(p);
-  return Array.from({ length:RELIC_SLOTS }, (_,i) => own[i]
-    ? `<div class="item" style="border-color:#f4c84a99"><img src="${own[i].icon==='ember' ? EMBER_ICON : GEM_ICON}" alt=""><div class="txt"><b style="color:#f4d36b">${own[i].name}</b><small>Relique de l'Aube · ${own[i].desc}</small><div>${statText(own[i].stats)}</div></div></div>`
+  const own = relicsOwned(p), lost = RELICS_LOST.filter(r => p.story >= r.chapter);
+  return Array.from({ length:RELIC_SLOTS }, (_,i) => i >= own.length && lost[i - own.length]
+    ? `<div class="item" style="border-color:#8a3a3a99;opacity:.8"><img src="${FLAKE_ICON}" alt="" style="filter:grayscale(.6)"><div class="txt"><b style="color:#d88">${lost[i - own.length].name}</b><small>Aux mains de l'Ordre · ${lost[i - own.length].desc}</small></div></div>`
+    : own[i]
+    ? `<div class="item" style="border-color:#f4c84a99"><img src="${own[i].icon==='ember' ? EMBER_ICON : own[i].icon==='pearl' ? PEARL_ICON : GEM_ICON}" alt=""><div class="txt"><b style="color:#f4d36b">${own[i].name}</b><small>Relique de l'Aube · ${own[i].desc}</small><div>${statText(own[i].stats)}</div></div></div>`
     : `<div class="item empty"><div class="txt"><b>Relique de l'Aube ${i+1}</b><small>Emplacement vide · lieu inconnu</small></div></div>`).join('');
 }
 function forestCard(p) {
@@ -2430,6 +2626,8 @@ const BOSS_DROPS = {
   bourreau: { slot:'bottes', name:'Bottes du Bourreau' },
   grandtreant: { slot:'cape', name:'Écorce du Grand Tréant' },
   ignarok: { slot:'arme', name:"Croc d'Ignarok" },
+  kraken: { slot:'cape', name:'Manteau du Kraken' },
+  hrimgar: { slot:'coiffe', name:'Couronne de Hrimgar' },
 };
 function genBossItem(z, p) {
   const b = BOSS_DROPS[z.foes[0]]; if (!b) return null;
@@ -2466,14 +2664,14 @@ function lootSources() {
 function lootTable(s, cls) {
   const t = s.tier, m = [], set = SETS.find(x => x.region===s.region), g = (set ? 1 - SET_DROP : 1) / 6;
   const add = (name, slot, icon, q, setId) => { if (q > 0) m.push({ name, slot, icon, q, set:setId }); };
-  const pool = WEAPONS[cls], L = pool.length, lo = Math.min(t,9)/9*0.7*L, hi = lo + 0.3*L;
+  const pool = CLASSES[cls].weapons, L = pool.length, lo = Math.min(t,9)/9*0.7*L, hi = lo + 0.3*L;
   pool.forEach((w,k) => add(w[1], 'arme', w[0], g * Math.max(0, Math.min(k===L-1 ? Infinity : k+1, hi) - Math.max(k, lo)) / (hi-lo)));
   const lv = t % 2 ? [[Math.floor(t/2), .5], [Math.floor(t/2)+1, .5]] : [[t/2, 1]];
   for (const slot of ['coiffe','anneau','bottes','amulette','cape']) for (const [l,w] of lv)
-    add((slot==='coiffe' ? ARMOR_NAMES.coiffe[cls] : ARMOR_NAMES[slot])[Math.min(4,l)], slot, slot==='coiffe' ? (cls==='mage' ? 'chapeau' : 'casque') : LOOT_ICONS[slot], g*w);
-  if (set) for (const [slot,name] of Object.entries(set.pieces)) add(name, slot, slot==='coiffe' ? (cls==='mage' ? 'chapeau' : 'casque') : slot==='arme' ? pool[0][0] : LOOT_ICONS[slot], SET_DROP/4, set.id);
+    add((slot==='coiffe' ? CLASSES[cls].coiffes : ARMOR_NAMES[slot])[Math.min(4,l)], slot, slot==='coiffe' ? CLASSES[cls].coiffeIcon : LOOT_ICONS[slot], g*w);
+  if (set) for (const [slot,name] of Object.entries(set.pieces)) add(name, slot, slot==='coiffe' ? CLASSES[cls].coiffeIcon : slot==='arme' ? pool[0][0] : LOOT_ICONS[slot], SET_DROP/4, set.id);
   const bd = s.icon==='boss' && BOSS_DROPS[s.foes[0]];
-  if (bd) m.push({ name:bd.name, slot:bd.slot, icon: bd.slot==='arme' ? pool[L-1][0] : bd.slot==='coiffe' ? (cls==='mage' ? 'chapeau' : 'casque') : LOOT_ICONS[bd.slot], q:BOSS_DROP, boss:s.foes[0] });
+  if (bd) m.push({ name:bd.name, slot:bd.slot, icon: bd.slot==='arme' ? pool[L-1][0] : bd.slot==='coiffe' ? CLASSES[cls].coiffeIcon : LOOT_ICONS[bd.slot], q:BOSS_DROP, boss:s.foes[0] });
   return m;
 }
 function lootFilter() { return G.lootFilter || (G.lootFilter = { kind:'eq', slot:'', q:'', all:false }); }
@@ -2595,7 +2793,7 @@ function undoLastSale() {
   play('piece'); save(); refreshMapTitle(); return true;
 }
 function flashMsg(t) { const b = $('#overlay .box'); if (!b) return alert(t); let m = b.querySelector('.flash'); if (!m) { m = document.createElement('p'); m.className = 'goal flash'; b.prepend(m); } m.textContent = t; }
-function shopTier() { return Math.min(24, FIGHT_ZONES.filter(z => isCleared(z.id)).length); }
+function shopTier() { return Math.min(32, FIGHT_ZONES.filter(z => isCleared(z.id)).length); }
 function showShop() {
   const p = G.profile;
   if (!p.shop || !p.shop.length) p.shop = Object.keys(SLOTS).map(sl => genItem(shopTier(), p.cls, sl));
@@ -2644,10 +2842,9 @@ const CONS = {};
 ['Potion de soin','Potion des neiges','Élixir des ruines','Élixir de lumière','Élixir des fées','Élixir de braise'].forEach((name,t) => CONS['potion'+t] = { id:'potion'+t, kind:'potion', t, name, heal:0.25 + 0.05*t });
 ['Pain de blé','Pain de seigle','Galette de lin','Brioche dorée','Tarte au trèfle','Ragoût pimenté'].forEach((name,t) => CONS['repas'+t] = { id:'repas'+t, kind:'repas', t, name, vie:5 + 2*t, puissance:2 + t });
 const consText = c => c.kind==='potion' ? `En combat : rend ${Math.round(c.heal*100)} % de tes PV max (2 PA, 1 fois par tour).` : `Repas : +${c.vie} % PV et +${c.puissance} % dégâts pendant ${MEAL_FIGHTS} combats.`;
-// noms des objets fabriqués : [guerrier, mage]
-const CRAFT_NAMES = { bucheron:{ arme:['Hache','Bâton'], amulette:['Amulette','Amulette'], bottes:['Sabots','Sabots'] },
-  mineur:{ arme:['Épée','Sceptre'], coiffe:['Casque','Diadème'], anneau:['Anneau','Anneau'] } };
-const CRAFT_ICONS = { bucheron:['weapon_axe','weapon_green_magic_staff'], mineur:['weapon_regular_sword','weapon_red_magic_staff'] };
+// noms des objets fabriqués : les mêmes pour toutes les classes, sauf l'arme et la coiffe (CLASSES[cls].craft)
+const CRAFT_NAMES = { amulette:'Amulette', bottes:'Sabots', anneau:'Anneau' };
+const craftName = (job, slot, cls) => slot==='arme' ? CLASSES[cls].craft[job][0] : slot==='coiffe' ? CLASSES[cls].craft.coiffe : CRAFT_NAMES[slot];
 const RECIPES = [];
 for (let t=0; t<JOB_REQ.length; t++) {
   RECIPES.push({ id:'potion'+t, job:'paysan', t, cons:'potion'+t, need:{ ['paysan'+t]:4 }, xp:2*harvestXp(t) });
@@ -2664,7 +2861,9 @@ const MONSTER_DROPS = { gobelin:'Oreille de gobelin', chaman:'Plume de chaman', 
   fidele:'Médaillon du Soleil noir', pretre:'Encens noir', lezard:'Écaille de lézard', limace:'Bave de limace', pretresse:'Page volée',
   eclipse:"Fragment d'éclipse", eclaireur:'Flèche noire', pierre:'Cœur de pierre', bourreau:'Lame du bourreau', feufollet:'Lueur follette',
   bete:'Griffe corrompue', treant:'Écorce corrompue', champignon:'Spore géante', grandtreant:'Racine millénaire', salamandre:'Langue de salamandre',
-  elemfeu:'Braise vive', golem:'Noyau de lave', ignarok:'Écaille de dragon' };
+  elemfeu:'Braise vive', golem:'Noyau de lave', ignarok:'Écaille de dragon',
+  marin:'Foulard de marin', pirate:'Boucle de pirate', crabe:'Pince de crabe', anguille:'Peau électrique', meduse:'Filament de méduse', triton:'Écaille de triton', kraken:'Bec du Kraken',
+  loup:'Fourrure de loup blanc', yeti:'Touffe de yéti', golemglace:'Cœur de glace', hrimgar:'Givre éternel' };
 const dropPool = t => [...new Set(ZONES.filter(z => z.foes && regionOf(z.id)===t+1 && z.tier <= CRAFT_TIER[t]+1).flatMap(z => z.foes))].filter(k => MONSTER_DROPS[k] && !MONSTERS[k].big);
 JOB_REQ.forEach((_,t) => { const pool = dropPool(t); RECIPES.filter(r => r.t===t).forEach((r,i) => { if (pool.length) r.need['m_'+pool[i % pool.length]] = r.slot ? 2 : 1; }); });
 const ingName = id => id.startsWith('m_') ? MONSTER_DROPS[id.slice(2)] : resName(id.replace(/\d+$/,''), +id.match(/\d+$/)[0]);
@@ -2675,7 +2874,7 @@ function rollDrops() {
   return got;
 }
 const dropsHtml = got => { const l = Object.entries(got); return l.length ? `<p class="help">🐾 Ressources de monstres : ${l.map(([id,n]) => `<b>${ingName(id)}</b> × ${n}`).join(' · ')} (métiers, touche J)</p>` : ''; };
-const recipeName = (r, cls) => r.cons ? CONS[r.cons].name : `${CRAFT_NAMES[r.job][r.slot][cls==='mage' ? 1 : 0]} ${JOBS[r.job].mat[r.t]}`;
+const recipeName = (r, cls) => r.cons ? CONS[r.cons].name : `${craftName(r.job, r.slot, cls)} ${JOBS[r.job].mat[r.t]}`;
 function jobs(p = G.profile) {
   const j = p.jobs || (p.jobs = {});
   for (const k of ['lv','xp','res','cons','cut']) j[k] = j[k] || {};
@@ -2787,7 +2986,7 @@ function craft(r) {
     const rar = j.lv[r.job] >= Math.min(JOB_MAX, JOB_REQ[r.t] + 10) && Math.random() < .3 ? 2 : 1;
     const it = genItem(CRAFT_TIER[r.t], p.cls, r.slot, rar);
     it.name = recipeName(r, p.cls); it.crafted = r.job;
-    if (r.slot==='arme') it.icon = CRAFT_ICONS[r.job][p.cls==='mage' ? 1 : 0];
+    if (r.slot==='arme') it.icon = CLASSES[p.cls].craft[r.job][1];
     p.inv.push(it); msg = `Tu as fabriqué : ${it.name} (${RARITIES[rar].name}). Il est dans ton sac.`;
   } else { j.cons[r.cons] = (j.cons[r.cons]||0) + 1; msg = `Tu as fabriqué : ${CONS[r.cons].name} (tu en as ${j.cons[r.cons]}).`; }
   const ups = jobXp(r.job, r.xp);
@@ -2859,10 +3058,15 @@ const NPCS = {
   fee:     { name:'Une fée de la forêt', sprite:'elf_f_idle_anim_f0', filter:'hue-rotate(290deg) brightness(1.25) saturate(1.3)' },
   durgan:  { name:'Durgan, maître de la forge', sprite:'dwarf_m_idle_anim_f0', filter:'hue-rotate(-25deg) saturate(1.5) brightness(.9)' },
   brenna:  { name:'Brenna, la jeune forgeronne', sprite:'dwarf_f_idle_anim_f0' },
+  coralie: { name:'Coralie, la reine des tritons', sprite:'elf_f_idle_anim_f0', filter:'hue-rotate(150deg) saturate(1.4)' },
+  ysolde:  { name:'Mère Ysolde, supérieure du monastère', sprite:'wizzard_f_idle_anim_f0', filter:'hue-rotate(170deg) brightness(1.15)' },
   vision:  { name:'Une vision', sprite:'elf_f_idle_anim_f0' },
+  corwin:  { name:'Corwin, le voleur repenti', sprite:'elf_m_idle_anim_f0', filter:'grayscale(.8) brightness(.8)' },
   orwin:   { name:"Orwin, l'ermite des ruines", sprite:'wizzard_m_idle_anim_f0', filter:'grayscale(.85) sepia(.5) brightness(1.1)' },
 };
-const PLURAL = { gobelin:'Gobelins', chaman:'Chamans orcs', gluant:'Gluants', orc:'Orcs guerriers', ogre:'Chefs Ogres', squelette:'Squelettes', zombie:'Zombies', givre:'Zombies de givre', orcmasque:'Orcs masqués', necro:'Nécromanciens', diablotin:'Diablotins', chort:'Chorts', zombiegeant:'Zombies géants', demon:'Grands Démons', ombre:'Ombres', gardien:'Gardiens du miroir', fidele:'Fidèles du Soleil noir', pretre:'Prêtres du Soleil noir', lezard:'Hommes-lézards', limace:'Limaces géantes', pretresse:'Grandes Prêtresses', eclipse:'Éclipses', eclaireur:'Éclaireurs du Soleil noir', pierre:'Gardiens de pierre', bourreau:'Bourreaux du Soleil noir', feufollet:'feux follets noirs', bete:'bêtes corrompues', treant:'tréants corrompus', champignon:'champignons géants', grandtreant:'Grands Tréants', salamandre:'salamandres', elemfeu:'élémentaires de feu', golem:'golems de lave', ignarok:'dragons de lave' };
+const PLURAL = { gobelin:'Gobelins', chaman:'Chamans orcs', gluant:'Gluants', orc:'Orcs guerriers', ogre:'Chefs Ogres', squelette:'Squelettes', zombie:'Zombies', givre:'Zombies de givre', orcmasque:'Orcs masqués', necro:'Nécromanciens', diablotin:'Diablotins', chort:'Chorts', zombiegeant:'Zombies géants', demon:'Grands Démons', ombre:'Ombres', gardien:'Gardiens du miroir', fidele:'Fidèles du Soleil noir', pretre:'Prêtres du Soleil noir', lezard:'Hommes-lézards', limace:'Limaces géantes', pretresse:'Grandes Prêtresses', eclipse:'Éclipses', eclaireur:'Éclaireurs du Soleil noir', pierre:'Gardiens de pierre', bourreau:'Bourreaux du Soleil noir', feufollet:'feux follets noirs', bete:'bêtes corrompues', treant:'tréants corrompus', champignon:'champignons géants', grandtreant:'Grands Tréants', salamandre:'salamandres', elemfeu:'élémentaires de feu', golem:'golems de lave', ignarok:'dragons de lave',
+  marin:"marins de l'Ordre", pirate:'pirates noyés', crabe:'crabes géants', anguille:'anguilles électriques', meduse:'méduses', triton:'tritons corrompus', kraken:'Krakens',
+  loup:'loups des neiges', yeti:'yétis', golemglace:'golems de glace', hrimgar:'géants des glaces' };
 // {héros} est remplacé par le nom choisi par le joueur
 const QUESTS = [
   { id:'q1', main:true, title:'Les rôdeurs de la lisière', npc:'maela', goal:{ type:'clear', zone:'lisiere' },
@@ -2882,6 +3086,13 @@ const QUESTS = [
     reward:{ xp:120, gold:60 },
     intro:["Et pendant que tu y es… Ces Gobelins sont bien trop nombreux. Si tu en élimines six, je te paierai de ma poche !"],
     outro:["Six Gobelins ! Les champs respirent enfin. Voilà ta récompense, bien méritée."] },
+  { id:'c_roublard', cls:'roublard', title:"Les ombres d'Aubépine", npc:'corwin', startsWith:'q1', goal:{ type:'kill', monster:'gobelin', n:4 },
+    reward:{ xp:80, gold:40, item:{ slot:'arme', rarity:2, name:"Croc d'Aubépine" } },
+    intro:["Psst… Par ici, {héros}. Ne fais pas cette tête : je ne suis qu'un vieux voleur qui a raccroché ses dagues.",
+      "Je reconnais une lame silencieuse quand j'en vois une. Les Gobelins de la lisière m'ont dérobé un vieux souvenir : le <b>Croc d'Aubépine</b>, la meilleure dague que j'aie jamais portée.",
+      "Élimine quatre de ces voleurs de bas étage, sans bruit si possible. La dague est à toi si tu la retrouves."],
+    outro:["Quatre Gobelins, et aucun n'a rien vu venir. Tu as le geste, {héros}.",
+      "Voilà le Croc d'Aubépine. Garde-le bien affûté… et méfie-toi de ceux qui sourient trop."] },
   { id:'s2', title:'Bien équipé', npc:'bastien', startsWith:'q2', goal:{ type:'equip', n:4 },
     reward:{ xp:100, gold:40 },
     intro:["Un conseil de vieux fermier : on ne part pas à l'aventure les mains vides. Équipe-toi d'une arme, d'une coiffe, d'un anneau et de bottes. Le marchand d'Aubépine pourra t'aider."],
@@ -3248,16 +3459,146 @@ const QUESTS = [
       "(Une silhouette masquée apparaît au bord du cratère, Brenna à ses côtés. Pour la première fois, elle parle, d'une voix calme et froide.)",
       "« <i>Deux sur six… Profite de ta victoire.</i> »",
       "(Elle disparaît avec Brenna, emportant un fragment d'inscription arraché à la forge des anciens. L'Ordre a désormais une piste vers la troisième relique. Fin de l'acte VI.)"] },
+  // ----- Acte VII : la Perle d'Aube -----
+  { id:'q37', main:true, title:'Le port des naufrages', npc:'garrick', goal:{ type:'clear', zone:'quais' },
+    reward:{ xp:7800, gold:3700, item:{ slot:'bottes', rarity:2 } },
+    intro:["{héros}, j'ai suivi la piste de l'Ordre depuis le volcan. Le fragment d'inscription qu'ils ont volé les mène vers l'ouest, jusqu'à la mer.",
+      "Il y a un port là-bas, <b>Port-Écume</b>. On dit que des navires marqués d'un <b>soleil noir</b> y recrutent tous les marins qu'ils trouvent.",
+      "Prends la route de la côte. Je te rejoins sur les quais."],
+    outro:["Ces marins se battaient comme des forcenés ! L'Ordre les paie bien, on dirait.",
+      "Un vieux pêcheur m'a raconté que leurs navires partent tous vers un <b>tourbillon</b>, au large. Une cité serait engloutie dessous, depuis des siècles.",
+      "Une cité sous la mer… et sans doute une Relique de l'Aube au fond. Il faut trouver un moyen d'y descendre."] },
+  { id:'s27', title:'Les quais de Port-Écume', npc:'garrick', startsWith:'q37', goal:{ type:'kill', monster:'marin', n:8 },
+    reward:{ xp:2700, gold:950 },
+    intro:["Les marins de l'Ordre font la loi sur les quais. Chasses-en huit, que les pêcheurs puissent reprendre la mer."],
+    outro:["Huit marins de moins ! Les pêcheurs de Port-Écume t'offrent le meilleur poisson du port. Forest approuve."] },
+  { id:'q38', main:true, title:'Le peuple des vagues', npc:'coralie', goal:{ type:'clear', zone:'recifs' },
+    reward:{ xp:8100, gold:3850, item:{ slot:'cape', rarity:2 } },
+    intro:["(En longeant la plage, des silhouettes surgissent des vagues. Des lances t'encerclent. Forest gonfle sa queue et crache.)",
+      "Encore un homme de la surface. Ceux de ton espèce empoisonnent nos récifs avec leur magie noire. Pourquoi te ferais-je confiance ?",
+      "Je suis <b>Coralie</b>, la reine des tritons. Prouve ta bonne foi : libère nos <b>récifs</b> des créatures que l'Ordre a corrompues."],
+    outro:["Tu t'es battu pour notre peuple sans rien demander en retour. Je me suis trompée sur toi, {héros}.",
+      "Prends ceci : la <b>perle des profondeurs</b>. Tant que tu la porteras, tu respireras sous l'eau comme l'un des nôtres.",
+      "(Forest renifle la perle d'un air méfiant.) Ne t'inquiète pas, petit chat. Elle marche aussi pour toi."] },
+  { id:'s28', title:'Pinces et carapaces', npc:'coralie', startsWith:'q38', goal:{ type:'kill', monster:'crabe', n:8 },
+    reward:{ xp:2800, gold:980, item:{ rarity:2 } },
+    intro:["Les crabes géants ravagent nos bancs de corail. Chasses-en huit, et je te ferai forger quelque chose dans leur carapace."],
+    outro:["Huit crabes ! Voici une pièce taillée dans la plus dure de leurs carapaces."] },
+  { id:'q39', main:true, title:'La cité engloutie', npc:'coralie', goal:{ type:'clear', zone:'thalassar' },
+    reward:{ xp:8400, gold:4000, item:{ slot:'coiffe', rarity:2 } },
+    intro:["Sous le tourbillon dort <b>Thalassar</b>, la cité de nos ancêtres. Une bulle de lumière la garde au sec depuis des siècles.",
+      "L'Ordre y fouille déjà. Mes éclaireurs ont vu une jeune femme aux bras tatoués donner les ordres.",
+      "Plonge avec nous, {héros}. La perle te protégera."],
+    outro:["(Au cœur de la cité, la bulle de lumière vibre doucement. Elle vient d'un autel tout au fond, gardé par l'Ordre.)",
+      "Cette lumière… c'est la Relique de l'Aube. C'est elle qui retient la mer au-dessus de Thalassar.",
+      "Si quelqu'un la prend, la cité s'effondrera. Et si l'Ordre la prend, il ne s'en souciera pas une seconde."] },
+  { id:'s29', title:'Courants électriques', npc:'coralie', startsWith:'q39', goal:{ type:'kill', monster:'anguille', n:6 },
+    reward:{ xp:2900, gold:1010 },
+    intro:["Des anguilles électriques rôdent dans les rues de Thalassar. Leurs décharges blessent nos enfants. Éloignes-en six."],
+    outro:["Six anguilles ! Les rues de la cité sont de nouveau sûres."] },
+  { id:'q40', main:true, title:'Le doute de Brenna', npc:'coralie', goal:{ type:'clear', zone:'jardins' },
+    reward:{ xp:8700, gold:4150, item:{ slot:'anneau', rarity:2 } },
+    intro:["Il y a quelques jours, mes guérisseurs ont soigné une naufragée dans nos <b>jardins de corail</b>. Elle avait de vilaines brûlures.",
+      "Elle a disparu cette nuit. Et depuis, les jardins grouillent de créatures. Va voir, {héros}."],
+    outro:["(Au fond des jardins, tu retrouves <b>Brenna</b>, un bras encore bandé. Elle lève son marteau… puis le baisse.)",
+      "« Les tritons m'ont soignée sans savoir qui j'étais. Personne n'avait jamais fait ça pour moi. »",
+      "« Écoute-moi, {héros}. Le <b>Maître</b> veut toutes les reliques. Avec elles, il veut briser la <b>prison du Nécromancien</b>. »",
+      "(Elle s'éloigne vers la sortie des jardins, sans se retourner. Forest la regarde partir.)",
+      "Elle a hésité, {héros}. Je l'ai vu dans ses yeux. Et maintenant, j'ai une idée : si la relique tient la cité, peut-être que <b>notre chant</b> peut prendre sa place."] },
+  { id:'q41', main:true, title:'Le chant des profondeurs', npc:'coralie', goal:{ type:'clear', zone:'amphitheatre' },
+    reward:{ xp:9000, gold:4300, item:{ slot:'amulette', rarity:2 } },
+    intro:["Tout mon peuple va se rassembler dans le <b>grand amphithéâtre</b> pour chanter. Si notre chant est assez fort, il retiendra la mer à la place de la relique.",
+      "Mais l'Ordre ne nous laissera pas faire. Protège le chœur, {héros}. Nous avons besoin de temps."],
+    outro:["(Le chant des tritons s'élève, grave et doux. Au-dessus de la cité, la mer se tient immobile.)",
+      "Ça marche ! Notre chant tient Thalassar. Tu peux prendre la relique sans que la cité s'effondre.",
+      "(Un grondement monte des profondeurs. Quelque chose d'énorme se réveille.) L'Ordre a libéré le <b>Kraken</b>… pour garder la relique à sa place."] },
+  { id:'s30', title:"Les fouilles de l'Ordre", npc:'coralie', startsWith:'q41', goal:{ type:'kill', monster:['marin','pretre','eclaireur','fidele'], label:"membres de l'Ordre", n:10 },
+    reward:{ xp:3000, gold:1050, item:{ rarity:2 } },
+    intro:["L'Ordre fouille encore les ruines de Thalassar. Chasses-en dix, et ils comprendront que cette cité n'est pas à eux."],
+    outro:["Dix ! Les derniers fouilleurs de l'Ordre ont fui vers la surface. Prends ceci, avec la gratitude de mon peuple."] },
+  { id:'q42', main:true, title:"La Perle d'Aube", npc:'coralie', goal:{ type:'clear', zone:'abysses' },
+    reward:{ xp:9800, gold:4700, item:{ rarity:3 } },
+    intro:["Le <b>Kraken</b> dormait dans les abysses depuis plus longtemps que notre mémoire. L'Ordre l'a enchaîné à sa volonté.",
+      "La relique repose au fond du <b>sanctuaire des abysses</b>. Nous continuerons de chanter tant que tu seras en bas.",
+      "Reviens-nous, {héros}. Toi et ton chat."],
+    outro:["(Le Kraken s'enfonce dans l'ombre des abysses. Sur l'autel, une perle nacrée brille d'une lumière douce : la <b>Perle d'Aube</b>.)",
+      "(Tu la prends. La bulle de lumière s'éteint… mais la mer ne bouge pas. Le chant des tritons tient la cité.)",
+      "Thalassar est sauvée, et la relique est entre de bonnes mains. Merci, {héros}.",
+      "(Sur l'autel, une inscription a été recopiée à la craie par l'Ordre. Elle décrit une <b>montagne enneigée</b>, au-delà des Terres du Nord.)",
+      "Ils savent déjà où chercher la quatrième… Il faut te dépêcher. (Fin de l'acte VII.)"] },
+  // ----- Acte VIII : le Flocon de l'Aube -----
+  { id:'q43', main:true, title:'Retour au Nord', npc:'garrick', goal:{ type:'clear', zone:'sentiers' },
+    reward:{ xp:10100, gold:4850, item:{ slot:'bottes', rarity:2 } },
+    intro:["Une montagne enneigée au-delà des Terres du Nord ? Ça ne peut être que le <b>Mont Givreval</b>. J'ai chassé là-haut, il y a longtemps.",
+      "Retrouvons-nous à mon <b>camp</b>, dans les Terres du Nord. De là, un sentier monte vers les sommets.",
+      "Des caravanes de l'Ordre sont passées avant nous. Et les loups des neiges ont faim, cet hiver."],
+    outro:["Les loups ne nous embêteront plus. Regarde, là-haut, accroché à la falaise…",
+      "Le <b>Monastère des Neiges</b>. Et il est assiégé ! On dirait que toute la montagne s'est réveillée."] },
+  { id:'s31', title:'La meute blanche', npc:'garrick', startsWith:'q43', goal:{ type:'kill', monster:'loup', n:8 },
+    reward:{ xp:3100, gold:1100 },
+    intro:["Une meute de loups des neiges suit nos traces depuis le camp. Chasses-en huit, avant qu'ils ne s'en prennent aux caravanes."],
+    outro:["Huit loups ! La meute a compris la leçon. Forest, lui, n'a pas quitté ton épaule de tout le combat."] },
+  { id:'q44', main:true, title:'Le monastère des neiges', npc:'ysolde', goal:{ type:'clear', zone:'monastere' },
+    reward:{ xp:10400, gold:5000, item:{ slot:'cape', rarity:2 } },
+    intro:["Voyageur, aide-nous ! Je suis <b>Mère Ysolde</b>, la supérieure de ce monastère.",
+      "L'Ordre a provoqué une avalanche plus haut sur la montagne. Elle a réveillé les <b>yétis</b>, et ils attaquent nos murs, fous de colère."],
+    outro:["Les yétis repartent vers les sommets. Tu as sauvé mes frères et mes sœurs, {héros}.",
+      "Tu cherches une Relique de l'Aube, n'est-ce pas ? Notre ordre garde une très vieille <b>légende</b> sur le dieu venu du ciel. Il est temps que tu l'entendes."] },
+  { id:'s32', title:'Yétis en colère', npc:'ysolde', startsWith:'q44', goal:{ type:'kill', monster:'yeti', n:6 },
+    reward:{ xp:3200, gold:1130, item:{ rarity:2 } },
+    intro:["Certains yétis rôdent encore autour du monastère. Repousses-en six vers les sommets, je te prie."],
+    outro:["Six yétis ! Les novices peuvent de nouveau sortir chercher du bois. Accepte ce présent du monastère."] },
+  { id:'q45', main:true, title:"L'enfant du ciel", npc:'ysolde', goal:{ type:'clear', zone:'bibliogelee' },
+    reward:{ xp:10700, gold:5150, item:{ slot:'coiffe', rarity:2 } },
+    intro:["La légende est écrite dans notre <b>bibliothèque</b>. Mais l'avalanche l'a prise dans la glace, et des <b>golems de glace</b> s'y sont réveillés.",
+      "Ouvre-nous le chemin, {héros}, et nous te lirons ce que nos ancêtres ont écrit."],
+    outro:["(Les moines dégagent un vieux livre de la glace. Mère Ysolde lit à voix haute.)",
+      "« <i>Le dieu venu du ciel aima une femme de Valdoria. De leur amour naquit un enfant, et les descendants de cet enfant vivent encore parmi les hommes.</i> »",
+      "(Forest ne regarde pas le livre. Il te fixe, sans bouger, longtemps.)",
+      "Des descendants d'un dieu, parmi nous… Étrange, non ? Mais l'urgence est ailleurs : le Flocon de l'Aube repose au <b>sanctuaire du sommet</b>, et l'Ordre y monte déjà."] },
+  { id:'s33', title:'Les gardiens de glace', npc:'ysolde', startsWith:'q45', goal:{ type:'kill', monster:'golemglace', n:6 },
+    reward:{ xp:3300, gold:1160 },
+    intro:["D'autres golems de glace bloquent les couloirs du monastère. Brises-en six, que nous puissions sauver nos livres."],
+    outro:["Six golems ! Nos livres sont sauvés. Le savoir de nos ancêtres te doit beaucoup."] },
+  { id:'q46', main:true, title:'Le col des tempêtes', npc:'garrick', goal:{ type:'clear', zone:'coltempetes' },
+    reward:{ xp:11000, gold:5300, item:{ slot:'arme', rarity:2 } },
+    intro:["L'Ordre a pris le <b>col des tempêtes</b>, le seul chemin vers le sommet. Avec ce blizzard, on n'y voit pas à dix pas.",
+      "C'est une course, maintenant. Fonce, {héros}, je couvre tes arrières."],
+    outro:["(Dans la tempête, tu reconnais <b>Brenna</b> parmi les soldats de l'Ordre. Elle lève son marteau vers toi… et ne frappe pas.)",
+      "(Elle laisse tomber un morceau de papier dans la neige avant de disparaître dans le blizzard.)",
+      "« <i>Le Maître a un piège au sommet.</i> » … Brenna nous prévient ? Alors elle est vraiment en train de changer."] },
+  { id:'s34', title:'Les caravanes noires', npc:'garrick', startsWith:'q46', goal:{ type:'kill', monster:['fidele','pretre','eclaireur','marin'], label:"membres de l'Ordre", n:10 },
+    reward:{ xp:3400, gold:1200, item:{ rarity:2 } },
+    intro:["Les caravanes de l'Ordre ravitaillent leurs troupes sur la montagne. Chasses-en dix, et leur avancée ralentira."],
+    outro:["Dix ! Leurs caravanes sont coupées. Prends ce que j'ai trouvé dans leurs chariots."] },
+  { id:'q47', main:true, title:'Le sanctuaire de givre', npc:'ysolde', goal:{ type:'clear', zone:'sanctgivre' },
+    reward:{ xp:11300, gold:5450, item:{ slot:'amulette', rarity:2 } },
+    intro:["Grâce à l'avertissement de cette jeune femme, nous savons que le chemin principal est piégé. Il existe un vieux passage des moines.",
+      "Il mène droit au <b>sanctuaire de givre</b>. Fais vite, {héros}."],
+    outro:["(Tu as évité le piège. Mais au fond du sanctuaire, l'autel est déjà vide.)",
+      "(Plus haut, au sommet, la <b>silhouette masquée</b> tient un flocon de lumière dorée : le <b>Flocon de l'Aube</b>.)",
+      "(D'un geste, elle frappe la montagne. La glace se fend, et un géant immense se redresse dans un grondement : <b>Hrimgar</b>.)"] },
+  { id:'q48', main:true, title:"Le Flocon de l'Aube", npc:'ysolde', goal:{ type:'clear', zone:'sommet' },
+    reward:{ xp:12200, gold:5900, item:{ rarity:3 } },
+    intro:["Hrimgar, le géant des glaces… Il dormait sous le sommet depuis l'époque du dieu venu du ciel. Le masqué l'a réveillé pour couvrir sa fuite.",
+      "Monte au <b>sommet du Givreval</b>, {héros}. Arrête-le, ou au moins, reviens vivant."],
+    outro:["(Pendant le combat, Brenna surgit de la tempête et se jette sur la silhouette masquée pour lui arracher le Flocon.)",
+      "(D'un seul geste, le masqué la repousse. Brenna tombe dans la neige, blessée. Hrimgar s'effondre enfin, et tu cours la relever.)",
+      "« <i>Trois pour toi, une pour moi… La partie ne fait que commencer.</i> » (La silhouette disparaît dans le blizzard avec le Flocon de l'Aube.)",
+      "« Je suis désolée, {héros}. Pour tout. Laisse-moi me battre à tes côtés. Je peux au moins forger pour toi. »",
+      "(Brenna part s'installer au camp de Garrick, dans les Terres du Nord : elle y améliorera ton équipement.)",
+      "(Au loin, le ciel se fend d'une longue lueur violette. La prison du Nécromancien commence à se fissurer. Fin de l'acte VIII.)"] },
 ];
 
 const MAIN = QUESTS.filter(q => q.main);
 const questById = id => QUESTS.find(q => q.id===id);
-const XP_MAX_LEVEL = 60;
+const XP_MAX_LEVEL = 70;
 const xpNeed = lv => 50 + 50*lv;
 const heroName = () => G.profile.name || CLASSES[G.profile.cls].name;
 const fillHero = t => t.replaceAll('{héros}', heroName());
 const qs = q => G.profile.quests[q.id];
 const activeQuests = () => QUESTS.filter(q => qs(q) && qs(q).state==='active');
+const forClass = q => !q.cls || q.cls===G.profile.cls; // quêtes de classe : seulement pour cette classe
 
 function levelBonusText(lv) {
   const b = [`+${LV_HP} PV max`, `+${Math.round(LV_DMG*100)} % de dégâts`, `+${CARAC_PER_LV} points de caractéristique`, `+${SPELL_PTS_PER_LV} point de sort`];
@@ -3318,7 +3659,7 @@ function completeQuest(q) {
   p.gold += r.gold;
   const ups = addXp(r.xp);
   let item = null;
-  if (r.item) { const tier = Math.min(9, MAIN.indexOf(q)>=0 ? MAIN.indexOf(q) : p.story); item = genItem(tier, p.cls, r.item.slot, r.item.rarity); if (!addToBag(item)) item.sold = true; }
+  if (r.item) { const tier = Math.min(9, MAIN.indexOf(q)>=0 ? MAIN.indexOf(q) : p.story); item = genItem(tier, p.cls, r.item.slot, r.item.rarity); if (r.item.name) item.name = r.item.name; if (!addToBag(item)) item.sold = true; }
   G.scenes.push({ npc:q.outroNpc || q.npc, title:'Quête accomplie : ' + q.title, pages: q.outro || ['Merci pour ton aide, {héros} !'],
     last:`<div class="reward"><b>Récompenses :</b> +${r.xp} XP · <img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> +${r.gold} or</div>${levelUpHtml(ups)}
       ${item ? `<div class="items">${itemCard(item, { diff:true, btns: item.sold ? [['none','Sac plein : vendu',true]] : [['equip','Équiper']] })}</div>` : ''}`, btn:'Continuer' });
@@ -3335,13 +3676,13 @@ function completeQuest(q) {
 }
 function queueIntros(q) {
   G.scenes.push(introScene(q));
-  for (const s of QUESTS.filter(s => s.startsWith===q.id && !G.profile.quests[s.id])) G.scenes.push(introScene(s));
+  for (const s of QUESTS.filter(s => s.startsWith===q.id && forClass(s) && !G.profile.quests[s.id])) G.scenes.push(introScene(s));
 }
 // Relance la quête principale si le joueur a quitté le jeu avant de l'accepter
 function ensureStory() {
   const p = G.profile, q = MAIN[p.story];
   if (q && !p.quests[q.id] && !G.scenes.some(s => s.title.endsWith(q.title))) queueIntros(q);
-  for (const s of QUESTS.filter(s => s.startsWith && p.quests[s.startsWith] && !p.quests[s.id] && !G.scenes.some(x => x.title.endsWith(s.title)))) G.scenes.push(introScene(s));
+  for (const s of QUESTS.filter(s => s.startsWith && forClass(s) && p.quests[s.startsWith] && !p.quests[s.id] && !G.scenes.some(x => x.title.endsWith(s.title)))) G.scenes.push(introScene(s));
 }
 function showNextScene() {
   if (G.mode!=='map' || G.travel || !$('#overlay').classList.contains('hide') || !G.scenes.some(s => !s.talk)) return;
@@ -3395,7 +3736,19 @@ const STORY_RECAP = [
   {"act": "Acte VI : la Braise d'Aube", "title": "Le cœur qui gronde", "text": "Dans les tunnels de lave, tu as découvert que l'Ordre réveille le volcan avec ses totems du soleil noir."},
   {"act": "Acte VI : la Braise d'Aube", "title": "La marque du soleil noir", "text": "Tu es tombé dans une embuscade. Brenna, une jeune forgeronne, portait le symbole du soleil noir : elle t'avait trahi. Elle s'est enfuie vers le cratère."},
   {"act": "Acte VI : la Braise d'Aube", "title": "La forge des anciens", "text": "Sous la cité, une forge plus ancienne porte le symbole d'Auréon. La braise sacrée est une Relique de l'Aube, et l'Ordre a réveillé un dragon pour la garder."},
-  {"act": "Acte VI : la Braise d'Aube", "title": "La Braise d'Aube", "text": "Tu as vaincu Ignarok, le dragon de lave, et les nains t'ont confié la deuxième relique : la Braise d'Aube. La silhouette masquée est apparue et t'a parlé pour la première fois : « Deux sur six… Profite de ta victoire. » Elle a disparu avec Brenna et une piste vers la troisième relique."}
+  {"act": "Acte VI : la Braise d'Aube", "title": "La Braise d'Aube", "text": "Tu as vaincu Ignarok, le dragon de lave, et les nains t'ont confié la deuxième relique : la Braise d'Aube. La silhouette masquée est apparue et t'a parlé pour la première fois : « Deux sur six… Profite de ta victoire. » Elle a disparu avec Brenna et une piste vers la troisième relique."},
+  {"act": "Acte VII : la Perle d'Aube", "title": "Le port des naufrages", "text": "Sur la piste de l'Ordre, tu es arrivé à Port-Écume, où des navires au soleil noir recrutaient des marins. Leurs navires partent tous vers un tourbillon au large, au-dessus d'une cité engloutie."},
+  {"act": "Acte VII : la Perle d'Aube", "title": "Le peuple des vagues", "text": "Les tritons t'ont d'abord pris pour un ennemi. Tu as libéré leurs récifs, et Coralie, leur reine, t'a offert la perle des profondeurs pour respirer sous l'eau."},
+  {"act": "Acte VII : la Perle d'Aube", "title": "La cité engloutie", "text": "Tu es entré dans Thalassar, gardée au sec par une bulle de lumière. Cette lumière vient de la relique : la prendre ferait s'effondrer la cité."},
+  {"act": "Acte VII : la Perle d'Aube", "title": "Le doute de Brenna", "text": "Soignée par les tritons, Brenna a hésité et t'a laissé passer. Elle t'a appris que le Maître veut les reliques pour briser la prison du Nécromancien."},
+  {"act": "Acte VII : la Perle d'Aube", "title": "Le chant des profondeurs", "text": "Tu as protégé le chœur des tritons. Leur chant tient désormais la cité, mais l'Ordre a libéré le Kraken pour garder la relique."},
+  {"act": "Acte VII : la Perle d'Aube", "title": "La Perle d'Aube", "text": "Tu as vaincu le Kraken et obtenu la troisième relique : la Perle d'Aube. Une inscription recopiée par l'Ordre décrit le lieu de la quatrième : une montagne enneigée."},
+  {"act": "Acte VIII : le Flocon de l'Aube", "title": "Retour au Nord", "text": "Depuis le camp de Garrick, tu es monté vers le Mont Givreval en chassant les loups des neiges. Plus haut, le Monastère des Neiges était assiégé."},
+  {"act": "Acte VIII : le Flocon de l'Aube", "title": "Le monastère des neiges", "text": "Tu as repoussé les yétis réveillés par une avalanche de l'Ordre. Mère Ysolde a accepté de te révéler la légende que garde son monastère."},
+  {"act": "Acte VIII : le Flocon de l'Aube", "title": "L'enfant du ciel", "text": "Dans la bibliothèque gelée, les moines ont lu la légende : le dieu venu du ciel a eu un enfant avec une femme de Valdoria, et ses descendants vivent encore. Forest t'a fixé longtemps."},
+  {"act": "Acte VIII : le Flocon de l'Aube", "title": "Le col des tempêtes", "text": "Dans le blizzard du col, Brenna a refusé de te frapper. Elle t'a laissé un message : « Le Maître a un piège au sommet. »"},
+  {"act": "Acte VIII : le Flocon de l'Aube", "title": "Le sanctuaire de givre", "text": "Grâce à Brenna, tu as évité le piège. Mais la silhouette masquée tenait déjà le Flocon de l'Aube, et elle a réveillé Hrimgar, le géant des glaces."},
+  {"act": "Acte VIII : le Flocon de l'Aube", "title": "Le Flocon de l'Aube", "text": "Tu as vaincu Hrimgar, mais le masqué s'est enfui avec le Flocon de l'Aube : l'Ordre a gagné cette manche. Brenna, blessée en tentant de l'arrêter, a rejoint ton camp et forge désormais pour toi. Au loin, la prison du Nécromancien commence à se fissurer."}
 ];
 function showStory() {
   const p = G.profile; if (!p) return;
@@ -3469,9 +3822,9 @@ function showJournal() {
 // p.hf = { id: date de déblocage }, p.hfStats = compteurs de combat, p.hfTitle = titre choisi.
 // Les anciennes sauvegardes débloquent sans notification ce qui est déjà acquis (histoire, niveau, zones, équipement…).
 const HF_CATS = ['Histoire', 'Boss', 'Combat', 'Niveaux', 'Exploration', 'Équipement', 'Fortune'];
-const HF_ACT_TITLES = ['Héros de la Plaine', 'Fléau du Nord', 'Lumière du Reflet', 'Gardien du Cristal', 'Enfant de la Sylve', 'Porteur de braise'];
+const HF_ACT_TITLES = ['Héros de la Plaine', 'Fléau du Nord', 'Lumière du Reflet', 'Gardien du Cristal', 'Enfant de la Sylve', 'Porteur de braise', 'Ami des tritons', 'Héros du Givreval'];
 const HF_BOSS_TITLES = { ogre:"Briseur d'ogres", zombiegeant:'Chasseur de nécromants', demon:'Pourfendeur de démons', pretresse:'Fléau du Soleil noir',
-  eclipse:"Lame de l'Aube", bourreau:"Rempart d'Aubépine", grandtreant:'Sauveur de la Sylve', ignarok:'Tueur de dragon' };
+  eclipse:"Lame de l'Aube", bourreau:"Rempart d'Aubépine", grandtreant:'Sauveur de la Sylve', ignarok:'Tueur de dragon', kraken:'Dompteur du Kraken', hrimgar:'Briseur de glace' };
 function hfStats(p) { const s = p.hfStats = p.hfStats || {}; for (const k of ['wins','kills','flawless','bossFlawless','fast','close']) s[k] = s[k] || 0; s.k = s.k || {}; return s; }
 let HF = null;
 function hfList() {
@@ -3483,7 +3836,7 @@ function hfList() {
   const acts = []; STORY_RECAP.forEach((r, i) => { const a = acts.find(x => x.act===r.act); if (a) a.last = i; else acts.push({ act:r.act, first:i, last:i }); });
   acts.forEach((a, n) => add('Histoire', 'acte'+(n+1), a.act.replace(/^Acte ([IVX]+) : (.)/, (m, r, c) => c.toUpperCase()), `Terminer l'acte ${a.act.split(' ')[1]}`, 20,
     p => p.story > a.last, p => [Math.max(0, Math.min(p.story, a.last+1) - a.first), a.last - a.first + 1], HF_ACT_TITLES[n]));
-  const side = QUESTS.filter(q => !q.main), sideDone = p => side.filter(q => done(p, q)).length;
+  const side = QUESTS.filter(q => !q.main && !q.cls), sideDone = p => side.filter(q => done(p, q)).length;
   add('Histoire', 'serviable', 'Serviable', 'Accomplir 5 quêtes secondaires', 10, ...cnt(5, sideDone), 'le Serviable');
   add('Histoire', 'amiValdoria', 'Ami de Valdoria', `Accomplir les ${side.length} quêtes secondaires`, 30, ...cnt(side.length, sideDone), 'Ami de Valdoria');
   // Boss : vaincre le chef de chaque zone de boss (les anciennes sauvegardes comptent la quête principale terminée)
@@ -3592,14 +3945,14 @@ function showMenu() {
   const chars = characters();
   const card = k => { const c = CLASSES[k];
     return `<button class="cls" data-cls="${k}"><img class="por" src="${SPRITES[c.sprite+'_idle_anim_f0']}" alt=""><h3>${c.name}</h3><div>${c.desc}</div><div style="margin-top:6px;font-size:13px">${c.hp} PV · ${c.pa} PA · ${c.pm} PM</div><ul>${c.spells.map(s=>`<li><b>${s.name}</b> (${s.pa} PA) : ${s.desc}</li>`).join('')}</ul></button>`; };
-  overlay(`<h1>Héritiers de l'Aube</h1><p>Un petit RPG tactique au tour par tour, dans le monde de <b>Valdoria</b>. Le Cristal qui protégeait <b>Aubépine</b>, ton village, a été volé. Avec <b>Forest</b>, ton fidèle chat noir, suis l'histoire en six actes, accomplis des quêtes, libère les ${FIGHT_ZONES.length} zones des six régions de Valdoria !</p>
+  overlay(`<h1>Héritiers de l'Aube</h1><p>Un petit RPG tactique au tour par tour, dans le monde de <b>Valdoria</b>. Le Cristal qui protégeait <b>Aubépine</b>, ton village, a été volé. Avec <b>Forest</b>, ton fidèle chat noir, suis l'histoire en huit actes, accomplis des quêtes, libère les ${FIGHT_ZONES.length} zones des six régions de Valdoria !</p>
     <div id="fileBox"></div>
     ${chars.length ? `<h3>Reprendre un personnage</h3><div class="chars">${chars.map((c,i) => `<div class="charrow"><img src="${SPRITES[CLASSES[c.cls].sprite+'_idle_anim_f0']}" alt="">
       <div class="txt"><b>${c.name || CLASSES[c.cls].name}${heroTitle(c) ? ` <small style="display:inline;color:var(--gold)">« ${heroTitle(c)} »</small>` : ''}</b><small>${CLASSES[c.cls].name} niv. ${c.level} · chapitre ${Math.min(c.story+1, MAIN.length)}/${MAIN.length} · 🏆 ${hfPoints(c)} pts</small></div>
       <button class="btn" data-play="${i}"${i===0 ? ' id="cont"' : ''}>Jouer</button><button class="btn alt sm" data-exp="${i}" title="Exporter ce personnage">💾</button><button class="btn alt sm" data-del="${i}" title="Supprimer ce personnage">🗑</button></div>`).join('')}</div>
       <h3>Nouveau personnage</h3>` : ''}
     <div class="namebox"><label for="heroName">Nom de ton héros :</label> <input id="heroName" maxlength="16" placeholder="Choisis un nom" autocomplete="off"></div>
-    <div class="classes">${card('guerrier')}${card('mage')}</div>
+    <div class="classes">${Object.keys(CLASSES).map(card).join('')}</div>
     <p class="help">Chaque tour, tu as des <b style="color:var(--pa)">PA</b> (points d'action) pour lancer des sorts et des <b style="color:var(--pm)">PM</b> (points de mouvement) pour te déplacer d'une case chacun.<br>
     Les rochers et les arbres bloquent le passage et la ligne de vue, l'eau bloque seulement le passage. Chaque attaque a ${Math.round(CRIT_CHANCE*100)} % de chance (plus avec l'Agilité) d'être un <b style="color:#ffd04a">coup critique</b> (+50 % de dégâts), pour toi comme pour les monstres. Combats et quêtes rapportent de l'expérience pour monter de niveau, de l'or et de l'équipement. Ta progression est sauvegardée automatiquement.</p>
     <p><button class="btn alt" id="saveMenu">💾 Importer un personnage</button><button class="btn alt" id="guideMenu">📖 Guides</button></p>
@@ -3668,7 +4021,7 @@ function fightKills() {
 }
 function showRoomCleared() {
   const d = G.dungeon, z = G.zone, p = G.profile;
-  const xp = Math.round(G.units.filter(u => u.team==='enemy' && !u.summoned).reduce((a,u) => a + MONSTERS[u.kind].xp, 0) * (1 + z.tier*0.15));
+  const xp = Math.round(G.units.filter(u => u.team==='enemy' && !u.summoned).reduce((a,u) => a + MONSTERS[u.kind].xp, 0) * (1 + z.tier*0.15) * (1 + luneXp()));
   const ups = addXp(xp);
   hfFight(true);
   const done = progressQuests({ kills: fightKills() }), drops = rollDrops();
@@ -3688,7 +4041,7 @@ function showVictory() {
   const z = G.zone, p = G.profile, first = !z.extra && !p.cleared.includes(z.id);
   if (first) p.cleared.push(z.id);
   groupBeaten();
-  const xp = Math.round(G.units.filter(u => u.team==='enemy' && !u.summoned).reduce((a,u) => a + MONSTERS[u.kind].xp, 0) * (1 + z.tier*0.15) * (first ? 1.5 : 1));
+  const xp = Math.round(G.units.filter(u => u.team==='enemy' && !u.summoned).reduce((a,u) => a + MONSTERS[u.kind].xp, 0) * (1 + z.tier*0.15) * (first ? 1.5 : 1) * (1 + luneXp()));
   const ups = addXp(xp);
   const loot = rollLoot(z, first), drops = rollDrops();
   hfFight(true);
@@ -3722,12 +4075,13 @@ function showDefeat() {
 // Les PNJ s'y tiennent (« ! » = ils ont quelque chose à te dire), le marchand attend dans les villages
 // et les ennemis de la zone sont visibles : leur parler lance le combat. La carte du monde (M) sert au voyage rapide.
 // Lieu fixe de certains PNJ ; les autres (Lune, Garrick…) suivent l'histoire et attendent au village de la région de leur quête.
-const NPC_HOME = { maela:'village', bastien:'village', orwin:'ermitage', ilys:'pelerins', neria:'fees', fee:'fees', cerf:'licornes', durgan:'haltecendres', brenna:'haltecendres' };
-const NPC_IDLE = { maela:"Aubépine compte sur toi, {héros}. Et sur Forest, bien sûr.", bastien:'Mes champs reprennent vie grâce à toi ! Passe quand tu veux.',
+const NPC_HOME = { maela:'village', bastien:'village', corwin:'village', orwin:'ermitage', ilys:'pelerins', neria:'fees', fee:'fees', cerf:'licornes', durgan:'haltecendres', brenna:'camp', coralie:'portecume', ysolde:'refuge' };
+const NPC_IDLE = { corwin:"Les ombres d'Aubépine veillent sur toi, {héros}.", maela:"Aubépine compte sur toi, {héros}. Et sur Forest, bien sûr.", bastien:'Mes champs reprennent vie grâce à toi ! Passe quand tu veux.',
   lune:'Fais attention à toi, {héros}. Et garde Forest près de toi.', garrick:'Toujours prêt pour la route ? Le danger ne dort jamais.',
   orwin:'Ces ruines ont encore bien des secrets, mon ami.', ilys:"La lumière de l'Aube veille sur toi, {héros}.", neria:'La forêt se souvient de ceux qui l\'aident.',
   fee:'Hi hi ! Forest a encore essayé d\'attraper un papillon !', cerf:"(Le Cerf d'argent incline doucement la tête.)",
-  durgan:'Par ma barbe ! Un bon marteau et un bon héros, voilà ce qu\'il faut.', brenna:'Un jour, je forgerai une arme digne de toi !' };
+  durgan:'Par ma barbe ! Un bon marteau et un bon héros, voilà ce qu\'il faut.', brenna:'Un jour, je forgerai une arme digne de toi !',
+  coralie:"Notre chant tiendra Thalassar aussi longtemps qu'il le faudra. Merci, {héros}.", ysolde:'Que la lumière du sommet guide tes pas, {héros}.' };
 // Ce que dit le chef du groupe d'ennemis quand on lui parle
 const FOE_TALK = { gobelin:"Hé hé ! Encore un voyageur tout seul… Donne-nous ton or, et vite !", chaman:"Les esprits m'ont prévenu de ta venue, {héros}. Ils m'ont aussi dit que tu ne repartirais pas.",
   gluant:'Blop… blop… GLORP ! (Le Gluant ondule d\'un air menaçant.)', orc:'Un Orc ne recule jamais ! Approche, que je te montre ma hache.',
@@ -3743,7 +4097,12 @@ const FOE_TALK = { gobelin:"Hé hé ! Encore un voyageur tout seul… Donne-nous
   bete:'(La bête corrompue gronde, les yeux luisants de magie noire.)', treant:'Craaac… La forêt souffre… et toi… tu vas souffrir aussi…',
   champignon:'Pfffff… (Un nuage de spores toxiques s\'élève autour de toi.)', grandtreant:'Mille ans… j\'ai protégé cette forêt… Maintenant… la forêt… appartient à l\'Ordre !',
   salamandre:'Ssshhh… Ici, tout brûle. Même les héros.', elemfeu:'FLAMMES ! CENDRES ! Forgefeu tombera !', golem:'(Le Golem de lave se redresse dans un grondement de roche fondue.)',
-  ignarok:'Un petit héros vient réclamer la Braise d\'Aube ? Elle dort au fond de mon cratère… Viens donc la chercher.' };
+  ignarok:'Un petit héros vient réclamer la Braise d\'Aube ? Elle dort au fond de mon cratère… Viens donc la chercher.',
+  marin:"Hé, toi ! L'Ordre paie bien. Mais pas pour les curieux.", pirate:'(Le pirate noyé ricane, de l\'eau de mer plein la mâchoire.)', crabe:'(Clac ! Clac ! Les pinces géantes claquent dans ta direction.)',
+  anguille:'(Une décharge crépite dans l\'eau autour de toi.)', meduse:'(La méduse ondule doucement… ses filaments brillent d\'un éclat menaçant.)', triton:"L'Ordre nous a promis la mer entière. Ta cité, tes tritons… tout sera à nous !",
+  kraken:'(Des tentacules immenses surgissent des abysses. Deux yeux d\'or s\'ouvrent dans le noir.)', loup:'(Les loups des neiges grognent et t\'encerclent lentement.)',
+  yeti:'GRAAAAH ! (Le yéti martèle la neige de ses poings.)', golemglace:'(Le golem de glace se redresse dans un craquement de givre.)',
+  hrimgar:'QUI… OSE… ME RÉVEILLER ? Petit homme… tu vas geler… pour mille ans.' };
 const FOE_AGAIN = 'Encore toi ?! Cette fois, on ne se laissera pas faire !';
 const hubOf = r => (ZONES.find(z => z.icon==='village' && regionOf(z.id)===r) || ZONES[0]).id;
 const strHash = s => { let h = 7; for (const ch of s) h = (Math.imul(h, 31) + ch.charCodeAt(0)) | 0; return (h >>> 0) % 2147483646 + 1; };
@@ -3797,6 +4156,20 @@ const SCENE_KIT = {
   grandeforge: { n:23, rocks:12, floor:8, props:{ anvil:6, fire:4, pillar:4 } },
   forgeoubliee: { n:23, rocks:16, floor:5, ponds:4, props:{ anvil:4, statue:3 } },
   cratere: { n:23, rocks:24, lake:[0,-5,6,3.6], props:{ bones:2 } },
+  portecume: { n:19, tree:.5, rocks:10, ponds:3, props:{ cart:2, fence:4, well:1 } },
+  quais: { n:23, tree:.3, rocks:14, lake:[4,1,5,4], props:{ cart:2, fence:6 } },
+  recifs: { n:23, tree:.2, rocks:30, ponds:8, props:{ bones:2 } },
+  thalassar: { n:23, rocks:12, floor:7, props:{ pillar:10, statue:3 } },
+  jardins: { n:23, rocks:26, ponds:5, props:{ statue:2, mushroom:6 } },
+  amphitheatre: { n:23, rocks:10, floor:8, props:{ pillar:8, statue:4 } },
+  abysses: { n:23, rocks:20, lake:[0,-5,6,3.6], props:{ bones:3, pillar:2 } },
+  refuge: { n:19, tree:.7, rocks:12, props:{ tent:3, fire:2, cart:1 } },
+  sentiers: { n:23, tree:.75, rocks:34, props:{ bones:2 } },
+  monastere: { n:23, tree:.4, rocks:12, floor:6, props:{ wall:14, statue:2, pillar:2 } },
+  bibliogelee: { n:23, rocks:10, floor:6, ponds:4, props:{ shelf:10, pillar:4 } },
+  coltempetes: { n:23, tree:.3, rocks:40, props:{ tent:2, totem:2 } },
+  sanctgivre: { n:23, rocks:14, floor:7, props:{ altar:1, pillar:6, statue:2 } },
+  sommet: { n:23, rocks:24, lake:[0,-5,6,3.6], props:{ bones:2 } },
 };
 const BIG_PROPS = ['mill', 'tower', 'ruin', 'bigtree', 'cave'];
 function sceneKit(z) {
@@ -3880,6 +4253,14 @@ function sceneOf(id) {
   const bench = hub ? at([[-2,-3],[-3,-2],[3,2],[2,3],[-1,-3],[-3,-1],[1,-3],[-3,1]]).find(c => reserve(...c)) || null : null, nodes = [];
   if (!hub) for (const job of JOB_IDS) for (let k=0; k<80; k++) { const x = rc(), y = rc();
     if (man(x,y,...C) >= 2 && reserve(x,y)) { nodes.push({ x, y, job, t:Math.min(JOB_REQ.length-1, regionOf(id)-1) }); break; } }
+  // trésors des zones de combat, forgeron / auberge / habitants des villages (voir « Trésors et villages vivants »)
+  const spot = (ok, tries=500) => { for (let k=0; k<tries; k++) { const x = rc(), y = rc(); if (ok(x,y) && reserve(x,y)) return [x,y]; } return null; };
+  let chest = null, herb = null, secret = null, smith = null, inn = null; const folk = [];
+  if (z.foes) { const T = treasureZones(); chest = T.chest.has(id) ? spot((x,y) => man(x,y,...C) >= 5) : null; herb = T.herb.has(id) ? spot((x,y) => man(x,y,...C) >= 4 && (!chest || man(x,y,...chest) >= 5)) : null;
+    secret = !T.secret.has(id) ? null : spot((x,y) => man(x,y,...C) >= 7 && (x<=2 || y<=2 || x>=N-3 || y>=N-3)) || spot((x,y) => man(x,y,...C) >= 6); }
+  if (hub) { smith = at([[3,-1],[-1,3],[4,-2],[-2,4],[3,1],[1,3]]).find(c => reserve(...c)) || null;
+    inn = at([[-3,1],[1,-4],[-4,1],[1,4],[-3,-1],[-1,-4]]).find(c => reserve(...c)) || null;
+    for (let i=0; i<3; i++) { const h = spot((x,y) => { const d = man(x,y,...C); return d>=3 && d<=6; }); if (h) folk.push(h); } }
   // 4) maisons dans les villages, champs de blé et dallages, mares, petits éléments du décor, puis rochers / arbres
   if (hub) for (const [x,y] of at([[-4,-4],[4,-4],[-4,4],[4,4],[-4,0],[4,0],[0,-5],[-6,-2],[6,2],[-2,6],[2,-6]])) putTile(x, y, 4);
   const patch = (t, w, h, x0, y0) => { for (let y=y0; y<y0+h; y++) for (let x=x0; x<x0+w; x++) if (inS(x,y) && g[y][x]===0 && !nearExit(x,y)) g[y][x] = t; };
@@ -3892,10 +4273,10 @@ function sceneOf(id) {
     let x = rc(), y = rc(); const [a,b] = R()<.5 ? [1,0] : [0,1], len = 2 + (R()*3|0);
     for (let j=0; j<len && i<n; j++, x+=a, y+=b) if (putProp(x, y, kind)) i++; else break; }
   for (let i=0, k=0, n=K.rocks; i<n && k<n*20; k++) { const x = R()*N|0, y = R()*N|0; if (putTile(x,y,1)) i++; }
-  return SCENES[id] = { id, n:N, c:C, grid:g, exits, slots, shop, crystal, bench, nodes, homes, props, tree: K.tree, dead: !!K.dead, foe: homes[0] || null };
+  return SCENES[id] = { id, n:N, c:C, grid:g, exits, slots, shop, crystal, bench, nodes, homes, props, chest, herb, secret, smith, inn, folk, tree: K.tree, dead: !!K.dead, foe: homes[0] || null };
 }
 // PNJ présents dans une zone : ceux qui ont une quête à te confier ici (« ! »), puis les habitués
-const sceneMet = n => QUESTS.some(q => q.npc===n && G.profile.quests[q.id]);
+const sceneMet = n => (n==='brenna' && forgeOpen()) || QUESTS.some(q => q.npc===n && G.profile.quests[q.id]);
 // Un PNJ qui a une quête t'attend chez lui si c'est dans la région de l'objectif ; sinon il vient au village de cette région (pas de détour)
 function talkPlace(sc) { const q = questById(sc.quest), mq = q.main ? q : questById(q.startsWith) || q, i = MAIN.indexOf(mq);
   // le PNJ t'attend au village de la région où tu viens de finir la quête précédente (là où tu es), ou chez lui s'il habite cette région
@@ -3974,6 +4355,8 @@ function sceneFree(x,y) {
   if (s.shop && s.shop[0]===x && s.shop[1]===y) return false;
   if (s.crystal && s.crystal[0]===x && s.crystal[1]===y) return false;
   if (s.bench && s.bench[0]===x && s.bench[1]===y) return false;
+  for (const c of [s.chest, s.herb, s.secret, s.smith, s.inn]) if (c && c[0]===x && c[1]===y) return false;
+  if (sceneFolk().some(v => v.x===x && v.y===y)) return false;
   if (s.nodes.some(n => n.x===x && n.y===y)) return false;
   if (sceneNpcs(s.id).some(n => n.x===x && n.y===y)) return false;
   return !sceneFoes().some(f => f.x===x && f.y===y);
@@ -4119,7 +4502,7 @@ function drawProp(p, now) {
 }
 // rochers et arbres d'une scène (part d'arbres propre au lieu, arbres morts dans les lieux sinistres)
 function drawSceneRock(x, y, s) {
-  const v = hash(y,x), tree = !isVolcano() && v < s.tree;
+  const v = hash(y,x), tree = !isVolcano() && !isDeep() && v < s.tree;
   if (tree && s.dead && v < s.tree*.45) { const [cx,cy] = iso(x,y); ctx.fillStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx,cy+3,20,8,0,0,7); ctx.fill(); return drawSprite(propArt().deadtree, cx, cy+8, SC, v*100%2<1); }
   const [cx,cy] = iso(x,y), img = tree ? (isNorth() ? DECOR.snowTrees : DECOR.trees)[(v*30|0)%3] : DECOR.rocks[(v*30|0)%3];
   ctx.fillStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx,cy+3,tree?20:26,tree?8:10,0,0,7); ctx.fill();
@@ -4147,7 +4530,7 @@ function sceneArt() {
     [[4,'#e8b94a'],[7,'#9be36a'],[10,'#4aa3ff'],[13,'#e2554a'],[16,'#e8b94a']].forEach(([x,c]) => { px(x,10,c); px(x+1,10,c); px(x,9,c); });
   }), '#1d140c');
 }
-const houseKind = () => { const r = regionOf(G.profile.pos); return r===2 ? 'snow' : r===5 ? 'wood' : r===4 || r===6 ? 'stone' : 'plain'; };
+const houseKind = () => { const r = regionOf(G.profile.pos); return r===2 || r===8 ? 'snow' : r===5 ? 'wood' : r===4 || r===6 ? 'stone' : 'plain'; };
 const npcImgCache = {};
 function npcFrame(n, now, off) {
   const d = NPCS[n];
@@ -4226,6 +4609,7 @@ function renderScene(now) {
     ctx.filter = 'hue-rotate(150deg)'; drawSprite(animFrame('dwarf_m', false, now, 2), cx+4, cy-4, SC, true); ctx.filter = 'none';
     drawSprite(STALL, cx, cy+12, SC*.9); if (hv && hv.kind==='shop') tags.push(['Marchand', cx, cy-78]); } }); }
   drawJobThings(s, now, hv, ents, tags);
+  drawTreasures(s, now, hv, ents, tags);
   for (const n of sceneNpcs(s.id)) ents.push({ d:n.x+n.y, f:() => { const [cx,cy] = iso(n.x,n.y), d = NPCS[n.id], img = npcFrame(n.id, now, n.x);
     ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(cx,cy+2,17,7,0,0,7); ctx.fill();
     if (d.filter) ctx.filter = d.filter;
@@ -4258,7 +4642,7 @@ function renderScene(now) {
   for (const [t, x, y, col] of tags) drawTag(t, x - camx, y - camy, col);
   if (foeAt) drawFoePanel(z, foeAt[0] - camx, foeAt[1] - camy, foeAt[2]);
   if (!hv && $('#hint').textContent!==sceneHint()) $('#hint').textContent = sceneHint();
-  foeTick(now, s);
+  foeTick(now, s); folkTick(now, s);
 }
 // ---- souris ----
 function sceneTarget(e) {
@@ -4267,12 +4651,17 @@ function sceneTarget(e) {
   for (const n of sceneNpcs(s.id)) test(n.x, n.y, { kind:'npc', id:n.id, at:[n.x,n.y] });
   if (s.shop) test(...s.shop, { kind:'shop', at:s.shop });
   if (s.bench) test(...s.bench, { kind:'bench', at:s.bench }, 56);
+  for (const k of ['chest','herb','secret','smith','inn']) if (s[k]) test(...s[k], { kind:k, at:s[k] }, k==='smith' || k==='inn' ? 74 : 50);
+  for (const v of sceneFolk()) test(v.rx, v.ry, { kind:'folk', v, at:[v.x,v.y] });
   for (const n of s.nodes) test(n.x, n.y, { kind:'node', n, at:[n.x,n.y] }, n.job==='bucheron' ? 74 : 50);
   if (s.crystal && crystalState(s.id)) test(...s.crystal, { kind:'crystal', at:s.crystal }, 80);
   for (const f of sceneFoes()) test(f.rx, f.ry, { kind:'foe', g:f, at:[f.x,f.y] }, MONSTERS[f.kind].big ? 100 : 74);
   for (const ex of s.exits) if (ex.portal) test(ex.x, ex.y, { kind:'exit', e:ex, cell:[ex.x,ex.y] }, 80);
+  // clic sur la case même d'un élément bas (ressource, coffre…), par ex. du blé derrière un groupe de monstres : il passe avant ce qui le cache
+  const c = sceneCell(mx, my), onCell = c && hits.find(h => ['node','chest','herb','secret','bench'].includes(h.kind) && h.at[0]===c[0] && h.at[1]===c[1]);
+  if (onCell) return onCell;
   if (hits.length) return hits.sort((a,b) => b.d-a.d)[0];
-  const c = sceneCell(mx, my); if (!c) return null;
+  if (!c) return null;
   const ex = s.exits.find(x => x.x===c[0] && x.y===c[1]);
   return ex ? { kind:'exit', e:ex, cell:c } : { kind:'ground', cell:c };
 }
@@ -4287,6 +4676,12 @@ function sceneMove(e) {
     : t.kind==='exit' ? (isOpen(t.e.to) ? `Vers ${zoneById(t.e.to).name} : ${zoneById(t.e.to).desc}` : (neighbors(t.e.to).some(isCleared) || t.e.portal ? "L'histoire ne t'a pas encore mené par là : suis tes quêtes (touche Q)." : 'Passage bloqué : libère une zone voisine pour y accéder.'))
     : t.kind==='crystal' ? 'Le Cristal de la Plaine : clique pour le regarder de plus près.'
     : t.kind==='shop' ? 'Le marchand : achète de l\'équipement. Son stock change après chaque combat.'
+    : t.kind==='chest' ? (chestDone(z.id) ? 'Coffre vide : tu l\'as déjà ouvert.' : 'Un coffre ! Il ne s\'ouvre qu\'une fois : clique pour l\'ouvrir.')
+    : t.kind==='herb' ? (herbDone(z.id) ? 'Tu as déjà cueilli la fleur de lune de la région ici.' : 'Une fleur de lune, la seule de la région ! Clique pour la cueillir, puis apporte-la à Lune.')
+    : t.kind==='secret' ? (treasure().secrets.includes(z.id) ? 'La cache derrière le rocher fendu : déjà fouillée.' : 'Un rocher fendu… Il y a peut-être quelque chose derrière. Clique pour fouiller.')
+    : t.kind==='smith' ? 'Le forgeron : renforce ton équipement porté contre de l\'or (jusqu\'à +3).'
+    : t.kind==='inn' ? 'L\'auberge : un repas chaud pour tes prochains combats, et des rumeurs sur les passages secrets.'
+    : t.kind==='folk' ? `${t.v.name}, un habitant : clique pour lui parler.`
     : t.kind==='bench' ? "L'atelier : clique pour fabriquer de l'équipement et des consommables avec tes ressources (J : métiers)."
     : t.kind==='node' ? `${nodeText(z.id, t.n)} : clique pour récolter (J : métiers).`
     : t.kind==='npc' ? `${NPCS[t.id].name} : clique pour lui parler.`
@@ -4333,12 +4728,23 @@ async function sceneClick(e) {
     if (G.foeTarget===g) G.foeTarget = null;
     if (!ok || G.profile.pos!==from || G.mode!=='map' || g.dead) return;
     face(G.walker, g.x, g.y); dirty = true; return talkFoe(g); }
+  if (t.kind==='folk') { // l'habitant s'arrête le temps que le héros le rejoigne
+    const v = t.v; G.folkTarget = v;
+    const ok = await walkTo((x,y) => man(x,y,v.x,v.y)===1);
+    if (G.folkTarget===v) G.folkTarget = null;
+    if (!ok || G.profile.pos!==from || G.mode!=='map') return;
+    face(G.walker, v.x, v.y); v.face = G.walker.x > v.x || G.walker.y < v.y ? 1 : -1; dirty = true; return talkFolk(v); }
   const [tx,ty] = t.at;
   if (!await walkTo((x,y) => man(x,y,tx,ty)===1) || G.profile.pos!==from) return;
   face(G.walker, tx, ty); dirty = true;
   if (t.kind==='crystal') showCrystal();
   else if (t.kind==='shop') showShop();
   else if (t.kind==='bench') showJobs('fab');
+  else if (t.kind==='chest') openChest();
+  else if (t.kind==='herb') pickHerb(t.at);
+  else if (t.kind==='secret') openSecret();
+  else if (t.kind==='smith') showSmith();
+  else if (t.kind==='inn') showInn();
   else if (t.kind==='node') harvest(t.n);
   else talkTo(t.id);
 }
@@ -4354,10 +4760,34 @@ function talkTo(n) {
 function talkAll() { G.scenes.forEach(s => s.talk = false); showNextScene(); }
 const portraitOf = (src, filter) => `<img class="portrait" src="${src}" alt="" style="object-fit:contain${filter ? ';filter:' + filter : ''}">`;
 function talkIdle(n) {
+  if (n==='brenna' && forgeOpen()) return showForge();
   const d = NPCS[n], q = activeQuests().find(q => q.main);
   overlay(`<div class="scene">${portraitOf(d.src || SPRITES[d.sprite], d.filter)}<div class="say"><small class="who">${d.name}</small><h2>${d.name.split(',')[0]}</h2>
-    <p>« ${fillHero(NPC_IDLE[n] || 'Bonne route, {héros} !')} »</p>${q ? `<p class="goal">🎯 ${goalText(q)}<br><small>Quête principale : ${q.title}</small></p>` : ''}
-    <div style="text-align:right"><button class="btn" id="b1">Au revoir</button></div></div></div>`, true);
+    <p>« ${fillHero(NPC_IDLE[n] || 'Bonne route, {héros} !')} »</p>${n==='lune' && treasure().lune ? `<p class="help">🌸 Amitié : ${luneRank(treasure().lune)} (${treasure().lune} / ${FLOWER_TOTAL()} fleurs offertes) · +${Math.round(luneXp()*100)} % d'expérience en combat</p>` : ''}${q ? `<p class="goal">🎯 ${goalText(q)}<br><small>Quête principale : ${q.title}</small></p>` : ''}
+    <div style="text-align:right">${n==='lune' && treasure().flowers ? `<button class="btn alt" id="b3">Offrir mes fleurs de lune (${treasure().flowers})</button>` : ''}<button class="btn" id="b1">Au revoir</button></div></div></div>`, true);
+  $('#b1').onclick = () => { hideOverlay(); showNextScene(); }; if ($('#b3')) $('#b3').onclick = giveFlowers;
+}
+// ---------- Forge de Brenna (après l'acte VIII) : renforcer l'équipement porté ----------
+const FORGE_MAX = 5, FORGE_STEP = 0.1;
+const forgeOpen = () => !!G.profile && G.profile.story >= 48;
+const forgeCost = it => Math.round(Math.max(80, it.value) * 3 * ((it.up || 0) + 1)); // le prix d'achat chez le marchand, multiplié par le niveau visé
+function forgeUp(it) {
+  it.base = it.base || { ...it.stats }; it.up = (it.up || 0) + 1;
+  for (const [st,v] of Object.entries(it.base)) if (st==='vie' || st==='puissance' || st==='resistance') it.stats[st] = v + Math.max(it.up, Math.round(v * FORGE_STEP * it.up));
+  it.name = it.name.replace(/ \+\d+$/, '') + ' +' + it.up; it.value = Math.round(it.value * 1.1);
+}
+function showForge() {
+  const p = G.profile, d = NPCS.brenna, eq = Object.values(p.equip || {}).filter(Boolean);
+  const cards = eq.map(it => { const c = forgeCost(it), max = (it.up || 0) >= FORGE_MAX;
+    return itemCard(it, { btns:[['forge', max ? 'Déjà au maximum' : `Renforcer (+${(it.up || 0) + 1}) · ${c} or`, max || p.gold < c]] }); }).join('')
+    || '<p class="help">Tu ne portes aucun équipement.</p>';
+  overlay(`<div class="scene">${portraitOf(SPRITES[d.sprite], d.filter)}<div class="say"><small class="who">${d.name}</small><h2>La forge de Brenna</h2>
+    <p>« ${fillHero("Montre-moi ce que tu portes, {héros}. Chaque passage à ma forge renforce une pièce d'environ 10 %, jusqu'à +5.")} »</p></div></div>
+    ${statsLine()}<div class="items">${cards}</div><button class="btn" id="b1">Au revoir</button>`, true);
+  document.querySelectorAll('#overlay [data-act="forge"]').forEach(b => b.onclick = () => {
+    const it = eq.find(i => String(i.id)===b.dataset.id), c = it && forgeCost(it);
+    if (!it || p.gold < c || (it.up || 0) >= FORGE_MAX) return;
+    p.gold -= c; forgeUp(it); save(); refreshMapTitle(); showForge(); });
   $('#b1').onclick = () => { hideOverlay(); showNextScene(); };
 }
 const spriteSrcCache = {};
@@ -4420,9 +4850,197 @@ function openWorldMap() {
 }
 function toggleWorldMap() { if (G.mode!=='map' || G.travel || !$('#overlay').classList.contains('hide')) return; if (G.view==='world') enterZone(G.profile.pos, null, true); else openWorldMap(); }
 
+// ---------- Trésors et villages vivants ----------
+// Chaque région cache 2 coffres (à ouvrir une seule fois, belles récompenses) et 1 fleur de lune, dans deux ou trois de ses zones
+// de combat ; chaque région a aussi un passage secret derrière un rocher fendu (une seule fois). Les fleurs rapportées à Lune
+// renforcent votre amitié et donnent un bonus permanent d'expérience. Villages : le forgeron renforce l'équipement porté (or + minerai,
+// jusqu'à +3), l'auberge sert un repas chaud et des rumeurs, et quelques habitants se promènent. État gardé dans p.treasure.
+const SMITH_MAX = 3, LUNE_XP = 0.03; // renforcements au forgeron du village ; bonus d'expérience par fleur offerte à Lune
+function treasure(p = G.profile) { const t = p.treasure || (p.treasure = {}); t.opened = t.opened || []; t.picked = t.picked || []; t.secrets = t.secrets || []; t.flowers = t.flowers || 0; t.lune = t.lune || 0; return t; }
+// zones qui portent les coffres et la fleur de chaque région (toujours les mêmes, tirées d'après leur nom)
+let TREASURE_ZONES = null;
+function treasureZones() {
+  if (TREASURE_ZONES) return TREASURE_ZONES;
+  TREASURE_ZONES = { chest: new Set(), herb: new Set(), secret: new Set() };
+  for (const r of new Set(ZONES.map(z => regionOf(z.id)))) {
+    const l = ZONES.filter(z => z.foes && regionOf(z.id)===r).map(z => z.id).sort((a,b) => strHash(a+'trésor') - strHash(b+'trésor'));
+    l.slice(0, 2).forEach(id => TREASURE_ZONES.chest.add(id)); if (l.length) { TREASURE_ZONES.herb.add(l[2] || l[0]); TREASURE_ZONES.secret.add(l[3] || l[l.length-1]); }
+  }
+  return TREASURE_ZONES;
+}
+const chestDone = id => treasure().opened.includes(id), herbDone = id => treasure().picked.includes(id);
+const FLOWER_TOTAL = () => treasureZones().herb.size;
+const SECRET_TOTAL = () => ZONES.filter(z => sceneOf(z.id).secret).length;
+// amitié avec Lune : une fleur offerte = +3 % d'expérience gagnée en combat, pour toujours
+const luneXp = (p = G.profile) => (p.treasure && p.treasure.lune || 0) * LUNE_XP;
+const LUNE_RANKS = [[0,'Inconnue'],[1,'Connaissance'],[3,'Amie'],[5,'Grande amie'],[8,'Confidente']];
+const luneRank = n => LUNE_RANKS.filter(([k]) => n >= k).pop()[1];
+function treasureBox(title, text, it, kept, help) {
+  overlay(`<h2>${title}</h2><div class="loot"><img class="chest" src="${SPRITES.chest_full_open_anim_f2}" alt=""><b>${text}</b></div>
+    ${it ? `<div class="items">${itemCard(it, { diff:true, btns: kept ? [['equip','Équiper']] : [['none','Sac plein : vendu',true]] })}</div>` : ''}
+    ${help ? `<p class="help">${help}</p>` : ''}
+    <div style="text-align:center"><button class="btn alt" id="b2">Mon équipement</button><button class="btn" id="b1">Reprendre l'exploration</button></div>`, true);
+  bindItemButtons();
+  $('#b1').onclick = () => { hideOverlay(); showNextScene(); }; $('#b2').onclick = () => showBag();
+}
+function openChest() {
+  const p = G.profile, z = zoneById(p.pos), t = treasure(), tier = z.tier || 0;
+  if (chestDone(z.id)) { banner('Coffre vide : tu l\'as déjà ouvert.'); return; }
+  const rar = regionOf(z.id)===1 ? 1 : 2; let it = genItem(tier + 2, p.cls); if (it.rarity < rar) it = genItem(tier + 2, p.cls, it.slot, rar);
+  const gold = rnd(40,60) * (1 + tier), kept = addToBag(it);
+  p.gold += gold; t.opened.push(z.id); play('piece'); save(); refreshMapTitle(); dirty = true;
+  const r = regionOf(z.id), mine = [...treasureZones().chest].filter(id => regionOf(id)===r), left = mine.filter(id => !chestDone(id)).length;
+  treasureBox('Un coffre !', `<img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> +${gold} or`, it, kept,
+    left ? `Il reste ${left} coffre dans ${REGION_NAMES[r]}.` : `Tu as ouvert les deux coffres de ${REGION_NAMES[r]}.`);
+}
+function openSecret() {
+  const p = G.profile, z = zoneById(p.pos), t = treasure(), tier = z.tier || 0;
+  if (t.secrets.includes(z.id)) { banner('La cache est vide : tu l\'as déjà fouillée.'); return; }
+  let it = genItem(tier + 1, p.cls); if (it.rarity < 1) it = genItem(tier + 1, p.cls, it.slot, 1);
+  const gold = rnd(25,40) * (1 + tier), kept = addToBag(it);
+  p.gold += gold; t.secrets.push(z.id); play('piece'); save(); refreshMapTitle(); dirty = true;
+  treasureBox('Un passage secret !', `Tu écartes les pierres fendues : derrière, une cache oubliée ! <img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> +${gold} or`, it, kept,
+    `Passages secrets trouvés : ${t.secrets.length} / ${SECRET_TOTAL()}. Les aubergistes connaissent des rumeurs sur les autres.`);
+}
+function pickHerb(n) {
+  const id = G.profile.pos, t = treasure();
+  if (herbDone(id)) return;
+  t.flowers++; t.picked.push(id); play('soin'); save(); dirty = true;
+  addSceneFloat(n[0], n[1], '+1 fleur de lune');
+  banner(`Fleur de lune cueillie ! Apporte-la à Lune, l'herboriste`);
+}
+// Lune reçoit les fleurs : l'amitié grandit et le héros gagne plus d'expérience en combat
+function giveFlowers() {
+  const t = treasure(), n = t.flowers; if (!n) return;
+  t.lune += n; t.flowers = 0; play('niveau'); save();
+  flashMsg(fillHero(`« Oh, ${n > 1 ? `${n} fleurs de lune` : 'une fleur de lune'} ! Merci, {héros}. » Amitié avec Lune : ${luneRank(t.lune)} (${t.lune} / ${FLOWER_TOTAL()} fleurs). Bonus permanent : +${Math.round(luneXp()*100)} % d'expérience en combat.`));
+  const b = $('#b3'); if (b) b.remove();
+}
+// ---- forgeron des villages : renforce un objet porté, de +1 à +3, contre de l'or et du minerai ----
+// Même renforcement que la forge de Brenna (forgeUp, it.up) : Brenna pourra ensuite pousser l'objet jusqu'à +5.
+function smithUp(it) { if (typeof forgeUp==='function') return forgeUp(it);
+  it.base = it.base || { ...it.stats }; it.up = (it.up || 0) + 1;
+  for (const [st,v] of Object.entries(it.base)) if (st==='vie' || st==='puissance' || st==='resistance') it.stats[st] = v + Math.max(it.up, Math.round(v * 0.1 * it.up));
+  it.name = it.name.replace(/ \+\d+$/, '') + ' +' + it.up; it.value = Math.round(it.value * 1.1);
+}
+const smithCost = it => Math.round(Math.max(40, it.value) * 0.5 * ((it.up || 0) + 1));
+const smithOre = it => { const t = Math.min(JOB_REQ.length-1, it.up || 0); return { id:'mineur'+t, name:resName('mineur', t), n: 4 + 2*(it.up || 0) }; };
+function showSmith() {
+  const p = G.profile, j = jobs(), eq = Object.values(p.equip).filter(Boolean);
+  const can = it => (it.up || 0) < SMITH_MAX && p.gold >= smithCost(it) && (j.res[smithOre(it).id] || 0) >= smithOre(it).n;
+  const label = it => { if ((it.up || 0) >= SMITH_MAX) return 'Déjà au maximum ici'; const o = smithOre(it); return `Renforcer (+${(it.up||0)+1}) : ${smithCost(it)} or + ${o.n} ${o.name} (tu en as ${j.res[o.id] || 0})`; };
+  overlay(`<h2>Le forgeron</h2><p>« Pose ça sur l'enclume, ${heroName()}. Avec de l'or et du minerai, je renforce ce que tu portes, jusqu'à +${SMITH_MAX}. »</p>${statsLine()}
+    <div class="items">${eq.map(it => itemCard(it, { btns:[['smith', label(it), !can(it)]] })).join('')
+      || '<p class="help">Tu ne portes aucun équipement. Équipe-toi d\'abord (touche E).</p>'}</div>
+    <p class="help">Chaque renforcement augmente d'environ 10 % les PV, les dégâts et la résistance de l'objet. Le minerai se récolte avec le métier de Mineur (touche J).</p>
+    <div style="text-align:center"><button class="btn alt" id="b2">Mon équipement</button><button class="btn" id="b1">Partir</button></div>`, true);
+  $('#overlay').querySelectorAll('[data-act=smith]').forEach(b => b.onclick = () => {
+    const it = eq.find(x => x.id===+b.dataset.id); if (!it || !can(it)) return;
+    const o = smithOre(it); p.gold -= smithCost(it); j.res[o.id] -= o.n; smithUp(it); play('equip'); save(); refreshMapTitle(); showSmith(); flashMsg(`${it.name} : renforcé !`); });
+  $('#b1').onclick = () => { hideOverlay(); showNextScene(); }; $('#b2').onclick = () => showBag(showSmith);
+}
+// ---- auberge : repas chaud (bonus des prochains combats) et rumeurs sur les passages secrets ----
+function showInn() {
+  const p = G.profile, j = jobs(), t = Math.min(JOB_REQ.length-1, regionOf(p.pos)-1), c = CONS['repas'+t], cost = 20 + 40*t;
+  const here = z => regionOf(z.id)===regionOf(p.pos) && isOpen(z.id), pick = l => l[Math.random()*l.length|0].name;
+  const chests = ZONES.filter(z => here(z) && treasureZones().chest.has(z.id) && !chestDone(z.id)), secrets = ZONES.filter(z => here(z) && sceneOf(z.id).secret && !treasure().secrets.includes(z.id));
+  const rumor = chests.length && (!secrets.length || Math.random() < .5) ? `Il paraît qu'un vieux coffre attend encore du côté de : <b>${pick(chests)}</b>.`
+    : secrets.length ? `On raconte qu'un rocher fendu cache un passage secret du côté de : <b>${pick(secrets)}</b>.`
+    : 'Je ne connais plus de trésor dans la région… Tu les as tous trouvés, ou il faudra pousser plus loin.';
+  overlay(`<h2>L'auberge</h2><p>« Entre te réchauffer, ${heroName()} ! Une bonne assiette avant de repartir ? »</p>
+    <p class="goal">🍲 ${c.name} : +${c.vie} % PV et +${c.puissance} % dégâts pendant tes ${MEAL_FIGHTS} prochains combats.${j.meal ? ` Il remplacera ton repas en cours (${CONS[j.meal.id].name}).` : ''}</p>
+    <p class="help">🗨 ${rumor}</p>
+    <div style="text-align:center"><button class="btn" id="b2"${p.gold < cost ? ' disabled' : ''}>Commander : ${cost} or</button><button class="btn alt" id="b1">Partir</button></div>`, true);
+  $('#b2').onclick = () => { if (p.gold < cost) return; p.gold -= cost; j.meal = { id:c.id, fights:MEAL_FIGHTS }; play('soin'); save(); refreshMapTitle(); showInn(); flashMsg(`Tu te régales : ${c.name}. Bonus actif pendant tes ${MEAL_FIGHTS} prochains combats.`); };
+  $('#b1').onclick = () => { hideOverlay(); showNextScene(); };
+}
+// ---- habitants des villages ----
+const FOLK_LOOKS = [['doc',''],['elf_m','hue-rotate(200deg)'],['dwarf_f','hue-rotate(120deg)'],['wizzard_f','hue-rotate(60deg) saturate(.7)'],['elf_f','hue-rotate(320deg) brightness(1.1)'],['dwarf_m','hue-rotate(260deg)']];
+const FOLK_NAMES = ['Tobias','Elna','Brune','Odile','Fenn','Gaspard','Margot','Ivo','Rosalie'];
+const FOLK_TALK = {
+  0: ['Les rochers fendus cachent parfois des trésors, à ce qu\'on dit.', 'Le forgeron peut renforcer ton équipement, avec de l\'or et un peu de minerai.', 'À l\'auberge, un bon repas te donne des forces pour tes prochains combats.',
+    'Lune adore les fleurs de lune, ces petites fleurs bleues qui brillent. Il n\'y en a qu\'une par région !', 'Méfie-toi des monstres au cercle rouge : ils attaquent dès qu\'ils te voient bouger.', 'On dit que chaque région cache deux vieux coffres.'],
+  1: ['Depuis le vol du Cristal, je n\'ose plus aller aux champs.', 'Ton chat noir a encore volé un poisson au marché !', 'Le vieux moulin grince toutes les nuits…', 'Bonjour, {héros} ! Belle journée, non ?'],
+  2: ['Brrr… Même les squelettes doivent avoir froid, ici.', 'Garrick dit que la tour du Nécromancien est maudite.', 'Ne marche pas sur le lac gelé, la glace craque.', 'Un feu, une soupe, et la vie est belle.'],
+  3: ['Ces ruines sont plus vieilles que tous les royaumes.', 'Orwin parle aux pierres. Et parfois, elles répondent.', 'Des livres flottent encore dans la bibliothèque engloutie.', 'Le soleil noir… rien que d\'y penser, j\'ai des frissons.'],
+  4: ['Les pèlerins viennent de loin pour voir le temple.', 'Le vent des sommets porte des prières.', 'La Gardienne veille sur nous.', 'Monter jusqu\'ici, c\'est déjà une épreuve !'],
+  5: ['Chut… les arbres écoutent.', 'Les fées adorent ton chat, {héros}.', 'Le Cerf d\'argent ne se montre qu\'aux cœurs purs.', 'Des champignons géants ? Ne les mange surtout pas.'],
+  6: ['La chaleur ne nous fait pas peur, nous les nains !', 'Forgefeu était la plus belle cité du monde.', 'Une bonne enclume vaut mieux qu\'un trésor.', 'Attention aux salamandres, elles mordent.'],
+};
+const folkLine = () => { const r = regionOf(G.profile.pos), l = [...(FOLK_TALK[r]||[]), ...FOLK_TALK[0]]; return fillHero(l[Math.random()*l.length|0]); };
+function sceneFolk() {
+  const s = sceneOf(G.profile.pos);
+  if (!G.folk || G.folk.zone!==s.id) { const h = strHash(s.id);
+    G.folk = { zone:s.id, chat:0, list: (s.folk||[]).map(([x,y], i) => ({ look: FOLK_LOOKS[(h+i*7) % FOLK_LOOKS.length], name: FOLK_NAMES[(h+i*5) % FOLK_NAMES.length],
+      x, y, rx:x, ry:y, hx:x, hy:y, face:1, next: performance.now() + Math.random()*3000, off: i*1.3 })) }; }
+  return G.folk.list;
+}
+function folkTick(now, s) {
+  if (G.travel || G.mode!=='map' || G.view!=='scene' || !$('#overlay').classList.contains('hide')) return;
+  const h = G.walker, list = sceneFolk(); if (!list.length) return;
+  for (const v of list) { if (v.moving || now < v.next || v===G.folkTarget) continue;
+    v.next = now + 1800 + Math.random()*3500; const [a,b] = DIRS[Math.random()*4|0], nx = v.x+a, ny = v.y+b;
+    if (man(nx,ny,v.hx,v.hy) <= 3 && sceneFree(nx,ny) && !(nx===h.x && ny===h.y) && !s.exits.some(e => man(e.x,e.y,nx,ny) <= 1)) {
+      const fx = v.x, fy = v.y; v.x = nx; v.y = ny; v.moving = true; v.face = (nx-fx)-(ny-fy) || v.face;
+      tween(700, k => { v.rx = fx+(nx-fx)*k; v.ry = fy+(ny-fy)*k; }).then(() => v.moving = false); } }
+  // de temps en temps, un habitant dit une phrase à voix haute
+  if (now > G.folk.chat) { G.folk.chat = now + 5000 + Math.random()*5000; const v = list[Math.random()*list.length|0]; v.say = { t: folkLine(), until: now + 3500 }; }
+}
+function talkFolk(v) {
+  const [sp, filter] = v.look;
+  overlay(`<div class="scene">${portraitOf(spriteSrc(sp), filter)}<div class="say"><small class="who">Un habitant</small><h2>${v.name}</h2>
+    <p>« ${folkLine()} »</p><div style="text-align:right"><button class="btn" id="b1">Au revoir</button></div></div></div>`, true);
+  $('#b1').onclick = () => { hideOverlay(); showNextScene(); };
+}
+// ---- dessin ----
+let TREASURE_ART = null;
+function treasureArt() {
+  if (TREASURE_ART) return TREASURE_ART;
+  const ol = c => outline(c, '#1d140c');
+  const rock = (px, open) => { for (let y=2;y<16;y++) for (let x=1;x<21;x++) { const dx = (x-10.5)/10, dy = (y-9.5)/7; if (dx*dx+dy*dy >= 1) continue;
+    if (open && x>7 && x<14 && y>5) continue; px(x,y, y<6 ? '#a8a29a' : x>14 ? '#6e6962' : '#8e8880'); }
+    if (!open) for (const [x,y] of [[10,3],[11,4],[10,5],[9,6],[10,7],[11,8],[11,9],[12,10],[11,11],[10,12],[13,9],[14,10]]) px(x,y,'#2a2420'); else for (let y=6;y<16;y++) for (let x=8;x<14;x++) px(x,y,'#120c0a'); };
+  TREASURE_ART = {
+    crack: ol(pixelCanvas(22,17, px => rock(px, false))), cave: ol(pixelCanvas(22,17, px => rock(px, true))),
+    flower: ol(pixelCanvas(12,16, px => { for (let y=7;y<16;y++) px(6,y,'#4f9a3a'); px(4,11,'#4f9a3a'); px(5,12,'#4f9a3a'); px(8,10,'#4f9a3a'); px(7,11,'#4f9a3a');
+      for (const [x,y] of [[6,2],[4,4],[8,4],[5,6],[7,6]]) { px(x,y,'#9fd8ff'); px(x+1,y,'#6ab0f0'); px(x,y+1,'#6ab0f0'); } px(6,4,'#fff6c0'); px(7,4,'#fff6c0'); })),
+    sprout: ol(pixelCanvas(12,16, px => { for (let y=10;y<16;y++) px(6,y,'#4f9a3a'); px(5,11,'#4f9a3a'); px(7,12,'#4f9a3a'); })),
+    inn: ol(pixelCanvas(16,26, px => { for (let y=0;y<26;y++) px(2,y,'#6b4524'); for (let x=2;x<14;x++) px(x,1,'#6b4524');
+      for (let y=3;y<11;y++) for (let x=6;x<15;x++) px(x,y, y===3||y===10||x===6||x===14 ? '#4e3119' : '#c9a66a');
+      for (let y=5;y<9;y++) for (let x=8;x<11;x++) px(x,y,'#e8c25a'); px(11,6,'#e8c25a'); px(11,7,'#e8c25a'); for (let x=8;x<11;x++) px(x,4,'#ffffff');
+      for (let y=17;y<26;y++) for (let x=4;x<15;x++) px(x,y, y===19||y===23 ? '#4e3119' : x>11 ? '#6b4524' : '#8a5a32'); })),
+  };
+  return TREASURE_ART;
+}
+function drawTreasures(s, now, hv, ents, tags) {
+  const A = treasureArt(), id = s.id, glow = (cx, cy, col, r=26) => { const g = ctx.createRadialGradient(cx,cy,2,cx,cy,r); g.addColorStop(0,col); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx,cy,r,0,7); ctx.fill(); };
+  const shadow = (cx, cy, w=20) => { ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx,cy+3,w,w*.4,0,0,7); ctx.fill(); };
+  if (s.chest) { const [x,y] = s.chest, w = chestDone(id); ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); shadow(cx,cy);
+    if (!w) { ctx.strokeStyle = `rgba(232,185,74,${.55+.3*Math.sin(now/300)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(cx,cy+2,20,9,0,0,7); ctx.stroke(); }
+    if (w) ctx.filter = 'grayscale(.8) brightness(.8)'; drawSprite(IMG[w ? 'chest_full_open_anim_f2' : 'chest_full_open_anim_f0'], cx, cy+6, SC); ctx.filter = 'none';
+    if (hv && hv.kind==='chest') tags.push([w ? 'Coffre vide' : 'Coffre', cx, cy-58]); } }); }
+  if (s.herb) { const [x,y] = s.herb, w = herbDone(id); ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y);
+    if (!w) glow(cx, cy-20, `rgba(150,210,255,${.35+.2*Math.sin(now/400)})`, 30);
+    drawSprite(w ? A.sprout : A.flower, cx, cy+6, SC);
+    if (hv && hv.kind==='herb') tags.push([w ? 'Fleur de lune déjà cueillie' : 'Fleur de lune', cx, cy-58]); } }); }
+  if (s.secret) { const [x,y] = s.secret, done = treasure().secrets.includes(id); ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); shadow(cx,cy,26);
+    drawSprite(done ? A.cave : A.crack, cx, cy+10, SC);
+    // un petit éclat brille de temps en temps dans la fente : il faut avoir l'œil
+    const k = (now/1000 + x) % 4; if (!done && k < .6) { const a = Math.sin(k/.6*Math.PI); ctx.fillStyle = `rgba(255,240,170,${a})`; const sx = cx+2, sy = cy-26; ctx.fillRect(sx-1, sy-7*a, 2, 14*a); ctx.fillRect(sx-7*a, sy-1, 14*a, 2); }
+    if (hv && hv.kind==='secret') tags.push([done ? 'Cache déjà fouillée' : 'Un rocher fendu…', cx, cy-58]); } }); }
+  const npcAt = (c, sprite, filter, flip, label, kind, extra) => { const [x,y] = c; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); shadow(cx,cy,17);
+    extra && extra(cx, cy); if (filter) ctx.filter = filter; drawSprite(animFrame(sprite, false, now, x), cx, cy+6, SC, flip); ctx.filter = 'none';
+    if (hv && hv.kind===kind) tags.push([label, cx, cy-84]); } }); };
+  if (s.smith) npcAt(s.smith, 'dwarf_m', 'hue-rotate(20deg) saturate(1.4) brightness(.85)', true, 'Forgeron', 'smith', (cx, cy) => drawSprite(propArt().anvil, cx+26, cy+12, SC*.8));
+  if (s.inn) npcAt(s.inn, 'elf_m', 'hue-rotate(30deg) saturate(.8)', false, 'Aubergiste', 'inn', (cx, cy) => drawSprite(A.inn, cx-28, cy+8, SC*.8));
+  for (const v of sceneFolk()) ents.push({ d:v.rx+v.ry, f:() => { const [cx,cy] = iso(v.rx,v.ry), [sp, filter] = v.look; shadow(cx,cy,17);
+    if (filter) ctx.filter = filter; drawSprite(animFrame(sp, v.moving, now, v.off), cx, cy+6, SC, v.face < 0); ctx.filter = 'none';
+    if (v.say && now < v.say.until) tags.push([v.say.t, cx, cy-76, '#fff4c8']); else if (hv && hv.kind==='folk' && hv.v===v) tags.push([v.name, cx, cy-76]); } });
+}
+
 // ---------- Mode test (touche F2) ----------
 const DBG = { god:false };
-const CHAPTER_LEVEL = [1,2,3,4,5,6,8,10,11,13,14,17,20,23,25,27,29,31,34,35,36,37,38,39,41,42,43,44,45,46,48,49,50,51,52,53,55];
+const CHAPTER_LEVEL = [1,2,3,4,5,6,8,10,11,13,14,17,20,23,25,27,29,31,34,35,36,37,38,39,41,42,43,44,45,46,48,49,50,51,52,53,55,56,57,58,59,60,62,63,64,65,66,67,69];
 function dbgMsg(t) { banner('Test : ' + t); }
 function dbgAfterChange() { save(); if (G.mode==='map') { refreshMapTitle(); dirty = true; } renderDbg(); }
 function setSpeed(v) { SPEED = v; try { localStorage.setItem('chroniques-plaine-speed', v); } catch (e) {} renderDbg(); }
@@ -4435,7 +5053,7 @@ function jumpToChapter(n, withLevel, withGear) {
   p.story = n; p.quests = {}; p.cleared = [];
   MAIN.forEach((q,i) => { if (i < n) { p.quests[q.id] = { state:'done' }; p.cleared.push(q.goal.zone); } });
   const q = MAIN[n], zone = q ? q.goal.zone : MAIN[MAIN.length-1].goal.zone;
-  p.pos = { 1:'village', 2:'camp', 3:'ermitage', 4:'pelerins', 5:'fees', 6:'haltecendres' }[regionOf(zone)];
+  p.pos = { 1:'village', 2:'camp', 3:'ermitage', 4:'pelerins', 5:'fees', 6:'haltecendres', 7:'portecume', 8:'refuge' }[regionOf(zone)];
   if (withLevel) { p.level = CHAPTER_LEVEL[n]; p.xp = 0; }
   if (withGear) giveGear(zoneById(zone).tier, 1);
   p.shop = null; G.scenes = [];
