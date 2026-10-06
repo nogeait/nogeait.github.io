@@ -143,6 +143,21 @@
   body.touch { -webkit-user-select:none; -webkit-touch-callout:none; }
   body.touch input, body.touch textarea { -webkit-user-select:text; user-select:text; }
   body.touch .btn.sm { min-height:30px; }
+  /* iPad : la scène remplit toute la place libre (100vh de Safari compte les barres du navigateur) et reste nette sur écran Retina */
+  body.touch #app { height:100dvh; }
+  body.touch #stage { container-type:size; }
+  body.touch #cv { width:min(100cqw, 100cqh * 1.607); image-rendering:pixelated; }
+  /* iPad : barres du haut et du bas sur une seule ligne, tous les sorts visibles, journal plus discret */
+  body.touch #top { flex-wrap:nowrap; } body.touch #topbtns { flex:none; }
+  body.touch #timeline { flex-wrap:nowrap !important; overflow-x:auto; min-width:0; flex:1; scrollbar-width:none; } body.touch #timeline .chip { flex:none; }
+  body.touch #bottom { gap:8px; padding:6px 10px; }
+  body.touch #hero { min-width:0; width:170px; flex:none; } body.touch #hero .res { gap:6px; font-size:13px; white-space:nowrap; }
+  body.touch #spells { flex:1; min-width:0; gap:5px; }
+  body.touch #spells .spell { flex:1 1 0; min-width:0; width:auto; max-width:138px; padding:5px 4px; overflow:hidden; }
+  body.touch #endturn { margin-left:0; padding:8px 10px; flex:none; max-width:96px; line-height:1.2; }
+  body.touch .spell .k { display:none; } body.touch #spells .spell .ico { display:none; } body.touch #spells .spell { padding:5px 6px; } body.touch #spells .spell b { font-size:11.5px; hyphens:auto; -webkit-hyphens:auto; }
+  body.touch:not(.map) #hint { height:32px; }
+  body.touch #log { width:230px; max-height:28%; font-size:11.5px; background:rgba(20,24,33,.55); }
   #tapTip { position:fixed; left:50%; top:12px; transform:translateX(-50%); z-index:99; max-width:min(560px,90vw); padding:8px 12px; background:#11151d; border:1px solid var(--gold); border-radius:8px; color:var(--text); font-size:14px; pointer-events:none; opacity:0; transition:opacity .2s; }
 </style>
 </head>
