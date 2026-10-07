@@ -68,6 +68,9 @@
   #overlay.hide { display:none; }
   .box { background:var(--panel); border:2px solid #3a4459; border-radius:14px; padding:26px 30px; max-width:680px; width:calc(100% - 32px); text-align:center; }
   .box { position:relative; } .xclose { position:absolute; top:10px; right:12px; width:34px; height:34px; border-radius:8px; border:1px solid #3a4459; background:var(--panel2); color:var(--text); font-size:18px; cursor:pointer; z-index:2; } .xclose:hover { border-color:var(--gold); color:var(--gold); }
+  .xpbar { margin:8px auto; max-width:460px; text-align:left; } .xpbar .xplbl { display:flex; justify-content:space-between; font-size:13px; margin-bottom:3px; } .xpbar .xplbl span { color:var(--muted,#9aa4b8); }
+  .xpb { position:relative; height:12px; background:#222a38; border:1px solid #3a4560; border-radius:6px; overflow:hidden; } .xpb div { position:absolute; top:0; bottom:0; } .xpb .old { left:0; background:linear-gradient(#9a7bd8,#6a4fb0); } .xpb .new { background:linear-gradient(#ffe27a,#e0a92a); box-shadow:0 0 6px #ffd04a; animation:xpFill 1.4s ease-out .4s both; }
+  @keyframes xpFill { from { width:0; } }
   .lvcard { text-align:left; background:#1b2232; border:2px solid var(--gold); border-radius:10px; padding:10px 14px; margin:10px 0; }
   .lvcard.forest { border-color:#b08cff; } .lvcard h4 { margin:0 0 4px; font-size:17px; color:var(--gold); } .lvcard.forest h4 { color:#cdb4ff; }
   .lvcard .chips span { display:inline-block; background:var(--panel); border:1px solid #3a4459; border-radius:12px; padding:3px 10px; margin:4px 5px 0 0; font-size:14px; color:var(--text); }
@@ -1009,7 +1012,7 @@ ${pips}</b>
       ${pv ? `<small class="sppre">Aperçu du rang ${pv}${pv > r ? ' (pas encore acquis)' : ''} : ${shown.desc.replace(/ \(rang \d\/\d\)/, '')}<br>Par rapport à ton rang ${r} : ${rankDiffText(sp, r, pv)}.</small>` : ''}
       <small>${locked ? `Débloqué au niveau ${sp.lvl}.` : r >= SPELL_MAX_RANK ? 'Rang maximum atteint.' : `Rang ${r+1} : ${rankGainText(sp, r+1)}.`}</small>${sp.modR ? `<small>Portée modifiable par l'équipement${pr ? ` (+${pr} actuellement)` : ''}</small>` : ''}</div>
       <div class="act">${locked || r >= SPELL_MAX_RANK ? '' : `<button class="btn sm" data-rank="${sp.id}" title="Rang ${r+1} : ${rankGainText(sp, r+1)}"${c.sfree >= cost ? '' : ' disabled'}>Améliorer (${cost} pt${cost>1?'s':''})</button>`}</div></div>`; };
-  overlay(`<h2>${fxHtml(heroName(), heroFx(p))} (${cls.name} niv. ${p.level})</h2>${titleSelectHtml(p)}${fxPickHtml(p)}
+  overlay(`<h2>${fxHtml(heroName(), heroFx(p))} (${cls.name} niv. ${p.level})</h2>${xpBarHtml()}${titleSelectHtml(p)}${fxPickHtml(p)}
     <p style="text-align:center"><button class="btn" id="cardBtn">Partager ma fiche</button></p>${statsLine()}
     <p class="help">Chaque niveau donne ${CARAC_PER_LV} points de caractéristique et ${SPELL_PTS_PER_LV} point de sort. Les changements s'appliquent au prochain combat.</p>
     ${setsHtml(p)}
@@ -4096,6 +4099,14 @@ function levelBonusText(lv) {
   for (const sp of CLASSES[G.profile.cls].spells) if (sp.lvl===lv) b.push(`nouveau sort : ${sp.name}`);
   return b.join(', ');
 }
+// barre d'XP : « from » = niveau et XP avant le gain (fin de combat), la part gagnée se remplit en doré
+function xpBarHtml(from) {
+  const p = G.profile, max = p.level >= XP_MAX_LEVEL, need = xpNeed(p.level), pct = max ? 100 : Math.min(100, 100*p.xp/need);
+  const start = !from ? pct : from.lv === p.level ? 100*from.xp/need : 0, gain = Math.max(0, pct - start);
+  const lbl = from && from.lv < p.level ? `Niveau ${from.lv} → <b>${p.level}</b> !` : `Niveau ${p.level}`;
+  return `<div class="xpbar"><div class="xplbl"><b>${lbl}</b><span>${max ? 'Niveau maximum' : `${p.xp} / ${need} XP · encore ${need - p.xp} XP`}</span></div><div class="xpb"><div class="old" style="width:${start}%"></div>${gain ? `<div class="new" style="left:${start}%;width:${gain}%"></div>` : ''}</div></div>`;
+}
+const xpFrom = () => ({ lv:G.profile.level, xp:G.profile.xp });
 function addXp(n) {
   const p = G.profile, ups = [];
   p.xp += n;
@@ -5071,14 +5082,14 @@ function fightKills() {
 function showRoomCleared() {
   const d = G.dungeon, z = G.zone, p = G.profile;
   const xp = Math.round(G.units.filter(u => u.team==='enemy' && !u.summoned).reduce((a,u) => a + MONSTERS[u.kind].xp, 0) * (1 + z.tier*0.15) * (1 + luneXp()));
-  const ups = addXp(xp);
+  const from = xpFrom(), ups = addXp(xp);
   hfFight(true);
   const done = progressQuests({ kills: fightKills() }), drops = rollDrops();
   play('victoire'); if (ups.length) setTimeout(() => play('niveau'), 1000);
   renderDbg(); save();
   d.hp = G.hero.hp; if (G.dunRun) { G.dunRun.hp = G.hero.hp; G.dunRun.done = Math.max(G.dunRun.done, d.room); }
   const boss = d.room >= DUNGEON_ROOMS, bossName = MONSTERS[zoneById(d.id).foes[0]].name;
-  overlay(`<h2>Salle ${d.room} franchie !</h2><p><b>+${xp} XP</b>. Il te reste <b>${G.hero.hp} / ${G.hero.maxHp} PV</b> : tu récupères ${Math.round(DUNGEON_HEAL*100)} % de tes PV au début du prochain combat. La porte de la salle suivante est ouverte.</p>${levelUpHtml(ups)}${dropsHtml(drops)}
+  overlay(`<h2>Salle ${d.room} franchie !</h2><p><b>+${xp} XP</b>. Il te reste <b>${G.hero.hp} / ${G.hero.maxHp} PV</b> : tu récupères ${Math.round(DUNGEON_HEAL*100)} % de tes PV au début du prochain combat. La porte de la salle suivante est ouverte.</p>${xpBarHtml(from)}${levelUpHtml(ups)}${dropsHtml(drops)}
     ${done.length ? `<p class="goal">📜 Quête accomplie : <b>${done.map(q => q.title).join(', ')}</b>.</p>` : ''}
     <p class="help">${boss ? `${bossName} t'attend dans la dernière salle.` : `Encore ${DUNGEON_ROOMS - d.room} salle avant ${bossName}.`} Si tu quittes le donjon, il faudra recommencer à la salle 1.</p>
     <div style="text-align:center"><button class="btn alt" id="b2">Quitter le donjon</button><button class="btn" id="b1">Continuer l'exploration</button></div>`, true);
@@ -5092,7 +5103,7 @@ function showVictory() {
   if (first) p.cleared.push(z.id);
   const extraNote = groupBeaten();
   const xp = Math.round(G.units.filter(u => u.team==='enemy' && !u.summoned).reduce((a,u) => a + MONSTERS[u.kind].xp, 0) * (1 + z.tier*0.15) * (first ? 1.5 : 1) * (1 + luneXp()));
-  const ups = addXp(xp);
+  const from = xpFrom(), ups = addXp(xp);
   const loot = rollLoot(z, first), drops = rollDrops();
   hfFight(true);
   const esc = G.escortFight && G.escortFight.zone===z.id ? z.id : null; G.escortFight = null;
@@ -5103,7 +5114,7 @@ function showVictory() {
   save();
   const title = z.id===MAIN[MAIN.length-1].goal.zone && first ? 'Victoire totale !' : z.icon==='boss' && first ? 'Victoire éclatante !' : 'Victoire !';
   const zn = zoneById(z.id).name, msg = first ? `${zn} est libérée !` : z.extra && !isCleared(z.id) ? `Groupe vaincu ! Le chef de ${zn} t'attend encore.` : `${zn} : encore une victoire !`;
-  overlay(`<h2>${title}</h2><p>${msg} <b>+${xp} XP</b>${first ? ' (bonus de première victoire)' : ''}</p>${levelUpHtml(ups)}${extraNote}
+  overlay(`<h2>${title}</h2><p>${msg} <b>+${xp} XP</b>${first ? ' (bonus de première victoire)' : ''}</p>${xpBarHtml(from)}${levelUpHtml(ups)}${extraNote}
     ${done.length ? `<p class="goal">📜 Quête accomplie : <b>${done.map(q => q.title).join(', ')}</b>. Retourne sur la carte pour recevoir ta récompense.</p>` : ''}
     ${loot.items.some(it => it.boss) ? `<p class="goal" style="color:#ff5c8a">✨ Objet unique ! ${MONSTERS[z.foes[0]].name} a laissé tomber son trésor.</p>` : ''}
     <h3>Butin</h3>${dropsHtml(drops)}${lootHtml(loot)}
