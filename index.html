@@ -10,6 +10,18 @@
 <style>
   :root { --bg:#161a24; --panel:#232a38; --panel2:#2c3446; --text:#ece6d6; --muted:#a59f8f; --gold:#e8b94a; --pa:#4aa3ff; --pm:#5ad16a; --red:#e2554a; }
   * { box-sizing:border-box; }
+  /* écran de démarrage */
+  #title { position:fixed; inset:0; z-index:200; cursor:pointer; overflow:hidden; background:#0b1020; transition:opacity .6s; }
+  #title.out { opacity:0; pointer-events:none; }
+  #title canvas { position:absolute; inset:0; width:100%; height:100%; image-rendering:pixelated; }
+  #title .tt { position:absolute; left:0; right:0; top:11vh; text-align:center; padding:0 16px; }
+  #title h1 { margin:0; font-size:clamp(34px, 7vw, 76px); color:var(--gold); letter-spacing:1px; text-shadow:0 3px 0 #5a3a10, 0 0 28px rgba(255,190,90,.55); }
+  #title .sub { margin-top:10px; font-size:clamp(14px, 2vw, 19px); color:#f3e2c8; text-shadow:0 2px 6px #000; }
+  #title .go { position:absolute; left:0; right:0; bottom:calc(5vh + 22px); text-align:center; }
+  #title .go .btn { font-size:20px; padding:12px 40px; box-shadow:0 0 24px rgba(232,185,74,.5); }
+  #title .press { margin-top:12px; color:#f3e2c8; font-size:15px; text-shadow:0 2px 4px #000; animation:titleBlink 1.6s ease-in-out infinite; }
+  @keyframes titleBlink { 50% { opacity:.35; } }
+  #title .copy { position:absolute; left:0; right:0; bottom:14px; text-align:center; font-size:12px; color:#c9b9a0; opacity:.8; text-shadow:0 1px 3px #000; }
   html,body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:"Segoe UI",Tahoma,sans-serif; overflow:hidden; user-select:none; }
   #app { display:flex; flex-direction:column; height:100%; }
   #top { display:flex; gap:6px; align-items:center; padding:6px 10px; background:var(--panel); border-bottom:2px solid #11151d; min-height:46px; flex-wrap:wrap; }
@@ -195,6 +207,10 @@
 </style>
 </head>
 <body>
+<div id="title"><canvas></canvas>
+  <div class="tt"><h1>Héritiers de l'Aube</h1><div class="sub">Un RPG tactique au tour par tour dans le monde de Valdoria</div></div>
+  <div class="go"><button class="btn" id="titleGo">Jouer</button><div class="press">Appuie sur une touche ou touche l'écran pour commencer</div></div>
+  <div class="copy">© Nogeait · tous droits réservés</div></div>
 <div id="app">
   <div id="top"><span class="lbl" id="fightname"></span><div id="timeline" style="display:flex;gap:6px;flex-wrap:wrap"></div><div id="topbtns"><span id="gold"></span><button class="btn" id="worldBtn">Carte (M)</button><div id="menuWrap"><button class="btn" id="menuBtn" title="Quêtes, équipement, personnage…">☰ Menu</button><div id="menuList"><button class="btn" id="questBtn">Quêtes (Q)</button><button class="btn" id="bagBtn">Équipement (E)</button><button class="btn" id="charBtn">Personnage (C)</button><button class="btn" id="storyBtn">Histoire (H)</button><button class="btn" id="featBtn">Hauts faits (F)</button><button class="btn" id="jobBtn">Métiers (J)</button><button class="btn" id="lootBtn">Butins (D)</button><button class="btn" id="guideBtn">Guides (G)</button><button class="btn" id="saveBtn" title="Exporter ou importer la sauvegarde">💾 Sauvegarde</button></div></div></div><button class="btn" id="sndBtn">🔊</button><button class="btn" id="musBtn">🎵</button></div>
   <div id="stage">
@@ -555,7 +571,7 @@ const MONSTERS = {
             { id:'harpon', name:'Harpon', pa:0, minR:2, maxR:4, los:true, pull:2, cd:3, proj:'#c0c0c0' }] },
   limace: { name:'Limace géante', xp:46, hp:125, pa:4, pm:1, sprite:'slug',
     spells:[{ id:'acide', name:'Jet acide', pa:4, minR:1, maxR:2, los:true, dmg:[11,15], proj:'#9be36a', poison:[4,2] }] },
-  pretresse: { name:'Grande Prêtresse', xp:180, hp:250, pa:6, pm:2, sprite:'pretre_spr', big:1.4, ranged:true,
+  pretresse: { name:'Grande Prêtresse', xp:180, hp:250, pa:6, pm:2, sprite:'pretresse_spr', big:1.4, sz:1.3, halo:true, ranged:true,
     spells:[{ id:'eclipse', name:'Soleil noir', pa:3, minR:2, maxR:6, los:true, dmg:[13,17], perTurn:2, proj:'#ff6a1f' },
             { id:'grace', name:'Grâce du Soleil noir', pa:2, minR:0, maxR:5, los:true, ally:true, heal:[14,18], cd:3 },
             { id:'fideles', name:'Appel des fidèles', pa:2, self:true, summon:'fidele', max:1, cd:4 }] },
@@ -1657,7 +1673,7 @@ function buildExtraSprites() {
   NPCS.cerf.src = DEER_ICON; NPCS.vision.src = LIGHT_ICON;
 }
 // Variantes recolorées : 'shadow' = créature d'ombre (violet sombre, yeux lumineux), 'cult' = robe pourpre de l'Ordre du Soleil noir
-const VARIANTS = [['wogol','ombre_spr','shadow'],['ogre','gardien_spr','shadow'],['big_demon','eclipse_spr','shadow'],['wizzard_f','pretre_spr','cult'],
+const VARIANTS = [['wogol','ombre_spr','shadow'],['ogre','gardien_spr','shadow'],['big_demon','eclipse_spr','shadow'],['wizzard_f','pretre_spr','cult'],['wizzard_f','pretresse_spr','priestess'],
   ['elf_m','eclaireur_spr','cult'],['masked_orc','pierre_spr','stone'],['masked_orc','bourreau_spr','cult'],['chort','bete_spr','corrupt'],
   ['lizard_m','salamandre_spr','fire'],['big_zombie','golem_spr','lava'],['big_demon','ignarok_spr','lava'],
   ['lizard_m','triton_spr','sea'],['orc_warrior','marin_spr','cult'],['skelet','pirate_spr','sea'],['big_zombie','yeti_spr','frost'],['ogre','golemglace_spr','ice'],['big_demon','hrimgar_spr','ice']];
@@ -1674,6 +1690,7 @@ function buildVariants() {
       else if (mode==='ice') { if (l>170) { a[i]=230; a[i+1]=250; a[i+2]=255; } else { a[i]=40+l*.4; a[i+1]=90+l*.55; a[i+2]=140+l*.5; } }
       else if (mode==='stone') { const v = 70+l*.65; a[i]=v; a[i+1]=v*.97; a[i+2]=v*.9; if (l>200) { a[i]=255; a[i+1]=220; a[i+2]=120; } }
       else if (mode==='corrupt') { if (l>200) { a[i]=200; a[i+1]=255; a[i+2]=90; } else { a[i]=40+l*.35; a[i+1]=30+l*.45; a[i+2]=50+l*.35; } }
+      else if (mode==='priestess') { const red = a[i] > a[i+2]+30; if (l>200) { a[i]=255; a[i+1]=222; a[i+2]=110; } else if (red) { a[i]=200+l*.2; a[i+1]=150+l*.25; a[i+2]=50; } else if (l<90) { a[i]=26+l*.2; a[i+1]=14+l*.1; a[i+2]=30+l*.2; } else { const v = 150+l*.45; a[i]=v; a[i+1]=v*.97; a[i+2]=v*.9; } }
       else if (mode==='shadow') { if (l>190) { a[i]=230; a[i+1]=150; a[i+2]=255; } else { a[i]=30+l*.35; a[i+1]=14+l*.15; a[i+2]=58+l*.5; } }
       else { const red = a[i] > a[i+2]+30; if (l>200) { a[i]=255; a[i+1]=214; a[i+2]=120; } else if (red || l<90) { a[i]=a[i]; a[i+1]*=.75; a[i+2]*=.75; } else { a[i]=60+l*.45; a[i+1]=10+l*.12; a[i+2]=22+l*.18; } } }
     g.putImageData(d,0,0); IMG[name + k.slice(base.length)] = c;
@@ -1905,13 +1922,24 @@ function drawUnit(u, isCur, now) {
   const hitImg = hit && IMG[u.sprite+'_hit_anim_f0'];
   const img = hitImg || animFrame(u.sprite, u.moving, now, u.animOff);
   if (u===G.hero) drawForest(cx - 30*u.face, cy+14, 3, u.face<0, now);
-  if (u.filter) ctx.filter = u.filter; drawSprite(img, cx, cy+6, SC, u.face<0, hit && !hitImg); ctx.filter = 'none';
+  const m = u.kind && MONSTERS[u.kind], sz = SC*((m && m.sz) || 1);
+  if (m && m.halo && img) drawSunHalo(cx, cy + 6 - img.height*sz*0.85, 15*sz/SC, now);
+  if (u.filter) ctx.filter = u.filter; drawSprite(img, cx, cy+6, sz, u.face<0, hit && !hitImg); ctx.filter = 'none';
   // barre de vie
-  const top = cy + 6 - (img ? img.height*SC : 60);
+  const top = cy + 6 - (img ? img.height*sz : 60);
   const bw=40, by=top-10;
   ctx.fillStyle='#11151d'; ctx.fillRect(cx-bw/2-1,by-1,bw+2,7);
   ctx.fillStyle = u.team!=='enemy' ? '#4aa3ff' : '#e2554a'; ctx.fillRect(cx-bw/2,by,bw*u.hp/u.maxHp,5);
   ctx.globalAlpha = 1;
+}
+
+// Soleil noir derrière la tête de la Grande Prêtresse : disque sombre, couronne dorée et rayons qui tournent
+function drawSunHalo(x, y, r, now, g=ctx) {
+  g.save(); g.translate(x, y); g.rotate(now/2400);
+  g.strokeStyle = 'rgba(255,200,80,.85)'; g.lineWidth = 2.5;
+  for (let k=0; k<12; k++) { const a = k*Math.PI/6, l = r*(k%2 ? 1.45 : 1.75); g.beginPath(); g.moveTo(Math.cos(a)*r*1.05, Math.sin(a)*r*1.05); g.lineTo(Math.cos(a)*l, Math.sin(a)*l); g.stroke(); }
+  g.rotate(-now/2400); g.fillStyle = '#140a18'; g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill();
+  g.strokeStyle = `rgba(255,214,106,${.75+.25*Math.sin(now/300)})`; g.lineWidth = 3; g.stroke(); g.restore();
 }
 
 let lastTick = -1;
@@ -2306,6 +2334,7 @@ function renderMap(now) {
   if (!G.mapAll) return renderRegion(viewRegion(), now);
   ctx.fillStyle = '#1a2a3a'; ctx.fillRect(0, 0, cv.width, cv.height);
   const k = RG.w/cv.width, oy = (RG.h - cv.height*k)/2;
+  const gz = G.profile && guideZone(), qr = gz && zoneById(gz) ? regionOf(gz) : null; // région de la quête principale en cours
   for (let r=1; r<=8; r++) { const [x0,y0] = regionCell(r), known = regionKnown(r), hov = G.mapHoverRegion===r;
     ctx.save(); ctx.beginPath(); ctx.rect(x0+3, y0+3, RG.w-6, RG.h-6); ctx.clip();
     ctx.translate(x0, y0+oy); ctx.scale(k, k); renderRegion(r, now, true); ctx.restore();
@@ -2314,7 +2343,10 @@ function renderMap(now) {
     const label = known ? REGION_NAMES[r] : '???';
     ctx.font = 'bold 13px Segoe UI, sans-serif'; ctx.textAlign = 'center'; const w = ctx.measureText(label).width + 16;
     ctx.fillStyle = 'rgba(20,24,33,.85)'; ctx.fillRect(x0+RG.w/2-w/2, y0+10, w, 24);
-    ctx.fillStyle = known ? (r===curRegion() ? '#e8b94a' : '#ece6d6') : '#8c8778'; ctx.fillText(label + (r===curRegion() ? ' (tu es ici)' : ''), x0+RG.w/2, y0+27); }
+    ctx.fillStyle = known ? (r===curRegion() ? '#e8b94a' : '#ece6d6') : '#8c8778'; ctx.fillText(label + (r===curRegion() ? ' (tu es ici)' : ''), x0+RG.w/2, y0+27);
+    if (r===qr) { ctx.lineWidth = 3; ctx.setLineDash([8,5]); ctx.strokeStyle = '#ef6b5b'; ctx.strokeRect(x0+9, y0+9, RG.w-18, RG.h-18); ctx.setLineDash([]);
+      const t = '❗ Quête principale', tw = ctx.measureText(t).width + 18; ctx.fillStyle = 'rgba(20,24,33,.9)'; ctx.fillRect(x0+RG.w/2-tw/2, y0+RG.h-40, tw, 26);
+      ctx.strokeStyle = '#ef6b5b'; ctx.lineWidth = 2; ctx.strokeRect(x0+RG.w/2-tw/2, y0+RG.h-40, tw, 26); ctx.fillStyle = '#ffb3a8'; ctx.fillText(t, x0+RG.w/2, y0+RG.h-22); } }
 }
 function renderRegion(R0, now, small) {
   ctx.drawImage(R0===2 ? (northBg || (northBg = buildNorthBg())) : R0===3 ? (valleyBg || (valleyBg = buildValleyBg())) : R0===4 ? (hautsBg || (hautsBg = buildHautsBg())) : R0===5 ? (sylveBg || (sylveBg = buildSylveBg())) : R0===6 ? (brasierBg || (brasierBg = buildBrasierBg())) : R0===7 ? (coteBg || (coteBg = buildCoteBg())) : R0===8 ? (givreBg || (givreBg = buildGivreBg())) : mapBg, 0, 0);
@@ -5522,7 +5554,7 @@ function bossCine(id) {
       c.fillStyle = '#0d0b14'; c.fillRect(0, 418, CINE_W, 122);
       // le boss : d'abord une ombre, puis il se révèle et s'avance
       const img = animFrame(m.sprite, false, now), k2 = easeIO((t - 1.2)/2), sz = Math.min(11, 210/(img ? img.height : 30));
-      if (img) { const y = 424 + 10*(1 - k2); cineSprite(c, silhouette(img, '#050409'), 480, y, sz, true, 1); cineSprite(c, img, 480, y, sz, true, line ? 1 : k2*0.95);
+      if (img) { const y = 424 + 10*(1 - k2); if (m.halo) { c.globalAlpha = k2; drawSunHalo(480, y - img.height*sz*0.8, 5*sz, now, c); c.globalAlpha = 1; } cineSprite(c, silhouette(img, '#050409'), 480, y, sz, true, 1); cineSprite(c, img, 480, y, sz, true, line ? 1 : k2*0.95);
         if (!line && k2 < 0.5) { c.fillStyle = col(0.9); c.fillRect(470, y - img.height*sz*0.66, 5, 4); c.fillRect(486, y - img.height*sz*0.66, 5, 4); } }
       cineHero(c, 190, 424, 5, { flip:false, shadow: line ? null : '#1a1624' });
       c.textAlign = 'center'; c.font = 'bold 34px Georgia, "Times New Roman", serif'; c.globalAlpha = easeIO((t - 2.4)/0.8);
@@ -5803,8 +5835,9 @@ function renderScene(now) {
     const oth = f.foes.filter((k,i) => i!==f.foes.indexOf(f.kind)).slice(0, 2), flip = f.face ? f.face < 0 : f.x > G.walker.x;
     oth.forEach((k,i) => drawSprite(animFrame(MONSTERS[k].sprite, f.moving, now, f.off+1+i), cx + (i ? 20 : -20)*b, cy - 4, SC*.72, flip));
     ctx.strokeStyle = f.aggro ? `rgba(255,50,40,${.7+.3*Math.sin(now/180)})` : '#e2554a'; ctx.lineWidth = f.aggro ? 3 : 2; ctx.beginPath(); ctx.ellipse(cx,cy+2,24*b,10*b,0,0,7); ctx.stroke();
-    drawSprite(img, cx, cy+6, SC, flip);
-    const top = cy + 6 - (img ? img.height*SC : 60);
+    const fz = SC*(m.sz || 1); if (m.halo && img) drawSunHalo(cx, cy + 6 - img.height*fz*0.85, 15*fz/SC, now);
+    drawSprite(img, cx, cy+6, fz, flip);
+    const top = cy + 6 - (img ? img.height*fz : 60);
     if (f.chief) { const q = activeQuests().find(q => q.main); if (q && q.goal.zone===z.id) drawBang(cx, top-18, now, '#ef6b5b'); }
     else if (f.aggro) { ctx.font = 'bold 18px Segoe UI, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ff5a4a'; ctx.fillText('⚔', cx, top-8); }
     if (hv && hv.kind==='foe' && hv.g===f) foeAt = [cx, top-34, f]; } });
@@ -6200,10 +6233,18 @@ const FOLK_TALK = {
   6: ['La chaleur ne nous fait pas peur, nous les nains !', 'Forgefeu était la plus belle cité du monde.', 'Une bonne enclume vaut mieux qu\'un trésor.', 'Attention aux salamandres, elles mordent.'],
 };
 const folkLine = () => { const r = regionOf(G.profile.pos), l = [...(FOLK_TALK[r]||[]), ...FOLK_TALK[0]]; return fillHero(l[Math.random()*l.length|0]); };
+// habitants selon le lieu : l'ermite vit seul, les fées sont peu nombreuses, les nains tiennent la halte des caravanes…
+// et quand les Ombres attaquent Aubépine, les villageois se cachent chez eux.
+const HUB_FOLK = { village:{ n:5 }, camp:{ n:3, looks:[0,2,5] }, ermitage:{ n:0 }, pelerins:{ n:3, looks:[0,3,4] }, fees:{ n:2, looks:[1,4] },
+  haltecendres:{ n:4, looks:[2,5] }, portecume:{ n:4 }, refuge:{ n:2, looks:[0,2,5] } };
+function folkCount(id) {
+  if (id==='village' && activeQuests().some(q => q.main && q.goal.zone==='sanctuaire')) return 0;
+  return (HUB_FOLK[id] || { n:3 }).n;
+}
 function sceneFolk() {
-  const s = sceneOf(G.profile.pos);
-  if (!G.folk || G.folk.zone!==s.id) { const h = strHash(s.id);
-    G.folk = { zone:s.id, chat:0, list: (s.folk||[]).map(([x,y], i) => ({ look: FOLK_LOOKS[(h+i*7) % FOLK_LOOKS.length], name: FOLK_NAMES[(h+i*5) % FOLK_NAMES.length],
+  const s = sceneOf(G.profile.pos), n = folkCount(s.id);
+  if (!G.folk || G.folk.zone!==s.id || G.folk.n!==n) { const h = strHash(s.id), lk = (HUB_FOLK[s.id] || {}).looks;
+    G.folk = { zone:s.id, n, chat:0, list: (s.folk||[]).slice(0, n).map(([x,y], i) => ({ look: lk ? FOLK_LOOKS[lk[(h+i) % lk.length]] : FOLK_LOOKS[(h+i*7) % FOLK_LOOKS.length], name: FOLK_NAMES[(h+i*5) % FOLK_NAMES.length],
       x, y, rx:x, ry:y, hx:x, hy:y, face:1, next: performance.now() + Math.random()*3000, off: i*1.3 })) }; }
   return G.folk.list;
 }
@@ -6451,7 +6492,33 @@ function bindDbg() {
 
 buildDecor();
 CAT_ICON = buildCat();
-loadSprites().then(() => { buildVariants(); buildExtraSprites(); showMenu(); requestAnimationFrame(frame); initSaveFile(); initPersist(); });
+loadSprites().then(() => { buildVariants(); buildExtraSprites(); showMenu(); requestAnimationFrame(frame); initSaveFile(); initPersist(); showTitle(); });
+// ---- écran de démarrage : ciel d'aube animé, les trois héros et Forest ; un clic, une touche ou un toucher mène au choix du personnage ----
+function showTitle() {
+  const el = document.getElementById('title'); if (!el) return;
+  if (navigator.webdriver && !location.hash.includes('titre')) { el.remove(); return; } // tests automatiques : on passe directement au menu
+  const c = el.querySelector('canvas'), g = c.getContext('2d'), stars = Array.from({ length:90 }, () => [Math.random(), Math.random()*.55, Math.random()*6.3, .5 + Math.random()*1.4]);
+  let on = true;
+  const hill = (W, H, base, amp, f, ph, col) => { g.fillStyle = col; g.beginPath(); g.moveTo(0, H);
+    for (let x = 0; x <= W + 8; x += 8) g.lineTo(x, H*base - amp*H*(.55*Math.sin(x/W*f + ph) + .3*Math.sin(x/W*f*2.3 + ph*1.7) + .15*Math.sin(x/W*f*5.1))); g.lineTo(W, H); g.fill(); };
+  const draw = now => { if (!on) return;
+    if (c.width !== innerWidth || c.height !== innerHeight) { c.width = innerWidth; c.height = innerHeight; } const W = c.width, H = c.height, t = now/1000;
+    const sky = g.createLinearGradient(0, 0, 0, H*.72); sky.addColorStop(0, '#0b1020'); sky.addColorStop(.45, '#33285a'); sky.addColorStop(.78, '#b0567a'); sky.addColorStop(1, '#f4a35a');
+    g.fillStyle = sky; g.fillRect(0, 0, W, H);
+    for (const [x, y, p, r] of stars) { g.globalAlpha = .35 + .65*Math.abs(Math.sin(t*.9 + p)); g.fillStyle = '#fff'; g.fillRect(x*W, y*H, r, r); } g.globalAlpha = 1;
+    const sy = H*.60 - 6*Math.sin(t*.4), glow = g.createRadialGradient(W/2, sy, 0, W/2, sy, H*.45);
+    glow.addColorStop(0, 'rgba(255,214,140,.95)'); glow.addColorStop(.12, 'rgba(255,170,90,.55)'); glow.addColorStop(1, 'rgba(255,140,80,0)');
+    g.fillStyle = glow; g.fillRect(0, 0, W, H); g.fillStyle = '#ffe2a8'; g.beginPath(); g.arc(W/2, sy, Math.min(W, H)*.07, 0, 7); g.fill();
+    hill(W, H, .64, .06, 5, t*.03, '#4a2f55'); hill(W, H, .70, .05, 7, 1.3 + t*.05, '#2d2440'); hill(W, H, .78, .03, 4, 2.1, '#191a2a');
+    g.imageSmoothingEnabled = false; const sc = Math.max(2, Math.round(Math.min(W, H)/230)), gy = H*.76;
+    ['knight_m', 'wizzard_m', 'roublard'].forEach((sp, i) => { const img = animFrame(sp, false, now, i*1.3); if (img) g.drawImage(img, W/2 + (i-1)*26*sc - img.width*sc/2, gy - img.height*sc, img.width*sc, img.height*sc); });
+    try { const cat = forestFrame(now, 1.5, { story:0 }); if (cat) g.drawImage(cat, W/2 + 44*sc - cat.width*sc/2, gy - cat.height*sc, cat.width*sc, cat.height*sc); } catch (e) {}
+    requestAnimationFrame(draw); };
+  requestAnimationFrame(draw);
+  const go = e => { if (e) { e.preventDefault(); e.stopImmediatePropagation(); } if (!on) return; on = false;
+    el.classList.add('out'); document.removeEventListener('keydown', go, true); setTimeout(() => el.remove(), 650); };
+  el.addEventListener('click', go); document.addEventListener('keydown', go, true);
+}
 </script>
 </body>
 </html>
