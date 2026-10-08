@@ -476,12 +476,12 @@ const CLASSES = {
     coiffes: ['Casque de cuir','Casque de fer','Heaume','Heaume du Nord','Heaume démoniaque'],
     craft: { bucheron:['Hache','weapon_axe'], mineur:['Épée','weapon_regular_sword'], coiffe:'Casque' },
     spells:[
-      { id:'epee', icon:'weapon_knight_sword', name:"Coup d'épée", pa:3, minR:1, maxR:1, los:true, dmg:[9,13], perTurn:2, desc:'Corps à corps, 9-13 dégâts. 2 fois par tour.' },
-      { id:'bond', modR:true, icon:'flask_big_green', name:'Bond', pa:2, minR:2, maxR:4, los:false, effect:'tp', needEmpty:true, cd:2, desc:'Saute sur une case libre à 2-4 cases. Recharge 2 tours.' },
-      { id:'fracas', icon:'weapon_big_hammer', name:'Fracas', pa:4, minR:1, maxR:1, los:true, dmg:[15,21], perTurn:1, desc:'Corps à corps, 15-21 dégâts. 1 fois par tour.' },
-      { id:'cri', icon:'flask_big_yellow', name:'Cri de guerre', pa:1, self:true, effect:'pm', val:2, cd:4, desc:'+2 PM ce tour-ci. Recharge 4 tours.' },
-      { id:'tourb', icon:'weapon_double_axe', name:'Tourbillon', lvl:8, pa:4, self:true, zone:'around', dmg:[10,14], perTurn:1, desc:'Frappe toutes les cases autour de toi, 10-14 dégâts. 1 fois par tour. Débloqué au niveau 8.' },
-      { id:'rage', icon:'skull', name:'Rage', lvl:14, pa:2, self:true, effect:'rage', val:40, cd:4, desc:"+40 % de dégâts jusqu'à la fin du tour. Recharge 4 tours. Débloqué au niveau 14." },
+      { id:'epee', icon:'weapon_knight_sword', name:"Coup d'épée", pa:3, minR:1, maxR:1, los:true, dmg:[9,13], perTurn:2, poison:[2,2], dotName:'Entaille', desc:'Corps à corps, 9-13 dégâts. 2 fois par tour. Pose une Entaille : 2 PV par tour pendant 2 tours.' },
+      { id:'bond', modR:true, icon:'flask_big_green', name:'Bond', pa:2, minR:2, maxR:4, los:false, effect:'tp', needEmpty:true, cd:2, markAdj:'desequ', desc:'Saute sur une case libre à 2-4 cases. Recharge 2 tours. Combo : les ennemis à côté de ton point d\'arrivée sont déséquilibrés ce tour-ci.' },
+      { id:'fracas', icon:'weapon_big_hammer', name:'Fracas', pa:4, minR:1, maxR:1, los:true, dmg:[15,21], perTurn:1, combo:{ dot:'epee', mul:1.3, slow:1, label:'Combo Entaille' }, desc:'Corps à corps, 15-21 dégâts. 1 fois par tour. Combo : +30 % de dégâts et -1 PM sur une cible entaillée (Coup d\'épée).' },
+      { id:'cri', icon:'flask_big_yellow', lvl:4, name:'Cri de guerre', pa:1, self:true, effect:'pm', val:2, cd:4, desc:'+2 PM ce tour-ci. Recharge 4 tours. Débloqué au niveau 4. Combo : lancé le même tour que Rage, déclenche la Fureur (la Rage dure aussi au tour suivant).' },
+      { id:'tourb', icon:'weapon_double_axe', name:'Tourbillon', lvl:8, pa:4, self:true, zone:'around', dmg:[10,14], perTurn:1, combo:{ mark:'desequ', mul:1.25, label:'Combo Bond' }, desc:'Frappe toutes les cases autour de toi, 10-14 dégâts. 1 fois par tour. Débloqué au niveau 8. Combo : +25 % de dégâts sur les ennemis déséquilibrés (Bond).' },
+      { id:'rage', icon:'skull', name:'Rage', lvl:14, pa:2, self:true, effect:'rage', val:40, cd:4, desc:"+40 % de dégâts jusqu'à la fin du tour. Recharge 4 tours. Débloqué au niveau 14. Combo : lancée le même tour que Cri de guerre, déclenche la Fureur (la Rage dure aussi au tour suivant)." },
       { id:'hachejet', modR:true, icon:'weapon_axe', name:'Hache de jet', lvl:30, pa:4, minR:2, maxR:5, los:true, dmg:[16,22], perTurn:1, proj:'#c0c0c0', desc:'Portée 2-5, 16-22 dégâts. 1 fois par tour. Débloqué au niveau 30.' },
       { id:'execution', icon:'weapon_cleaver', name:'Exécution', lvl:45, pa:5, minR:1, maxR:1, los:true, dmg:[30,40], cd:3, desc:'Corps à corps, 30-40 dégâts. Recharge 3 tours. Débloqué au niveau 45.' },
     ] },
@@ -491,13 +491,13 @@ const CLASSES = {
     coiffes: ['Capuche','Chapeau pointu','Chapeau d\'arcaniste','Chapeau de givre','Couronne du nécromancien'],
     craft: { bucheron:['Bâton','weapon_green_magic_staff'], mineur:['Sceptre','weapon_red_magic_staff'], coiffe:'Diadème' },
     spells:[
-      { id:'flam', modR:true, icon:'weapon_red_magic_staff', name:'Flammèche', pa:3, minR:2, maxR:6, los:true, dmg:[7,10], perTurn:2, proj:'#ff9a3c', desc:'Portée 2-6, 7-10 dégâts. 2 fois par tour.' },
-      { id:'boule', modR:true, icon:'weapon_green_magic_staff', name:'Boule de feu', pa:4, minR:3, maxR:6, los:true, dmg:[11,15], zone:'cross', perTurn:1, proj:'#ff5a1f', desc:'Portée 3-6, 11-15 dégâts, éclabousse en croix (moitié). 1 fois par tour.' },
+      { id:'flam', modR:true, icon:'weapon_red_magic_staff', name:'Flammèche', pa:3, minR:2, maxR:6, los:true, dmg:[7,10], perTurn:2, proj:'#ff9a3c', combo:{ dot:'boule', mul:1.3, label:'Combo Brûlure' }, desc:'Portée 2-6, 7-10 dégâts. 2 fois par tour. Combo : +30 % de dégâts sur une cible brûlée (Boule de feu).' },
+      { id:'boule', modR:true, icon:'weapon_green_magic_staff', name:'Boule de feu', pa:4, minR:3, maxR:6, los:true, dmg:[11,15], zone:'cross', perTurn:1, proj:'#ff5a1f', poison:[2,2], burn:true, desc:'Portée 3-6, 11-15 dégâts, éclabousse en croix (moitié). 1 fois par tour. Brûle ses cibles : 2 PV par tour pendant 2 tours.' },
       { id:'soin', icon:'flask_big_red', name:'Soin', pa:2, self:true, heal:[10,14], cd:3, desc:'Rend 10-14 PV. Recharge 3 tours.' },
       { id:'bouclier', icon:'flask_big_green', name:'Bouclier arcanique', lvl:8, pa:2, self:true, effect:'shield', val:20, cd:3, desc:"+20 % de résistance jusqu'à ton prochain tour. Recharge 3 tours. Débloqué au niveau 8." },
-      { id:'meteores', modR:true, icon:'weapon_lavish_sword', name:'Pluie de météores', lvl:14, pa:5, minR:3, maxR:7, los:false, dmg:[14,19], zone:'cross', zoneFull:true, proj:'#ffb03a', cd:3, desc:'Portée 3-7 sans ligne de vue, 14-19 dégâts sur toute une croix. Recharge 3 tours. Débloqué au niveau 14.' },
-      { id:'tp', icon:'flask_big_blue', name:'Téléportation', pa:2, minR:1, maxR:4, los:false, effect:'tp', needEmpty:true, cd:3, desc:'Téléporte sur une case libre à 1-4 cases. Recharge 3 tours.' },
-      { id:'blizzard', modR:true, icon:'weapon_spear', name:'Blizzard', lvl:30, pa:5, minR:2, maxR:6, los:true, dmg:[13,18], zone:'square', proj:'#9fe3ff', cd:3, desc:'Portée 2-6, 13-18 dégâts sur la case visée et les 8 cases autour. Recharge 3 tours. Débloqué au niveau 30.' },
+      { id:'meteores', modR:true, icon:'weapon_lavish_sword', name:'Pluie de météores', lvl:14, pa:5, minR:3, maxR:7, los:false, dmg:[14,19], zone:'cross', zoneFull:true, proj:'#ffb03a', cd:3, combo:{ mark:'gel', mul:1.4, consume:true, label:'Choc thermique' }, desc:'Portée 3-7 sans ligne de vue, 14-19 dégâts sur toute une croix. Recharge 3 tours. Débloqué au niveau 14. Combo : choc thermique, +40 % de dégâts sur une cible gelée (Blizzard), le gel disparaît.' },
+      { id:'tp', icon:'flask_big_blue', lvl:4, name:'Téléportation', pa:2, minR:1, maxR:4, los:false, effect:'tp', needEmpty:true, cd:3, elan:1, desc:'Téléporte sur une case libre à 1-4 cases. Recharge 3 tours. Débloqué au niveau 4. Combo : +1 PA pour la suite du tour (élan arcanique).' },
+      { id:'blizzard', modR:true, icon:'weapon_spear', name:'Blizzard', lvl:30, pa:5, minR:2, maxR:6, los:true, dmg:[13,18], zone:'square', proj:'#9fe3ff', cd:3, mark:'gel', desc:'Portée 2-6, 13-18 dégâts sur la case visée et les 8 cases autour. Recharge 3 tours. Débloqué au niveau 30. Gèle ses cibles jusqu\'à la fin du tour suivant.' },
       { id:'lame', modR:true, icon:'weapon_anime_sword', name:'Lame arcanique', lvl:45, pa:4, minR:2, maxR:7, los:true, dmg:[19,24], perTurn:1, proj:'#c58bff', desc:'Portée 2-7, 19-24 dégâts. 1 fois par tour. Débloqué au niveau 45.' },
     ] },
   roublard: { name:'Roublard', hp:58, pa:6, pm:4, sprite:'roublard', coiffeIcon:'capuche',
@@ -510,11 +510,11 @@ const CLASSES = {
       { id:'dagues', icon:'weapon_knife', name:'Dagues jumelles', pa:2, minR:1, maxR:1, los:true, dmg:[6,9], perTurn:3, desc:'Corps à corps, 6-9 dégâts. 3 fois par tour.' },
       { id:'lameempo', icon:'flask_big_green', name:'Lame empoisonnée', pa:3, minR:1, maxR:1, los:true, dmg:[7,10], poison:[4,2], perTurn:1, desc:'Corps à corps, 7-10 dégâts, puis poison : 4 PV par tour pendant 2 tours. 1 fois par tour.' },
       { id:'ombre', modR:true, icon:'flask_big_blue', name:"Pas de l'ombre", pa:2, minR:1, maxR:5, los:false, effect:'tp', needEmpty:true, cd:2, desc:'Se téléporte sur une case libre à 1-5 cases, sans ligne de vue. Recharge 2 tours.' },
-      { id:'fumigene', icon:'flask_big_yellow', name:'Fumigène', pa:2, self:true, effect:'shield', val:25, cd:3, desc:"+25 % de résistance jusqu'à ton prochain tour. Recharge 3 tours." },
-      { id:'coupbas', icon:'weapon_saw_sword', name:'Coup bas', lvl:8, pa:4, minR:1, maxR:1, los:true, dmg:[14,18], vsPoison:2, perTurn:1, desc:'Corps à corps, 14-18 dégâts, doublés si la cible est empoisonnée. 1 fois par tour. Débloqué au niveau 8.' },
+      { id:'fumigene', icon:'flask_big_yellow', lvl:4, name:'Fumigène', pa:2, self:true, effect:'shield', val:25, cd:3, ambush:true, desc:"+25 % de résistance jusqu'à ton prochain tour. Recharge 3 tours. Débloqué au niveau 4. Combo : ton prochain coup (avant la fin du tour suivant) est un coup critique assuré (embuscade)." },
+      { id:'coupbas', icon:'weapon_saw_sword', name:'Coup bas', lvl:8, pa:4, minR:1, maxR:1, los:true, dmg:[14,18], vsPoison:2, perTurn:1, desc:'Corps à corps, 14-18 dégâts, doublés si la cible est empoisonnée. 1 fois par tour. Débloqué au niveau 8. Combo avec Lame empoisonnée.' },
       { id:'instinct', icon:'skull', name:'Instinct du prédateur', lvl:14, pa:1, self:true, effect:'crit', val:20, cd:4, desc:"+20 % de chance de coup critique jusqu'à la fin du tour. Recharge 4 tours. Débloqué au niveau 14." },
       { id:'eventail', modR:true, icon:'weapon_throwing_axe', name:'Éventail de dagues', lvl:30, pa:4, minR:2, maxR:4, los:true, dmg:[12,16], zone:'cross', perTurn:1, proj:'#c0c0c0', desc:'Portée 2-4, 12-16 dégâts, éclabousse en croix (moitié). 1 fois par tour. Débloqué au niveau 30.' },
-      { id:'assassinat', icon:'weapon_red_gem_sword', name:'Assassinat', lvl:45, pa:5, minR:1, maxR:1, los:true, dmg:[28,38], execute:1.5, cd:3, desc:'Corps à corps, 28-38 dégâts, +50 % si la cible a moins de 30 % de ses PV. Recharge 3 tours. Débloqué au niveau 45.' },
+      { id:'assassinat', icon:'weapon_red_gem_sword', name:'Assassinat', lvl:45, pa:5, minR:1, maxR:1, los:true, dmg:[28,38], execute:1.5, cd:3, consumeDots:true, desc:'Corps à corps, 28-38 dégâts, +50 % si la cible a moins de 30 % de ses PV. Recharge 3 tours. Débloqué au niveau 45. Combo : consomme le poison de la cible et inflige d\'un coup tous ses dégâts restants.' },
     ] },
 };
 const MONSTERS = {
@@ -897,6 +897,46 @@ function parseSave(txt) { try { const p = JSON.parse(txt); if (!(p && CLASSES[p.
 const G = { grid:null, units:[], turn:0, round:1, hero:null, sel:null, hover:null, busy:false, over:true, token:0, zone:null, seed:0, mode:'menu', profile:null, reach:null, mapHero:null, mapHover:null, travel:false, scenes:[] };
 let dirty = true, tweening = 0;
 const floats = [], projs = [];
+// ---------- Effets et ambiance : particules, éclats, lumières, fondu entre cartes ----------
+// tout se dessine dans le canvas : l'écran du jeu ne bouge jamais (pas de tremblement, choix de Quentin)
+const fxs = []; let flashT0 = 0, flashCol = '', fadeT0 = 0, fadeKey = '', vignette = null;
+// gerbe de particules en pixels écran ; o : sp (vitesse), g (gravité), size, life (ms), up (vers le haut), spread, glow:false (fumée)
+function fxBurst(px, py, col, n, o={}) {
+  const t0 = performance.now();
+  for (let i=0; i<n && fxs.length<220; i++) { const a = o.up ? -Math.PI/2 + (Math.random()-.5)*1.2 : Math.random()*Math.PI*2, sp = (o.sp||120)*(.4+Math.random()*.8), sd = o.spread||0;
+    fxs.push({ x:px + (Math.random()-.5)*sd, y:py + (Math.random()-.5)*sd*.5, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, g:o.g ?? 260, s:(o.size||3)*(.6+Math.random()*.7), col, t0, life:(o.life||500)*(.7+Math.random()*.6), glow:o.glow }); }
+  dirty = true;
+}
+function fxRing(px, py, col, r=80) { fxs.push({ ring:true, x:px, y:py, r, col, t0:performance.now(), life:420 }); dirty = true; }
+function fxLight(px, py, col, r=80) { fxs.push({ light:true, x:px, y:py, r, col, t0:performance.now(), life:350 }); dirty = true; }
+function fxFlash(col) { flashCol = col; flashT0 = performance.now(); dirty = true; }
+// coup reçu : étincelles, éclat rouge si c'est le héros, fumée à la défaite
+function fxHit(t, crit) {
+  if (G.mode!=='fight') return;
+  const [cx, cy] = iso(t.rx ?? t.x, t.ry ?? t.y), y = cy - 28*(t.scale||1);
+  fxBurst(cx, y, crit ? '#ffd04a' : t.team==='hero' ? '#ff6a5a' : '#ffb36a', crit ? 22 : 12, { sp: crit ? 190 : 140, size: crit ? 3.5 : 3, life:450 });
+  if (crit) fxFlash('255,240,200'); else if (t===G.hero) fxFlash('200,30,20');
+  if (t.hp<=0) fxBurst(cx, cy-12, 'rgba(40,30,50,.75)', 16, { sp:45, g:-60, size:7, life:900, spread:30, glow:false });
+}
+const fxActive = now => fxs.length || now-flashT0 < 260 || now-fadeT0 < 420;
+function drawFx(now) {
+  for (let i=fxs.length-1; i>=0; i--) { const p = fxs[i], k = (now-p.t0)/p.life; if (k>=1) { fxs.splice(i,1); continue; }
+    ctx.globalCompositeOperation = p.glow===false ? 'source-over' : 'lighter';
+    if (p.light) { ctx.globalAlpha = (1-k)*.7; const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r); g.addColorStop(0, p.col); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(p.x-p.r, p.y-p.r, p.r*2, p.r*2); continue; }
+    if (p.ring) { const r = p.r*(.2+k); ctx.globalAlpha = 1-k; ctx.strokeStyle = p.col; ctx.lineWidth = 6*(1-k)+1; ctx.beginPath(); ctx.ellipse(p.x, p.y, r, r*.5, 0, 0, 7); ctx.stroke(); continue; }
+    const t = (now-p.t0)/1000, x = p.x + p.vx*t, y = p.y + p.vy*t + p.g*t*t/2, sz = p.s*(p.glow===false ? 1+k : 1-k*.5);
+    ctx.globalAlpha = 1-k*k; ctx.fillStyle = p.col; ctx.fillRect(x-sz/2, y-sz/2, sz, sz); }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+// par-dessus l'image : ombre douce sur les bords (combat et exploration), éclat de coup, fondu au noir en changeant de carte
+function postFx(now) {
+  if (G.mode==='fight' || G.view==='scene') {
+    if (!vignette) { vignette = document.createElement('canvas'); const w = vignette.width = cv.width, h = vignette.height = cv.height, g = vignette.getContext('2d'), r = g.createRadialGradient(w/2, h/2, h*.38, w/2, h/2, w*.62);
+      r.addColorStop(0, 'rgba(0,0,0,0)'); r.addColorStop(1, 'rgba(5,4,12,.5)'); g.fillStyle = r; g.fillRect(0, 0, w, h); }
+    ctx.drawImage(vignette, 0, 0); }
+  const fk = now-flashT0; if (fk < 260) { ctx.fillStyle = `rgba(${flashCol},${.2*(1-fk/260)})`; ctx.fillRect(0, 0, cv.width, cv.height); }
+  const dk = now-fadeT0; if (dk < 420) { ctx.fillStyle = `rgba(8,8,14,${(1-dk/420).toFixed(3)})`; ctx.fillRect(0, 0, cv.width, cv.height); }
+}
 let bg = null, mapBg = null;
 
 function heroStats(p) {
@@ -908,7 +948,7 @@ function heroStats(p) {
 }
 // ---------- Points de caractéristique et de sort (gagnés à chaque niveau) ----------
 const LV_HP = 4, LV_DMG = 0.05;                 // gain automatique par niveau, le reste vient des points
-const CARAC_PER_LV = 5, SPELL_PTS_PER_LV = 1, SPELL_MAX_RANK = 5;
+const CARAC_PER_LV = 5, SPELL_MAX_RANK = 5;
 const CARACS = {
   vit: { name:'Vitalité', per:2, desc:'+2 PV max par point' },
   for: { name:'Force', per:2, desc:'+2 % de dégâts et de soins par point' },
@@ -916,17 +956,18 @@ const CARACS = {
   sag: { name:'Sagesse', per:0.5, desc:'+1 % de résistance tous les 2 points (50 % au plus, équipement compris)' },
 };
 const resetCost = p => 50 * p.level;            // réinitialiser ses points de caractéristiques ou de sorts (06/10 : dépense d'or)
-const spellRankCost = r => r - 1;               // passer au rang r coûte r-1 points (façon Dofus)
+// les sorts montent de rang tout seuls avec le niveau (08/10, demande de Quentin : plus de points de sort)
+const RANK_LEVELS = { 1:[10,20,30,40], 4:[10,20,30,40], 8:[20,30,40,50], 14:[20,30,40,50], 30:[38,46,54,62], 45:[50,55,60,65] };
+const rankLevels = sp => RANK_LEVELS[sp.lvl || 1] || [1,2,3,4].map(k => Math.round((sp.lvl||1) + k*(65-(sp.lvl||1))/4));
+const rankAt = (sp, lv) => 1 + rankLevels(sp).filter(l => lv >= l).length;
 function charPoints(p) {
-  p.pts = p.pts || {}; for (const k of ['vit','for','agi','sag']) p.pts[k] = p.pts[k] || 0; p.ranks = p.ranks || {}; // rempli sur place : remplacer p.pts perdait les clics sur +1
+  p.pts = p.pts || {}; for (const k of ['vit','for','agi','sag']) p.pts[k] = p.pts[k] || 0; delete p.ranks; // ancien système de points de sort ; rempli sur place : remplacer p.pts perdait les clics sur +1
   const spent = Object.values(p.pts).reduce((a,b) => a+b, 0);
-  let sspent = 0; for (const r of Object.values(p.ranks)) for (let k=2; k<=r; k++) sspent += spellRankCost(k);
-  const free = (p.level-1)*CARAC_PER_LV - spent, sfree = (p.level-1)*SPELL_PTS_PER_LV - sspent;
+  const free = (p.level-1)*CARAC_PER_LV - spent;
   if (free < 0) for (const k in p.pts) p.pts[k] = 0;   // niveau baissé (mode test) : on rend les points
-  if (sfree < 0) p.ranks = {};
-  return { pts:p.pts, ranks:p.ranks, free: free < 0 ? (p.level-1)*CARAC_PER_LV : free, sfree: sfree < 0 ? (p.level-1)*SPELL_PTS_PER_LV : sfree };
+  return { pts:p.pts, free: free < 0 ? (p.level-1)*CARAC_PER_LV : free, sfree:0 };
 }
-const spellRank = (p, sp) => Math.max(1, Math.min(SPELL_MAX_RANK, (p.ranks && p.ranks[sp.id]) || 1));
+const spellRank = (p, sp) => Math.min(SPELL_MAX_RANK, rankAt(sp, p.level));
 // copie du sort améliorée selon son rang : dégâts et soins +8 % par rang, recharge -1 aux rangs 3 et 5, effets plus forts
 // gains de rang en plus des dégâts : rangs où le sort gagne +1 de portée, -1 tour de relance ou +1 lancer par tour.
 // Choisis sort par sort pour rester raisonnable : pas de portée au corps à corps, pas de lancer en plus sur les gros sorts.
@@ -987,11 +1028,6 @@ function autoPoints(p) {
   const cp = charPoints(p), w = CLASSES[p.cls].autoPts || { vit:0.4, for:0.4, agi:0.1, sag:0.1 };
   for (let n = cp.free; n > 0; n--) { const tot = Object.values(p.pts).reduce((a,b) => a+b, 0) + 1;
     const k = Object.keys(w).sort((a,b) => (p.pts[a]/tot - w[a]) - (p.pts[b]/tot - w[b]))[0]; p.pts[k]++; }
-  let sf = cp.sfree;
-  for (;;) { const c = heroSpells(p).map(sp => CLASSES[p.cls].spells.find(s => s.id===sp.id)).filter(sp => spellRank(p, sp) < SPELL_MAX_RANK)
-      .sort((a,b) => spellRank(p,a) - spellRank(p,b) || !!b.dmg - !!a.dmg)[0];
-    if (!c || spellRankCost(spellRank(p, c)+1) > sf) break;
-    sf -= spellRankCost(spellRank(p, c)+1); p.ranks[c.id] = spellRank(p, c)+1; }
 }
 function updateCharBtn() { const b = $('#charBtn'); if (!b || !G.profile) return; const c = charPoints(G.profile), n = c.free + c.sfree;
   b.innerHTML = `Personnage (C)${n ? `<span class="badge">${c.free ? c.free : ''}${c.free && c.sfree ? '+' : ''}${c.sfree ? c.sfree+'★' : ''}</span>` : ''}`; $('#menuBtn').classList.toggle('dot', !!n); }
@@ -1002,7 +1038,7 @@ function showCharacter(back) {
   const order = spellOrder(p), unlocked = order.filter(sp => !sp.lvl || p.level >= sp.lvl);
   const pr = gearTotals(p).portee;
   const prev = G.spPreview || (G.spPreview = {});
-  const srow = (sp, i) => { const r = spellRank(p, sp), locked = sp.lvl && p.level < sp.lvl, cost = spellRankCost(r+1), ki = unlocked.indexOf(sp);
+  const srow = (sp, i) => { const r = spellRank(p, sp), locked = sp.lvl && p.level < sp.lvl, nxt = rankLevels(sp)[r-1], ki = unlocked.indexOf(sp);
     const pv = prev[sp.id] && prev[sp.id] !== r ? prev[sp.id] : 0, shown = withRange(rankedSpell(sp, pv || r), pr);
     const pips = `<span class="rkp" title="Clique sur un rang pour voir ses effets">${[1,2,3,4,5].slice(0, SPELL_MAX_RANK).map(k => `<button data-pv="${sp.id}" data-k="${k}" class="${k<=r ? 'own' : ''}${k===(pv||r) ? ' cur' : ''}" title="Voir le rang ${k}">${k}</button>`).join('')}</span>`;
     return `<div class="item"${locked ? ' style="opacity:.5"' : ''}><div class="act"><button class="btn sm alt" data-mv="${i}" data-d="-1" title="Monter"${i ? '' : ' disabled'}>↑</button><button class="btn sm alt" data-mv="${i}" data-d="1" title="Descendre"${i < order.length-1 ? '' : ' disabled'}>↓</button></div>
@@ -1010,29 +1046,26 @@ function showCharacter(back) {
 ${pips}</b>
       <small class="spuse">${spellUseText(shown)}</small>
       ${pv ? `<small class="sppre">Aperçu du rang ${pv}${pv > r ? ' (pas encore acquis)' : ''} : ${shown.desc.replace(/ \(rang \d\/\d\)/, '')}<br>Par rapport à ton rang ${r} : ${rankDiffText(sp, r, pv)}.</small>` : ''}
-      <small>${locked ? `Débloqué au niveau ${sp.lvl}.` : r >= SPELL_MAX_RANK ? 'Rang maximum atteint.' : `Rang ${r+1} : ${rankGainText(sp, r+1)}.`}</small>${sp.modR ? `<small>Portée modifiable par l'équipement${pr ? ` (+${pr} actuellement)` : ''}</small>` : ''}</div>
-      <div class="act">${locked || r >= SPELL_MAX_RANK ? '' : `<button class="btn sm" data-rank="${sp.id}" title="Rang ${r+1} : ${rankGainText(sp, r+1)}"${c.sfree >= cost ? '' : ' disabled'}>Améliorer (${cost} pt${cost>1?'s':''})</button>`}</div></div>`; };
+      <small>${locked ? `Débloqué au niveau ${sp.lvl}.` : r >= SPELL_MAX_RANK ? 'Rang maximum atteint.' : `Rang ${r+1} au niveau ${nxt} : ${rankGainText(sp, r+1)}.`}</small>${sp.modR ? `<small>Portée modifiable par l'équipement${pr ? ` (+${pr} actuellement)` : ''}</small>` : ''}</div>
+      </div>`; };
   overlay(`<h2>${fxHtml(heroName(), heroFx(p))} (${cls.name} niv. ${p.level})</h2>${xpBarHtml()}${titleSelectHtml(p)}${fxPickHtml(p)}
     <p style="text-align:center"><button class="btn" id="cardBtn">Partager ma fiche</button></p>${statsLine()}
-    <p class="help">Chaque niveau donne ${CARAC_PER_LV} points de caractéristique et ${SPELL_PTS_PER_LV} point de sort. Les changements s'appliquent au prochain combat.</p>
+    <p class="help">Chaque niveau donne ${CARAC_PER_LV} points de caractéristique ; tes sorts montent de rang tout seuls aux niveaux indiqués. Les changements s'appliquent au prochain combat.</p>
     ${setsHtml(p)}
     ${collarHtml(p)}
     <h3>Caractéristiques : ${c.free} point${c.free>1?'s':''} à répartir</h3><div class="pts">${Object.keys(CARACS).map(row).join('')}</div>
-    <h3>Sorts : ${c.sfree} point${c.sfree>1?'s':''} de sort</h3><p class="help">Monter un sort au rang suivant coûte autant de points que son rang actuel (rang 2 : 1 point, rang 3 : 2 points…). Chaque rang donne +8 % de dégâts ou de soins. Selon le sort, certains rangs ajoutent aussi de la portée, réduisent la relance ou donnent un lancer de plus par tour. Clique sur les chiffres 1 à 5 à côté d'un sort pour voir ses effets à ce rang. Les flèches ↑ ↓ changent l'ordre des sorts dans la barre de combat et leurs raccourcis.</p>
+    <h3>Sorts</h3><p class="help">Tes sorts montent de rang avec ton niveau : les premiers aux niveaux 10, 20, 30 et 40, ceux appris plus tard un peu après. Chaque rang donne +8 % de dégâts ou de soins. Selon le sort, certains rangs ajoutent aussi de la portée, réduisent la relance ou donnent un lancer de plus par tour. Clique sur les chiffres 1 à 5 à côté d'un sort pour voir ses effets à ce rang. Les flèches ↑ ↓ changent l'ordre des sorts dans la barre de combat et leurs raccourcis.</p>
     <div class="pts one">${order.map(srow).join('')}</div>
-    <p><button class="btn alt" id="ptAuto"${c.free || c.sfree ? '' : ' disabled'}>Répartir automatiquement</button><button class="btn alt" id="ptReset"${p.gold < resetCost(p) ? ' disabled' : ''}>Réinitialiser les caractéristiques · ${resetCost(p)} or</button><button class="btn alt" id="spReset"${p.gold < resetCost(p) ? ' disabled' : ''}>Réinitialiser les sorts · ${resetCost(p)} or</button></p>
+    <p><button class="btn alt" id="ptAuto"${c.free || c.sfree ? '' : ' disabled'}>Répartir automatiquement</button><button class="btn alt" id="ptReset"${p.gold < resetCost(p) ? ' disabled' : ''}>Réinitialiser les caractéristiques · ${resetCost(p)} or</button></p>
     <button class="btn" id="b1">${back ? 'Retour' : 'Fermer'}</button>`, true);
   const ov = $('#overlay'), redo = () => { save(); refreshMapTitle(); updateCharBtn(); const sc = ov.querySelector('.box').scrollTop; showCharacter(back); ov.querySelector('.box').scrollTop = sc; };
   ov.querySelectorAll('[data-pt]').forEach(b => b.onclick = () => { const k = b.dataset.pt, n = +b.dataset.n; p.pts[k] = Math.max(0, p.pts[k] + (n > 0 ? Math.min(n, charPoints(p).free) : n)); play('equip'); redo(); });
   ov.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { const o = order.map(s => s.id), i = +b.dataset.mv, j = i + +b.dataset.d;
     if (j < 0 || j >= o.length) return; [o[i], o[j]] = [o[j], o[i]]; p.order = o; play('equip'); redo(); });
   ov.querySelectorAll('[data-pv]').forEach(b => b.onclick = () => { const id = b.dataset.pv, k = +b.dataset.k; prev[id] = prev[id] === k ? 0 : k; redo(); });
-  ov.querySelectorAll('[data-rank]').forEach(b => b.onclick = () => { const sp = cls.spells.find(s => s.id===b.dataset.rank), r = spellRank(p, sp);
-    if (r < SPELL_MAX_RANK && charPoints(p).sfree >= spellRankCost(r+1)) { p.ranks[sp.id] = r+1; play('buff'); } redo(); });
   if ($('#collarUp')) $('#collarUp').onclick = () => { const ok = upgradeCollar(); if (ok) play('buff'); redo(); if (ok) flashMsg(`Forest ronronne : il porte maintenant un ${COLLAR_NAMES[p.collar-1].toLowerCase()} (niveau ${p.collar}) !`); };
   $('#ptAuto').onclick = () => { autoPoints(p); play('equip'); redo(); };
   $('#ptReset').onclick = () => { if (!Object.values(p.pts).some(v => v) || p.gold < resetCost(p)) return; p.gold -= resetCost(p); for (const k in p.pts) p.pts[k] = 0; redo(); };
-  $('#spReset').onclick = () => { if (!Object.keys(p.ranks || {}).length || p.gold < resetCost(p)) return; p.gold -= resetCost(p); p.ranks = {}; redo(); };
   ov.dataset.menu = 'char';
   wireTitleSelect(p); wireFxPick(p, redo);
   $('#cardBtn').onclick = () => showShareCard(() => showCharacter(back));
@@ -1242,14 +1275,19 @@ async function cast(u,sp,tx,ty) {
     u.x = u.rx = tx; u.y = u.ry = ty;
     await tween(160, k => { u.alpha = k; });
     u.alpha = 1;
+    if (sp.markAdj) for (const [a,b] of DIRS) { const t = unitAt(tx+a, ty+b); if (t && t.team!==u.team) markUnit(t, sp.markAdj, G.round); }
+    if (sp.elan) { u.pa += sp.elan; addFloat(u.x,u.y,`+${sp.elan} PA`,'#4aa3ff'); log(`Élan arcanique : ${u.name} gagne ${sp.elan} PA.`); }
   } else if (sp.effect==='rage') {
     u.turnBonus = sp.val/100; play('buff'); addFloat(u.x,u.y,`+${sp.val} % dégâts`,'#ff9a3c');
+    if (u.uses.cri) fury(u, sp.val);
   } else if (sp.effect==='crit') {
     u.turnCrit = sp.val/100; play('buff'); addFloat(u.x,u.y,`+${sp.val} % critique`,'#ffd04a');
   } else if (sp.effect==='shield') {
     u.tempRes = sp.val; play('bouclier'); addFloat(u.x,u.y,`+${sp.val} % résistance`,'#4aa3ff');
+    if (sp.ambush) { u.ambush = G.round + 1; log(`${u.name} se cache dans la fumée : son prochain coup sera critique.`); }
   } else if (sp.effect==='pm') {
     u.pm += sp.val; play('buff'); addFloat(u.x,u.y,`+${sp.val} PM`,'#5ad16a');
+    if (u.uses.rage && u.turnBonus) fury(u, Math.round(u.turnBonus*100));
   } else if (sp.potion) {
     const j = jobs(), v = Math.min(u.maxHp-u.hp, Math.round(u.maxHp*sp.healPct)); j.cons[sp.potion] = Math.max(0, (j.cons[sp.potion]||0) - 1);
     u.hp += v; play('soin'); addFloat(u.x,u.y,`+${v}`,'#5ad16a'); log(`${u.name} boit ${sp.name} et récupère ${v} PV.`); save();
@@ -1263,19 +1301,25 @@ async function cast(u,sp,tx,ty) {
     const v = Math.min(t.maxHp-t.hp, Math.round(rnd(...sp.heal)*u.mul));
     t.hp += v; play('soin'); addFloat(t.x,t.y,`+${v}`,'#5ad16a'); log(`${t.name} récupère ${v} PV.`);
   } else {
-    if (sp.proj) { play('sort'); await projectile(u.x,u.y,tx,ty,sp.proj); if (sp.zone) play('boum'); }
+    if (sp.proj) { play('sort'); await projectile(u.x,u.y,tx,ty,sp.proj); if (sp.zone) { play('boum'); const [bx,by] = iso(tx,ty); fxRing(bx, by, sp.proj, 90); } }
     else { play('swing'); const sx=u.x, sy=u.y; await tween(180, k => { const s=Math.sin(Math.PI*k)*.35; u.rx=sx+(tx-sx)*s; u.ry=sy+(ty-sy)*s; }); u.rx=u.x; u.ry=u.y; }
     if (sp.dmg) {
-      const crit = Math.random() < (u.crit || CRIT_CHANCE) + (u.turnCrit || 0); // un coup critique touche toutes les cibles du sort
+      const amb = u.ambush && u.ambush >= G.round; if (u.ambush) u.ambush = 0; // embuscade (Fumigène) : critique assuré
+      const crit = amb || Math.random() < (u.crit || CRIT_CHANCE) + (u.turnCrit || 0); // un coup critique touche toutes les cibles du sort
       G.caster = u;
       if (crit) log(`Coup critique de ${u.name} !`);
       for (const [x,y,f] of zoneCells(sp,tx,ty)) {
         const t = unitAt(x,y);
         if (!t || t===u) continue;
-        const v = hurt(t, Math.max(1, Math.round(rnd(...sp.dmg)*(u.mul + (u.turnBonus||0))*f*(crit ? CRIT_MUL : 1)*mechAtk(u, t)*condMul(sp, t))), crit);
+        const cb = comboOn(sp, t), extra = dotsLeft(sp, t);
+        if (cb) { addFloat(t.x, t.y-.8, sp.combo.label, '#ffd04a'); log(`${sp.combo.label} sur ${t.name} !`); if (sp.combo.consume) delete t.marks[sp.combo.mark]; }
+        if (extra) { t.dots = t.dots.filter(d => d.name!=='Poison'); addFloat(t.x, t.y-.8, 'Poison consommé', '#9be36a'); log(`${u.name} consomme le poison de ${t.name} (+${extra} dégâts).`); }
+        const v = hurt(t, Math.max(1, Math.round(rnd(...sp.dmg)*(u.mul + (u.turnBonus||0))*f*(crit ? CRIT_MUL : 1)*mechAtk(u, t)*(cb ? sp.combo.mul : 1)*(sp.vsPoison && t.dots && t.dots.length ? sp.vsPoison : 1)*(sp.execute && t.hp < t.maxHp*0.3 ? sp.execute : 1))) + extra, crit);
         if (sp.drain && u.alive) { const g = Math.min(u.maxHp-u.hp, Math.round(v*sp.drain)); if (g > 0) { u.hp += g; addFloat(u.x,u.y,`+${g}`,'#5ad16a'); log(`${u.name} récupère ${g} PV.`); } }
         if (!t.alive) continue;
         if (sp.poison) addDot(t, sp, u);
+        if (sp.mark) markUnit(t, sp.mark, G.round + 1);
+        if (cb && sp.combo.slow && !t.malus) { t.malus = sp.combo.slow; log(`${t.name} aura ${sp.combo.slow} PM de moins au prochain tour.`); }
         if (sp.slowPm && !t.malus && G.round > (t.slowFree ?? -1)) { t.malus = sp.slowPm; log(`${t.name} aura ${sp.slowPm} PM de moins au prochain tour.`); }
       }
       G.caster = null;
@@ -1287,10 +1331,18 @@ async function cast(u,sp,tx,ty) {
 }
 // dégâts min/max d'un sort sur une cible (même calcul que cast + hurt)
 // bonus de certains sorts selon l'état de la cible (Coup bas : empoisonnée ; Assassinat : moins de 30 % de PV)
-const condMul = (sp, t) => (sp.vsPoison && t.dots && t.dots.length ? sp.vsPoison : 1) * (sp.execute && t.hp < t.maxHp*0.3 ? sp.execute : 1);
+const comboOn = (sp, t) => !!(sp.combo && t && (sp.combo.dot ? (t.dots||[]).some(d => d.id===sp.combo.dot) : sp.combo.mark ? (t.marks||{})[sp.combo.mark] >= G.round : false));
+const condMul = (sp, t) => (sp.vsPoison && t.dots && t.dots.length ? sp.vsPoison : 1) * (sp.execute && t.hp < t.maxHp*0.3 ? sp.execute : 1) * (comboOn(sp, t) ? sp.combo.mul : 1);
+// Assassinat : tous les dégâts de poison restants d'un coup
+const dotsLeft = (sp, t) => sp.consumeDots ? (t.dots||[]).filter(d => d.name==='Poison').reduce((a,d) => a + d.v*d.n, 0) : 0;
+// états posés par les combos : marque valable jusqu'à la fin du tour (rond) indiqué
+function fury(u, val) { if (u.furyNext) return; u.furyNext = val/100; addFloat(u.x, u.y-.8, 'Fureur !', '#ff9a3c'); log(`Fureur : la Rage de ${u.name} durera aussi au tour suivant.`); }
+function markUnit(t, k, until) { t.marks = t.marks || {}; t.marks[k] = Math.max(t.marks[k] || 0, until);
+  addFloat(t.x, t.y-.4, { desequ:'Déséquilibré', gel:'Gelé' }[k] || k, k==='gel' ? '#9fe3ff' : '#ffd04a'); }
 function dmgRange(u,sp,t,f,m=1) {
   const res = resOf(t);
-  return sp.dmg.map(d => { let v = Math.max(1, Math.round(d*(u.mul + (u.turnBonus||0))*f*m*condMul(sp, t))); if (res) v = Math.max(1, Math.round(v*(1-res/100))); return v; });
+  const extra = dotsLeft(sp, t);
+  return sp.dmg.map(d => { let v = Math.max(1, Math.round(d*(u.mul + (u.turnBonus||0))*f*m*condMul(sp, t))); if (res) v = Math.max(1, Math.round(v*(1-res/100))); return v + extra; });
 }
 function dmgPreview() {
   const h = G.hero, sp = G.sel;
@@ -1317,6 +1369,7 @@ function hurt(t,v,crit) {
   play(t.team==='hero' ? 'aie' : 'impact'); if (crit) play('critique');
   log(`${t.name} perd ${v} PV.`);
   t.flash = performance.now();
+  fxHit(t, crit);
   if (t.hp<=0) { t.alive = false; play(G.zone && G.zone.icon==='boss' && t.kind===G.zone.foes[0] ? 'mortboss' : 'mort'); log(`${t.name} est vaincu !`); }
   if (t.mech) mechAfter(t, v);
   return v;
@@ -1339,6 +1392,7 @@ async function runTurns(token) {
 }
 function beginTurn(u) {
   u.pa = u.maxPa; u.pm = u.maxPm; u.uses = {}; u.turnBonus = 0; u.turnCrit = 0; u.tempRes = 0;
+  if (u.furyNext) { u.turnBonus = u.furyNext; addFloat(u.x,u.y,'Fureur','#ff9a3c'); log(`Fureur : ${u.name} garde +${Math.round(u.furyNext*100)} % de dégâts ce tour.`); u.furyNext = 0; }
   if (u.malus) { u.pm = Math.max(0, u.pm - u.malus); addFloat(u.x,u.y,`-${u.malus} PM`,'#9fe3ff'); log(`${u.name} est ralenti : -${u.malus} PM ce tour.`); u.malus = 0; u.slowFree = G.round; } // pas de nouveau ralentissement avant le tour suivant
   if (u.dots && u.dots.length) { for (const d of u.dots) { if (!u.alive) break; log(`${d.name} sur ${u.name}.`); hurt(u, d.v); d.n--; } u.dots = u.dots.filter(d => d.n > 0); }
   for (const k in u.cds) { u.cds[k]--; if (u.cds[k]<=0) delete u.cds[k]; }
@@ -1466,9 +1520,9 @@ async function knock(u, t, sp) {
   refreshReach(); dirty = true;
 }
 function addDot(t, sp, u) {
-  const v = Math.max(1, Math.round(sp.poison[0]*u.mul)), n = sp.poison[1], w = sp.burn ? 'Brûlure' : 'Poison';
+  const v = Math.max(1, Math.round(sp.poison[0]*u.mul)), n = sp.poison[1], w = sp.dotName || (sp.burn ? 'Brûlure' : 'Poison');
   t.dots = (t.dots||[]).filter(x => x.id!==sp.id); t.dots.push({ id:sp.id, v, n, name:w });
-  addFloat(t.x, t.y-.4, sp.burn ? 'Brûlé' : 'Empoisonné', sp.burn ? '#ff9a3c' : '#9be36a');
+  addFloat(t.x, t.y-.4, sp.dotName ? 'Entaillé' : sp.burn ? 'Brûlé' : 'Empoisonné', sp.dotName ? '#e2554a' : sp.burn ? '#ff9a3c' : '#9be36a');
   log(`${t.name} subit ${w.toLowerCase()} : ${v} PV par tour pendant ${n} tours.`);
 }
 function summonCell(x,y) {
@@ -1504,6 +1558,10 @@ function stateText(o) {
   const t = [];
   for (const d of o.dots||[]) t.push(`${d.name} ${d.v} PV/tour (${d.n} tour${d.n>1 ? 's' : ''})`);
   if (o.malus) t.push(`ralenti (-${o.malus} PM)`);
+  if ((o.marks||{}).desequ >= G.round) t.push('déséquilibré');
+  if ((o.marks||{}).gel >= G.round) t.push('gelé');
+  if (o.ambush >= G.round) t.push('embuscade prête');
+  if (o.furyNext) t.push('Fureur au prochain tour');
   if (o.ward && o.ward.r >= G.round) t.push(`protégé (+${o.ward.v} % résistance)`);
   if (o.ice) t.push(`armure de glace (${o.ice} PV)`);
   if (o.enraged) t.push('enragé');
@@ -1538,7 +1596,8 @@ function projectile(fx,fy,tx,ty,color) {
   projs.push({fx,fy,tx,ty,color,t0:performance.now(),dur});
   return sleep(dur);
 }
-function addFloat(x,y,text,color) { floats.push({x,y,text,color,t0:performance.now()}); dirty = true; }
+function addFloat(x,y,text,color) { floats.push({x,y,text,color,t0:performance.now()}); dirty = true;
+  if (G.mode==='fight' && text[0]==='+') { const [cx,cy] = iso(x,y); fxBurst(cx, cy-20, color, 10, { up:true, sp:60, g:-30, size:3, life:800, spread:30 }); } } // soin ou bonus : étincelles qui montent
 
 // ---------- Rendu ----------
 function iso(x,y) { return [OX+(x-y)*TW/2, OY+(x+y)*TH/2+TH/2]; }
@@ -1859,8 +1918,10 @@ function render(now) {
   const cur = G.over ? null : G.units[G.turn];
   for (const e of ents) e.rock ? drawRock(...e.rock) : drawUnit(e.u, e.u===cur, now);
   // projectiles
-  for (let i=projs.length-1;i>=0;i--) { const p=projs[i], k=(now-p.t0)/p.dur; if (k>=1) { projs.splice(i,1); continue; }
+  for (let i=projs.length-1;i>=0;i--) { const p=projs[i], k=(now-p.t0)/p.dur;
+    if (k>=1) { projs.splice(i,1); const [bx,by]=iso(p.tx,p.ty); fxBurst(bx, by-40, p.color, 14, { sp:150, life:420 }); fxLight(bx, by-40, p.color, 80); continue; } // impact : gerbe + lumière
     const [ax,ay]=iso(p.fx,p.fy), [bx,by]=iso(p.tx,p.ty); const px=ax+(bx-ax)*k, py=ay+(by-ay)*k-40-Math.sin(Math.PI*k)*30;
+    if (Math.random()<.7) fxBurst(px, py, p.color, 1, { sp:25, g:40, size:3, life:300 }); // traînée
     ctx.fillStyle=p.color; ctx.shadowColor=p.color; ctx.shadowBlur=14; ctx.fillRect(px-6,py-6,12,12); ctx.fillStyle='#fff'; ctx.fillRect(px-3,py-3,6,6); ctx.shadowBlur=0; }
   // vie au survol, et PV restants (tête de mort si mort assurée) quand un sort vise la cible
   const pvs = dmgPreview();
@@ -1869,6 +1930,7 @@ function render(now) {
     if (hi===0) hpLabel(t, 'Vaincu', '#ffd24a', true);
     else hpLabel(t, `${t.hp} → ${lo===hi ? hi : lo+' à '+hi} PV`, lo===0 ? '#ffb04a' : '#ff8a7a', false, crit); }
   else if (G.hover && !G.over) { const o = unitAt(...G.hover); if (o && o!==h) hpLabel(o, `${o.hp} / ${o.maxHp} PV`, '#f3ead2'); }
+  drawFx(now);
   // textes flottants
   ctx.textAlign='center'; ctx.font='bold 18px Segoe UI, sans-serif';
   for (let i=floats.length-1;i>=0;i--) { const f=floats[i], k=(now-f.t0)/1000; if (k>=1) { floats.splice(i,1); continue; }
@@ -1933,7 +1995,14 @@ function drawUnit(u, isCur, now) {
   const bw=40, by=top-10;
   ctx.fillStyle='#11151d'; ctx.fillRect(cx-bw/2-1,by-1,bw+2,7);
   ctx.fillStyle = u.team!=='enemy' ? '#4aa3ff' : '#e2554a'; ctx.fillRect(cx-bw/2,by,bw*u.hp/u.maxHp,5);
+  const ic = unitIcons(u); if (ic) { ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(ic, cx, by-4); }
   ctx.globalAlpha = 1;
+}
+// petites icônes d'état au-dessus de la barre de vie (combos)
+function unitIcons(u) {
+  const d = u.dots || [], m = u.marks || {};
+  return [d.some(x => x.name==='Poison') && '☠', d.some(x => x.name==='Brûlure') && '🔥', d.some(x => x.name==='Entaille') && '🩸',
+    m.gel >= G.round && '❄', m.desequ >= G.round && '💫', u.malus && '🐌', u.ambush >= G.round && '🌫', u.furyNext && '💢'].filter(Boolean).join('');
 }
 
 // Soleil noir derrière la tête de la Grande Prêtresse : disque sombre, couronne dorée et rayons qui tournent
@@ -1949,8 +2018,14 @@ let lastTick = -1;
 function frame(now) {
   const tick = Math.floor(now/140);
   if (tick !== lastTick) { lastTick = tick; dirty = true; } // animation des sprites (~7 images/s au repos)
-  if (G.mode==='map' && (G.view==='scene' ? bg : mapBg) && (dirty || tweening)) { if (G.view==='scene') renderScene(now); else renderMap(now); dirty = false; }
-  else if (G.mode==='fight' && bg && (dirty || tweening || floats.length || projs.length)) { render(now); dirty = false; }
+  const fk = G.mode + '|' + (G.mode==='fight' ? G.seed : G.view + '|' + (G.profile && G.profile.pos) + '|' + !!G.mapAll); // nouvelle carte : fondu
+  if (fk !== fadeKey) { if (fadeKey) fadeT0 = now; fadeKey = fk; dirty = true; }
+  const fxOn = fxActive(now);
+  const drawMap = G.mode==='map' && (G.view==='scene' ? bg : mapBg) && (dirty || tweening || fxOn);
+  const drawFight = !drawMap && G.mode==='fight' && bg && (dirty || tweening || floats.length || projs.length || fxOn);
+  if (drawMap || drawFight) {
+    if (drawFight) render(now); else if (G.view==='scene') renderScene(now); else renderMap(now);
+    postFx(now); dirty = false; }
   requestAnimationFrame(frame);
 }
 
@@ -4093,10 +4168,11 @@ const activeQuests = () => QUESTS.filter(q => qs(q) && qs(q).state==='active');
 const forClass = q => !q.cls || q.cls===G.profile.cls; // quêtes de classe : seulement pour cette classe
 
 function levelBonusText(lv) {
-  const b = [`+${LV_HP} PV max`, `+${Math.round(LV_DMG*100)} % de dégâts`, `+${CARAC_PER_LV} points de caractéristique`, `+${SPELL_PTS_PER_LV} point de sort`];
+  const b = [`+${LV_HP} PV max`, `+${Math.round(LV_DMG*100)} % de dégâts`, `+${CARAC_PER_LV} points de caractéristique`];
   if ([8,25,40].includes(lv)) b.push('+1 PM');
   if ([12,30,50].includes(lv)) b.push('+1 PA');
   for (const sp of CLASSES[G.profile.cls].spells) if (sp.lvl===lv) b.push(`nouveau sort : ${sp.name}`);
+  for (const sp of CLASSES[G.profile.cls].spells) if (rankLevels(sp).includes(lv)) b.push(`${sp.name} passe au rang ${rankAt(sp, lv)}`);
   return b.join(', ');
 }
 // barre d'XP : « from » = niveau et XP avant le gain (fin de combat), la part gagnée se remplit en doré
@@ -4116,9 +4192,10 @@ function addXp(n) {
 }
 function levelUpHtml(ups) { if (!ups.length) return ''; setTimeout(updateCharBtn);
   const n = ups.length, cnt = l => ups.filter(lv => l.includes(lv)).length, pm = cnt([3,15,25]), pa = cnt([5,10,20]), s = (k, w) => k > 1 ? w + 's' : w;
-  const chips = [`+${LV_HP*n} PV max`, `+${Math.round(LV_DMG*100)*n} % de dégâts`, `+${CARAC_PER_LV*n} ${s(CARAC_PER_LV*n, 'point')} de caractéristique`, `+${SPELL_PTS_PER_LV*n} ${s(SPELL_PTS_PER_LV*n, 'point')} de sort`];
+  const chips = [`+${LV_HP*n} PV max`, `+${Math.round(LV_DMG*100)*n} % de dégâts`, `+${CARAC_PER_LV*n} ${s(CARAC_PER_LV*n, 'point')} de caractéristique`];
   if (pa) chips.push(`+${pa} PA`); if (pm) chips.push(`+${pm} PM`);
   for (const sp of CLASSES[G.profile.cls].spells) if (ups.includes(sp.lvl)) chips.push(`✨ Nouveau sort : ${sp.name}`);
+  for (const sp of CLASSES[G.profile.cls].spells) { const l = rankLevels(sp).filter(x => ups.includes(x)).pop(); if (l) chips.push(`⬆ ${sp.name} passe au rang ${rankAt(sp, l)}`); }
   return `<div class="lvcard"><h4>⭐ ${n > 1 ? `Niveaux ${ups[0]} à ${ups[n-1]}` : `Niveau ${ups[0]}`} atteint !</h4><div class="chips">${chips.map(c => `<span>${c}</span>`).join('')}</div>
     <p class="help">Répartis tes points dans <b>Personnage (C)</b>.</p></div>`; }
 
@@ -4613,7 +4690,7 @@ function showGuides(back) {
       <li>Les cases <b style="color:#5ad16a">vertes</b> montrent où tu peux aller. Les cases <b style="color:#4aa3ff">bleues</b> montrent la portée du sort choisi (plus claires : pas de ligne de vue).</li>
       <li>Les rochers et les arbres bloquent le passage et la ligne de vue. L'eau bloque seulement le passage.</li>
       <li>Survole un ennemi pour voir sa vie et ses déplacements possibles (en orange). Avec un sort choisi, tu vois les PV qu'il lui restera, ses dégâts en coup critique et une tête de mort si l'attaque le tue à coup sûr.</li>
-      <li>Chaque niveau donne 5 points de caractéristique (Vitalité, Force, Agilité, Sagesse) et 1 point de sort pour monter tes sorts jusqu'au rang 5. Répartis-les dans <b>Personnage (C)</b>, et réinitialise-les quand tu veux.</li>
+      <li>Chaque niveau donne 5 points de caractéristique (Vitalité, Force, Agilité, Sagesse) à répartir dans <b>Personnage (C)</b>. Tes sorts montent de rang tout seuls avec ton niveau, jusqu'au rang 5.</li>
       <li>Chaque attaque a ${Math.round(CRIT_CHANCE*100)} % de chance (plus avec l'Agilité) d'être un <b style="color:#ffd04a">coup critique</b> (+50 % de dégâts), pour toi comme pour les monstres.</li>
       <li>Avant d'agir, un ennemi montre son chemin (orange) ou la zone qu'il vise (rouge).</li></ul>
     <h3>Les commandes</h3><table class="keys">
