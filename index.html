@@ -99,6 +99,7 @@
   .item img { width:36px; height:36px; object-fit:contain; image-rendering:pixelated; flex:none; }
   .item .txt { flex:1; min-width:0; } .item .txt b { display:block; } .item small { display:block; color:var(--muted); }
   .item .act { display:flex; flex-direction:column; gap:4px; }
+  .smith .act .btn:disabled { opacity:1; background:#3a4152; color:#e6dfcd; } .smith .act .btn .no { color:#ff8a7a; font-weight:700; }
   .smith .act .btn { white-space:normal; max-width:140px; line-height:1.2; } .smith .act .btn small { display:block; font-weight:400; font-size:11px; margin-top:2px; }
   .btn.sm { padding:5px 10px; font-size:12px; margin:0; white-space:nowrap; }
   .item .btn.alt { background:#3e4860; }
@@ -119,6 +120,7 @@
   .spkey { width:20px; text-align:center; font-weight:700; color:var(--gold); flex:none; }
   .badge { display:inline-block; min-width:18px; padding:0 5px; margin-left:6px; border-radius:9px; background:var(--pm); color:#10202a; font-size:12px; line-height:18px; }
   .quest { background:var(--panel2); border-radius:10px; padding:10px 12px; margin:6px 0; border-left:4px solid #3a4459; }
+  .quest .qhow { color:#9fb3d6; margin-top:3px; } .quest .qask { font-style:italic; margin-top:3px; }
   .quest.main { border-left-color:var(--gold); } .quest b { display:block; } .quest small { display:block; color:var(--muted); }
   #topbtns { display:none; margin-left:auto; align-items:center; gap:12px; color:var(--gold); font-weight:600; }
   body.map #topbtns { display:flex; }
@@ -1045,7 +1047,7 @@ function showCharacter(back) {
     return `<div class="item"${locked ? ' style="opacity:.5"' : ''}><div class="act"><button class="btn sm alt" data-mv="${i}" data-d="-1" title="Monter"${i ? '' : ' disabled'}>↑</button><button class="btn sm alt" data-mv="${i}" data-d="1" title="Descendre"${i < order.length-1 ? '' : ' disabled'}>↓</button></div>
       <span class="spkey" title="Raccourci">${ki >= 0 ? SPELL_KEYS[ki] : ''}</span><img src="${SPRITES[sp.icon]}" alt=""><div class="txt"><b>${sp.name} · rang ${r}/${SPELL_MAX_RANK}${sp.dmg ? ` <span style="color:#ffd04a;font-weight:600">· critique ${critPct(heroStats(p))} %</span>` : ''}</b>
 ${pips}</b>
-      <small class="spuse">${spellUseText(shown)}</small>
+      ${pv ? '' : `<small>${shown.desc.replace(/ \(rang \d\/\d\)/, '')}</small>`}<small class="spuse">${spellUseText(shown)}</small>
       ${pv ? `<small class="sppre">Aperçu du rang ${pv}${pv > r ? ' (pas encore acquis)' : ''} : ${shown.desc.replace(/ \(rang \d\/\d\)/, '')}<br>Par rapport à ton rang ${r} : ${rankDiffText(sp, r, pv)}.</small>` : ''}
       <small>${locked ? `Débloqué au niveau ${sp.lvl}.` : r >= SPELL_MAX_RANK ? 'Rang maximum atteint.' : `Rang ${r+1} au niveau ${nxt} : ${rankGainText(sp, r+1)}.`}</small>${sp.modR ? `<small>Portée modifiable par l'équipement${pr ? ` (+${pr} actuellement)` : ''}</small>` : ''}</div>
       </div>`; };
@@ -2107,7 +2109,7 @@ function hint() {
   $('#hint').textContent = t;
 }
 let bannerTimer;
-function banner(t) { const b=$('#banner'); b.textContent=t; b.style.opacity=1; clearTimeout(bannerTimer); bannerTimer=setTimeout(() => b.style.opacity=0, 1300); }
+function banner(t) { const b=$('#banner'); b.textContent=t; b.style.opacity=1; clearTimeout(bannerTimer); bannerTimer=setTimeout(() => b.style.opacity=0, Math.min(6000, Math.max(1300, t.length*50))); }
 function log(t) { const l=$('#log'); const d=document.createElement('div'); d.textContent=t; l.appendChild(d); while (l.children.length>12) l.firstChild.remove(); }
 
 function cellFromEvent(e) {
@@ -2148,7 +2150,10 @@ document.addEventListener('touchstart', e => { const t = e.touches[0]; tapStart 
 document.addEventListener('touchend', e => { clearTimeout(longT); if (longFired) { e.preventDefault(); setTimeout(() => longFired = false, 400); return; }
   const b = e.target.closest && e.target.closest('#overlay button'); const t = e.changedTouches[0];
   if (!b || b.disabled || !tapStart || !t || Math.hypot(t.clientX-tapStart[0], t.clientY-tapStart[1]) > 10) return;
-  e.preventDefault(); b.click(); }, { capture:true, passive:false });
+  e.preventDefault(); tapFired = performance.now(); b.click(); }, { capture:true, passive:false });
+// iPad : le clic que Safari envoie encore après ce toucher tomberait sur la fenêtre redessinée (+5 compté deux fois) ou sur la carte derrière
+var tapFired = -1e9;
+document.addEventListener('click', e => { if (e.isTrusted && performance.now() - tapFired < 600) { e.preventDefault(); e.stopPropagation(); } }, true);
 // au toucher, les textes d'aide normalement affichés au survol (attribut title) apparaissent quelques secondes
 function showTapTip(txt) { let tip = $('#tapTip'); if (!tip) { tip = document.createElement('div'); tip.id = 'tapTip'; document.body.appendChild(tip); }
   tip.textContent = txt; tip.style.opacity = 1; clearTimeout(tapTipTimer); tapTipTimer = setTimeout(() => tip.style.opacity = 0, 3500); }
@@ -4233,6 +4238,15 @@ function goalText(q) {
     return pre + `${g.label}${g.clues.length > 1 ? ` (${f.length}/${g.clues.length})` : ''} : ${[...new Set(left.map(c => zoneById(c.zone).name))].join(', ')}`; }
   return pre + goalLine(q);
 }
+// journal : où et comment remplir l'objectif, puis ce que le personnage t'a demandé
+function goalHelp(q) {
+  const g = q.goal, z = g.zone && zoneById(g.zone), t = [];
+  if (g.type==='clear' && z) t.push(z.icon==='boss' ? `Entre dans le donjon de ${z.name} et bats ${MONSTERS[z.foes[0]].name} dans la dernière salle.`
+    : `Traverse les ${nMaps(g.zone)} cartes de ${z.name} et bats le chef de la zone : il t'attend sur la dernière carte, un ❗ rouge au-dessus de lui.`);
+  if (g.type==='kill') { const at = ZONES.filter(z => z.foes && z.foes.includes(g.monster) && isOpen(z.id)).map(z => z.name); if (at.length) t.push(`On en trouve à : ${at.slice(0, 4).join(', ')}.`); }
+  const ask = !q.steps && q.intro && q.intro[q.intro.length-1];
+  return (t.length ? `<small class="qhow">🧭 ${t.join(' ')}</small>` : '') + (ask ? `<small class="qask">« ${fillHero(ask)} »</small>` : '');
+}
 function goalLine(q) {
   const g = q.goal, st = qs(q), n = st ? Math.min(st.n||0, g.n||0) : 0;
   if (g.type==='clear') return `Libérer : ${zoneById(g.zone).name}`;
@@ -4756,7 +4770,7 @@ function showJournal() {
   const zqs = Object.entries(G.profile.zq || {}).filter(([b,q]) => q.st==='on').map(([b,q]) => `<div class="quest"><b>🧭 ${zqTitle(b)}</b><small>${askerOf(b).name} · ${zoneById(b).name}</small>
     <div>${zqGoal(b)} (${zqProgress(b)} / ${ZQ_N})${zqProgress(b) >= ZQ_N ? ` : retourne voir ${askerOf(b).name} sur la carte 2.` : ''}</div></div>`).join('');
   const act = waiting + fl + zqs + activeQuests().map(q => `<div class="quest${q.main?' main':''}"><b>${q.main ? '★ ' : ''}${q.title}</b><small>${NPCS[q.npc].name}</small>
-    <div>🎯 ${goalText(q)}</div><small>Récompense : ${rewardText(q.reward)}</small></div>`).join('') || '<p class="help">Aucune quête en cours.</p>';
+    <div>🎯 ${goalText(q)}</div>${goalHelp(q)}<small>Récompense : ${rewardText(q.reward)}</small></div>`).join('') || '<p class="help">Aucune quête en cours.</p>';
   const done = QUESTS.filter(q => qs(q) && qs(q).state==='done').map(q => `<li>${q.title}</li>`).join('');
   overlay(`<h2>Journal de quêtes</h2><p class="help">Chapitre ${Math.min(p.story+1, MAIN.length)}/${MAIN.length} · ${p.story>=MAIN.length ? 'Histoire terminée !' : 'Les quêtes principales (★) font avancer l\'histoire et ouvrent de nouvelles zones.'}</p>
     <h3>En cours</h3>${act}${done ? `<h3>Terminées</h3><ul class="help">${done}</ul>` : ''}
@@ -5078,7 +5092,7 @@ function addXClose(o) {
   const b = o.dataset.menu ? o.querySelector('#b1') : [o.querySelector('#b1'), o.querySelector('#b2')].find(b => b && close.test(b.textContent.trim()));
   if (!b) return;
   const x = document.createElement('button'); x.className = 'xclose'; x.title = 'Fermer (Échap)'; x.textContent = '✕'; x.onclick = () => b.click(); box.prepend(x); }
-function hideOverlay() { $('#overlay').classList.add('hide');
+function hideOverlay() { $('#overlay').classList.add('hide'); G.ovHid = performance.now();
   // clic sur l'encadré d'un haut fait pendant une autre fenêtre : les hauts faits s'ouvrent dès qu'elle est fermée
   if (G.hfWanted) setTimeout(() => { if (G.hfWanted && G.profile && G.mode==='map' && !G.travel && $('#overlay').classList.contains('hide')) { G.hfWanted = false; showFeats(); } }); }
 function showMenu() {
@@ -6084,7 +6098,7 @@ async function walkTo(goal) {
   return goal(h.x,h.y);
 }
 async function sceneClick(e) {
-  if (G.travel || !$('#overlay').classList.contains('hide')) return;
+  if (G.travel || !$('#overlay').classList.contains('hide') || performance.now() - (G.ovHid || -1e9) < 400) return;
   const t = sceneTarget(e); if (!t) return;
   const from = G.profile.pos;
   if (t.kind==='ground') { if (sceneFree(...t.cell)) walkTo((x,y) => x===t.cell[0] && y===t.cell[1]); return; }
@@ -6314,9 +6328,10 @@ function enchantItem(it) {
 function showSmith() {
   const p = G.profile, j = jobs(), eq = Object.values(p.equip).filter(Boolean);
   const can = it => (it.up || 0) < SMITH_MAX && p.gold >= smithCost(it) && (j.res[smithOre(it).id] || 0) >= smithOre(it).n;
-  const label = it => { if ((it.up || 0) >= SMITH_MAX) return 'Déjà au maximum ici'; const o = smithOre(it); return `Renforcer (+${(it.up||0)+1})<small>${smithCost(it)} or + ${o.n} ${o.name}<br>(tu en as ${j.res[o.id] || 0})</small>`; };
+  const label = it => { if ((it.up || 0) >= SMITH_MAX) return 'Déjà au maximum ici'; const o = smithOre(it); const no = (ok, t) => ok ? t : `<span class="no">${t}</span>`;
+    return `Renforcer (+${(it.up||0)+1})<small>${no(p.gold >= smithCost(it), smithCost(it) + ' or')} + ${no((j.res[o.id] || 0) >= o.n, o.n + ' ' + o.name)}<br>(tu en as ${j.res[o.id] || 0})</small>`; };
   overlay(`<h2>Le forgeron</h2><p>« Pose ça sur l'enclume, ${heroName()}. Avec de l'or et du minerai, je renforce ce que tu portes, jusqu'à +${SMITH_MAX}. »</p>${statsLine()}
-    <div class="items smith">${eq.map(it => itemCard(it, { btns:[['smith', label(it), !can(it)], ['enchant', `Enchanter<small>${enchantCost(it)} or · change une stat au hasard</small>`, p.gold < enchantCost(it) || !enchantable(it).length]] })).join('')
+    <div class="items smith">${eq.map(it => itemCard(it, { btns:[['smith', label(it), !can(it)], ['enchant', `Enchanter<small>${p.gold >= enchantCost(it) ? enchantCost(it) + ' or' : `<span class="no">${enchantCost(it)} or</span>`} · change une stat au hasard</small>`, p.gold < enchantCost(it) || !enchantable(it).length]] })).join('')
       || '<p class="help">Tu ne portes aucun équipement. Équipe-toi d\'abord (touche E).</p>'}</div>
     <p class="help">Chaque renforcement augmente d'environ 10 % les PV, les dégâts et la résistance de l'objet. Le minerai se récolte avec le métier de Mineur (touche J). L'enchantement transforme une stat au hasard (PV, % dégâts ou % résistance) en une autre de même valeur.</p>
     <div style="text-align:center"><button class="btn alt" id="b2">Mon équipement</button><button class="btn" id="b1">Partir</button></div>`, true);
@@ -6425,13 +6440,13 @@ function drawTreasures(s, now, hv, ents, tags) {
     // un petit éclat brille de temps en temps dans la fente : il faut avoir l'œil
     const k = (now/1000 + x) % 4; if (!done && k < .6) { const a = Math.sin(k/.6*Math.PI); ctx.fillStyle = `rgba(255,240,170,${a})`; const sx = cx+2, sy = cy-26; ctx.fillRect(sx-1, sy-7*a, 2, 14*a); ctx.fillRect(sx-7*a, sy-1, 14*a, 2); }
     if (hv && hv.kind==='secret') tags.push([done ? 'Cache déjà fouillée' : 'Un rocher fendu…', cx, cy-58]); } }); }
-  const npcAt = (c, sprite, filter, flip, label, kind, extra) => { const [x,y] = c; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); shadow(cx,cy,17);
+  const npcAt = (c, sprite, filter, flip, label, kind, extra, over) => { const [x,y] = c; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); shadow(cx,cy,17);
     extra && extra(cx, cy); if (filter) ctx.filter = filter; drawSprite(animFrame(sprite, false, now, x), cx, cy+6, SC, flip); ctx.filter = 'none';
-    if (hv && hv.kind===kind) tags.push([label, cx, cy-84]); else drawSign(label, cx, cy-84, now); } }); };
+    if (hv && hv.kind===kind) tags.push([label, cx, cy-84]); else drawSign(label, cx, cy-84, now); over && over(cx, cy); } }); };
   if (s.smith) npcAt(s.smith, 'dwarf_m', 'hue-rotate(20deg) saturate(1.4) brightness(.85)', true, '⚒️ Forgeron', 'smith', (cx, cy) => drawSprite(propArt().anvil, cx+26, cy+12, SC*.8));
   if (s.inn) npcAt(s.inn, 'elf_m', 'hue-rotate(30deg) saturate(.8)', false, '🍺 Aubergiste', 'inn', (cx, cy) => drawSprite(A.inn, cx-28, cy+8, SC*.8));
   if (s.asker) { const b = baseOf(id), a = askerOf(b), q = zq(b), ready = q && q.st==='on' && zqProgress(b) >= ZQ_N;
-    npcAt(s.asker, a.look[0], a.look[1], false, a.name, 'asker', (cx, cy) => { if (!q || ready) drawBang(cx, cy-96, now, ready ? '#5ad16a' : '#e8b94a', ready ? '?' : '!'); }); }
+    npcAt(s.asker, a.look[0], a.look[1], false, a.name, 'asker', null, (cx, cy) => { if (!q || ready) drawBang(cx, cy-122, now, ready ? '#5ad16a' : '#e8b94a', ready ? '?' : '!'); }); }
   if (s.lost && lostVisible(s)) { const [x,y] = s.lost; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); shadow(cx,cy,14);
     glow(cx, cy-8, `rgba(255,220,140,${.35+.2*Math.sin(now/350)})`, 24);
     ctx.fillStyle = '#8a5a32'; ctx.strokeStyle = '#2a1a0c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(cx, cy-6, 11, 10, 0, 0, 7); ctx.fill(); ctx.stroke();
@@ -6540,7 +6555,7 @@ function talkAsker() {
 }
 function pickLost(at) {
   const b = baseOf(G.profile.pos), q = zq(b);
-  if (!q) return banner(`Un sac abandonné… Son propriétaire, ${askerOf(b).name}, doit être quelque part sur la carte 2 de la zone.`);
+  if (!q) return banner(`Un sac abandonné… Il appartient à ${askerOf(b).name}, un voyageur égaré sur la carte 2 de cette zone. Va lui parler d'abord : il te demandera de retrouver ses sacs.`);
   if (q.st!=='on' || q.got.includes(G.profile.pos)) return;
   q.got.push(G.profile.pos); play('piece'); save(); dirty = true; addSceneFloat(at[0], at[1], `Sac ${q.got.length} / ${ZQ_N}`);
   banner(q.got.length >= ZQ_N ? `Tous les sacs sont retrouvés ! Rapporte-les à ${askerOf(b).name}.` : `Sac retrouvé (${q.got.length} / ${ZQ_N})`);
