@@ -121,7 +121,7 @@
   .badge { display:inline-block; min-width:18px; padding:0 5px; margin-left:6px; border-radius:9px; background:var(--pm); color:#10202a; font-size:12px; line-height:18px; }
   .quest { background:var(--panel2); border-radius:10px; padding:10px 12px; margin:6px 0; border-left:4px solid #3a4459; }
   .quest .qhow { color:#9fb3d6; margin-top:3px; } .quest .qask { font-style:italic; margin-top:3px; }
-  .quest.main { border-left-color:var(--gold); } .quest b { display:block; } .quest small { display:block; color:var(--muted); }
+  .quest.main { border-left-color:var(--gold); } .quest > b { display:block; } .quest .trk { float:right; margin:0 0 4px 8px; } .quest .trk.alt { background:#3e4860; } .quest small { display:block; color:var(--muted); }
   #topbtns { display:none; margin-left:auto; align-items:center; gap:12px; color:var(--gold); font-weight:600; }
   body.map #topbtns { display:flex; }
   #topbtns .btn { margin:0; padding:6px 14px; }
@@ -217,7 +217,7 @@
   <div class="go"><button class="btn" id="titleGo">Jouer</button><div class="press">Appuie sur une touche ou touche l'écran pour commencer</div></div>
   <div class="copy">© Nogeait · tous droits réservés</div></div>
 <div id="app">
-  <div id="top"><span class="lbl" id="fightname"></span><div id="timeline" style="display:flex;gap:6px;flex-wrap:wrap"></div><div id="topbtns"><span id="gold"></span><button class="btn" id="worldBtn">Carte (M)</button><div id="menuWrap"><button class="btn" id="menuBtn" title="Quêtes, équipement, personnage…">☰ Menu</button><div id="menuList"><button class="btn" id="questBtn">Quêtes (Q)</button><button class="btn" id="bagBtn">Équipement (E)</button><button class="btn" id="charBtn">Personnage (C)</button><button class="btn" id="storyBtn">Histoire (H)</button><button class="btn" id="featBtn">Hauts faits (F)</button><button class="btn" id="jobBtn">Métiers (J)</button><button class="btn" id="lootBtn">Butins (D)</button><button class="btn" id="guideBtn">Guides (G)</button><button class="btn" id="saveBtn" title="Exporter ou importer la sauvegarde">💾 Sauvegarde</button></div></div></div><button class="btn" id="sndBtn">🔊</button><button class="btn" id="musBtn">🎵</button></div>
+  <div id="top"><span class="lbl" id="fightname"></span><div id="timeline" style="display:flex;gap:6px;flex-wrap:wrap"></div><div id="topbtns"><span id="gold"></span><button class="btn" id="worldBtn">Carte (M)</button><button class="btn" id="questBtn">Quêtes (Q)</button><div id="menuWrap"><button class="btn" id="menuBtn" title="Quêtes, équipement, personnage…">☰ Menu</button><div id="menuList"><button class="btn" id="bagBtn">Équipement (E)</button><button class="btn" id="charBtn">Personnage (C)</button><button class="btn" id="storyBtn">Histoire (H)</button><button class="btn" id="featBtn">Hauts faits (F)</button><button class="btn" id="jobBtn">Métiers (J)</button><button class="btn" id="lootBtn">Butins (D)</button><button class="btn" id="guideBtn">Guides (G)</button><button class="btn" id="saveBtn" title="Exporter ou importer la sauvegarde">💾 Sauvegarde</button></div></div></div><button class="btn" id="sndBtn">🔊</button><button class="btn" id="musBtn">🎵</button></div>
   <div id="stage">
     <canvas id="cv" width="900" height="560"></canvas>
     <div id="log"></div>
@@ -243,6 +243,39 @@
 "use strict";
 // Sprites : « 16x16 DungeonTileset II » par 0x72 (https://0x72.itch.io/dungeontileset-ii), licence CC0
 const SPRITES = {
+  knight_f_idle_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAQ1JREFUOI3tlLFKA0EQhr8NvoXCkYEDIZWFnWWSUmztgz6BhU9gcU8QSZ/GQkKqxNLeNtWAEJ/jrEZ272Y3gtjlb3Zvbvebf2eHhaOOgmATEWm9BaoavHgCEJF2c34LwOnVWbJgtGiKkGCbp7slAB6oBBmoapjulqhqsDnA1/u+5Dw9gimugzkxYKzYTQ9ws35xMzXDCoB6dJkATnLWPp63yffYcaqqIQsAuLib9GJvT7MfJwCDEiB2YuP4cZH8Pwg4pP8HWB1stBqYikXs3gRAvZr/DuDdQDOsqFfzch94WU0PDrQH8DLHDl47sT/fQvYIn51iVdf3STtnAbY5LpT1fjfek4i03tOWiwN8A6ElaFryn+H/AAAAAElFTkSuQmCC',
+  knight_f_idle_anim_f1:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAPxJREFUOI3tkz0KwkAQhV+Ct1AIWQgIqSzsLGNKsbUXPYGFJ7DICSLp01hIsFJLe9tUC4KeI1Yj+5+A2PkgbDK7+82b2Q3w11+ABwCMsca2gHPuOQGMseY8XHwC/clAWhAXmROiOSCYCHJBfLJJT1qXAIDX7elyLjtQJZaV1mV7CeLGLllFYE+dnJ8Oxk1ZGAAAongsxTUA6b6/SN+J8E5OOeeeFQAAo9VUi113S8mJ7wKITmhMtoU03wpo0+8B1AcaqQckZxPVkwCAqMq7AUwnkIUBoip3XyRTVtLGANUApsyig6MS+/oUrCU8lGYFs7V0nUnWv1FslC0OAG8jDlsP/CN8iwAAAABJRU5ErkJggg==',
+  knight_f_idle_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAQNJREFUOI3tlLEKwjAQhv9I30KhGCgITg5ujrWjuHYXfQIHn8ChT6B07+Ig4lQd3V07HQj6HLp4kjQxLYJb/yXtXfLlv0tToFGjt6SUz1/XelLKZ96LESGzQohIuACCHeS9GADQHnW0Cf00cUI+CS7DBnJBWqpVIhJRkQEAHpe7y7npQJVaUlRk9UpQy6iSCvTKyelxZ12UdH0AQNAfanEDwLpuT9p7qDyzUyISXwEAMJiPjdh5PdOctIwZX5zwGK5SLV8JqNL/AdwHHrkHLGcTyycBAMFhUw9gO4Gk6yM4bNwfkm1X1tICNQC2nVUH+1JMu87+ZOGEsLubUobxP6grBrwAuC1dljXRWTYAAAAASUVORK5CYII=',
+  knight_f_idle_anim_f3:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAQlJREFUOI3tlL8KwjAQxr+Kb6FQPCgITg5ujtVRXLuLPoGDT+DQJ1DcXRxEnNSxu5PgdCDoc9TFK0matIK6+S0hl8vv/oUAf/31BXnqhohS04GZPdNmBRBRemhGqHXrmkNrFRdCKurl/nWNR3LHI7lnDpfR1JpZBlAvM7PXv64BQIOUlkBEKTN7aqRDMwIACFCVWlKuicP9xhopbvgAgKDV0QBVV2rn5VHbh0YgycQJAID2uJezneajLBPgNYUiSSayhrOVdl4KKNPvAdIHWaUHosImmpMAgGC3eA9gm0Dc8BHsFsXvwBZVNLVAcwBbZDWDrWH7eArOEm5Gs/zBRHvOIuePZH4irrMn/GFjzUvsmE8AAAAASUVORK5CYII=',
+  knight_f_run_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAQ1JREFUOI3tlL9KBDEQh78cvoXCcgMLwlUWdpbnlWJrL/oEFj6BxT7ByvXXXCGLlVra2141IOhzrNVIsjvJCXKN+GuSnU2++WXyB/71BxSsIyK9N0BVgxdPACLSPx1eALB/cpAMmC2bIiTY5MVmBYAHKkEmqhoWmxWqGqwP8Pn6UXKeLsEU18GcGDBW7GYEOH9cu5maaQVAPTtOAHs5a2/3z8n33HGqqiELADi6Oh3FXu4uv50ATEqA2Im189tl8n8rYJt2D7A6WGs1MBWLONwJgLprfwbwdqCZVtRdWz4HXlbTjQMdAbzMsYOHQezXu5BdwvugWNXZdXKcswCbPLr/Xeu+WIlEpM89bTvTF+8SYa6Z0q1rAAAAAElFTkSuQmCC',
+  knight_f_run_anim_f1:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAARdJREFUOI3tlLGKwkAQhv8V3+IOgguBA6sr7CxPS7G9/jifIIVPcEWeIGJvc8URrO4s7SysAoIwEjifQ6sJmc1sIhyixf3NbmZ2vv1nkyzwr9vL8MRae9IWEJHR4gJgrT19P70CAB76j2JBdx7XQgwXD3cLAIAGqoO0iMgMdwsQkeE5ABzXv3XOZQus8jmwEwayXCcVwHj5qe4UdwIAQNjtCVjLZ207+xHP0SFHdMixzzbYZ5si7gW4IB5fpnORbwQ06fqA5/eBGFcfbyLfrit2DxIAwjS5HOBT+VvwAthyWXEnaHag2WZFCrQC0HYuO/hyYn9+jeJCCUaTIpE7vQIA5/M0KQ6y0gIXqv9/mqi3VuHAd63dt85dUGhVHN/9kwAAAABJRU5ErkJggg==',
+  knight_f_run_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAARNJREFUOI3tk7EKwjAQhv9K30KheCAITg5ujupYXN1Fn6CDT+DQJ1DcuziIOKmjm4OTIAiRgj5HnRKTNGlEEBd/KKGXu+/+axrgr9/LAwAiymwJjDGvEEBE2bY+EIFyu6IkNBZxISTngMNkUBGkxG3yp3dJAACPw73IuepAlzxW75K4R5ALXR11mK8n9DdLY2FcDQAAtUZLNGGMeSVbp9N8p7xHtxTRLcX1fMT1fBRxK0AH8bUzWSj7ToBL3wc0R11l3U+Hyn7uFGTpHxIAauvZ+wCb5H/BCuCWZcXVwO3AZJsrMkBzAFNn2cFKi4lTeOcemOTz4iAcA3iNkGqzBuEYHRvAVJC7wuuZaPKxiCj7dFSrnl30ZwvfUhYjAAAAAElFTkSuQmCC',
+  knight_f_run_anim_f3:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAARNJREFUOI3tlL+KwkAQxr9I3kIhOBAQrCzsrtSUYmsv+gRX3BNY5Aki9mksJFippb1tqgFBnyNWI7vZP5E7hCv8mk1md3/7zWwmwEf/RERU/XZvSETVoTdDgtwKYebABwjEwaE3AwC0vzragv4m9UKeE5KGDeSDtFSrzBwkZQ4AuJ9vPuemA1VqSkmZv5aCmkaTVGBYn5zut9ZNaTcCAMT9oRY3AKLL+qi9j5RnccrMgRMAAIPF2IidVnPNSctY4XAi4+hno803Apr0foDUQUapgchbxPpNAEBcZK8BbDeQdiPEReb/kGynir4tUANgO1l1sKvF/nwLzmaKJstn/FornLMGWtsWWaWCmn5tThFR5WvzBzm1Yblpoug3AAAAAElFTkSuQmCC',
+  lizard_f_idle_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAR1JREFUOI3tk6FOA0EQhv8ll1wfgRpoJmlq8BX1DYp7CMQp8ORa1WBqSLYP0HeoRGHrIKk5MwmVVeA4tRj2ers7t20TZH91M7Pz5d+5WeCss/5Byn4QkfGLzKz8nK+kGUzTGwDAqL8DANwC5hDEKRKRCSCbXdRNcAUL8DWrNkGOmZUDGDw/xtwGKguNi5M6BLUCykKjLLQT+/UowNf1XS7GiXRYaugM0zBeNRwws2ra7AzToElSq4OmftYVvj7Wdfz9+X4aQGc9IOsBALL7J2epDg5xftmN1muA9JiOUWKb7RZ2J0vnwMsxAGC/GOOr+OTftgLADoWIzGue18CHP9hiW6F+J95Gin+hLDSYWS3gzsXmW+0RkZGG2ZYHgF+ODWIhfIEBGQAAAABJRU5ErkJggg==',
+  lizard_f_idle_anim_f1:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAARtJREFUOI3tVC2PwkAUnJIm5RcQUJCXEAwegb+coj8CsQ5PCopgMCSLQt1/OHXpP8AdCaZmk0OiDkdVUW3eftACQTKq0zdvOm/ztsAbb7wAXv5ARBkvKKU8W27D52Qe9AEAw+4Jn0B2j4kmIKJMMzmcKpPUzNiL9FDwn34DRJSZ4zkTcFGegoMb8w9qBr3lpCythSSS+gjP4KZBEkkkkdS4WS81MNEeCSf3XWJXQ30Q2PybJVBKeTxmfRBYTS7cTMBx2aX43+8Kfv77fcxAhh0g7AAAwvFU287KQ1w1W6V1H7Bv4iMoRsi3sDX70gTrCgPrLvSWE3xst05xLASSSLrPgL+MhcDmmBaNm2OKWOh7YSXgKXJD19mY/4crmvllHLpWb6YAAAAASUVORK5CYII=',
+  lizard_f_idle_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAPhJREFUOI3tky9vwlAUxX9vaVI+wlAjN1kw84j5ZYp+CAQOTwqKzEzWofYdJqdmcSPB1NxkFrUFA6pThfePDnx/qufdnpPz0ltoaWkBMPWDiFT+UFWNf+aT2GKePgDweL8F4Bmq/0KcoYhUQchm29gmuEId4LM4bIIzVTVOQP9l0tQ2oMwLbq5yRDgbUOYFZV442p83BvjcDcdRncRejhk6gzTU71YDVTV2zc4gDUwxzjaw2a8O/KxXR/37/RUGiEjU/HrbhQzIegBko6mzVEnsH7gGYy9Qd/Z2kemz2h1bGDitsb2JT8ulY/oYn75KmRdugB1yKXXAHw1oU7Qwvc01AAAAAElFTkSuQmCC',
+  lizard_f_idle_anim_f3:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAQ5JREFUOI3tlK8OwjAQxr+SJeMRQEGaEAwegSco9hCIOjwZKILBkAyF4h2QvAEOEszMJSBR4JgagnTpP8bmEPxUr3f35Wt3HfDnzy/A5IJznppJImLmnomnBjO/AwDotW4AgAGQfhPRkpzz1BI533LdWEeQAibz5GztERHTBNqLcZ5biziMUCnV4eCjQBxGiMNIi818roBJYyicsecqdjVUu74d7xQHRMRUm9WubzW5+OhA5XlIcD8dsvhxOZYTiIImEDQBAMFoog3V10tc1uq5+UzA9ZiK4MlmOYX16VYrWBURAJRBWYzR32ycxXshAGOgKsD7E6oXsxcC62uSFa2vybvZgfWc5ZqIWJGfzAtVWl1SUKwwnwAAAABJRU5ErkJggg==',
+  lizard_f_run_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAR9JREFUOI3tkz1Ow0AQhd8iS84RSBOikVAa+hTpERU+BMVW0KOFKqJJE2lzgNwhZW7gLkhu3IwEZSrocLUUYMf7YzuWUuZVfjs7n2bHM8BZZ51AovwgIuMGmVm4Z66iunmNbwAAs+s9AOAOMF0QK0hExoNk+9ZqvCeUAFfzIvPOmFlYgMnbU1u1nnKlcdErI6BGQK40cqUt78ZbAa6u7mXQR6HLoYTBNPb9plYBM4t6mYNp7CWF1FhBXT9pga/3tPLfH7t+AJ2MgWQMAEgenq2h6mzi4nLYGq8AoWU6RlGZXE7h8GVtXVgeAwAOg3E7au78VkrAGagIOGwaEZmtlBXw8R+2+izQtCfBv5ArDWYWK/z1hZkFlO7uERGZvs38BbIQX2NnK4s1AAAAAElFTkSuQmCC',
+  lizard_f_run_anim_f1:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAARFJREFUOI1jYBgFwwAwwhhKSkr/0SXv3bvHiC6GDliQObXsOgwMDAwM1qqvGBgYGBg8GBj+EzIERVJJSek/hiFXXuF1DYYXYAagg+afVzDE7t27x4higHprHj7XYoCb1ZMYmEjSgQXgNOBm9SSGm9WTUPjo8ngNQAfyfulY+SzYFGPTwGHOjsnfhOSCe/fuMSI7k8OcHUMTNoDTBcjgx8mfDB8unoTzPz68QJoBk/wVGBj8FRgYGBgY/JMrURIVwUDskpDEKw83AFtmIgawwDTDUqFkzXwUBf3EGMDAgEgYbnL4Q/7AI1Q+zrzgNnMmisJd6Yh0cbN6EjwgMWIB5pKb6BJoSRkDKCkp/Sc3IAcWAABJSlXVtzkAxwAAAABJRU5ErkJggg==',
+  lizard_f_run_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAR9JREFUOI1jYBgFo4CBgRHGUFJS+o8sce/ePUZM5ZiABZlTy67DwMDAwGCt+orBg4HhPzGGoChQUlL6j2LIlVcEXcKE7uzmn1fg/B06YgxKSkr/0b2H1QXIimCuQAbIBiNbiGKAemsePtdigJvVk1C9QA7AacDN6kkMN6snofDR5fEagA7k/dKx8lmwKcamgcOcHZO/CckF9+7dY0R2Joc5O4YmbACnC5DBj5M/GT5cPAnnf3x4gTQDJvkrMDD4KzAwMDAw+CdXoqROFgYGzIyEDLokJPEaDncBqYkIBhiRXSDvl86guHkZXg0H/n/G9AKyC56bJzK4zZyJoXFXOjRa0RIUigvQQa4cJBonP/oJt+Rm9SSiCxuMrEwoa5MFAFPvZgwIvHEWAAAAAElFTkSuQmCC',
+  lizard_f_run_anim_f3:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAcCAYAAABoMT8aAAAAAXNSR0IArs4c6QAAAPlJREFUOI3tk60OwjAUhU/Jks3gwQBpQjB4BAaJYg+BQIEnC4pgkONNeAIsDpKZmZuAREEwTBVV6N9GZsk+1dO7e3q63AIVFX8BkwvOuTCLRMTMPRNPFSu/DwAYdm8AgDEgfploRc65sEySW2Ea6wrSwGSdJdYeETHNoLdZFKW1SKMYtVIdDnIN0ihGGsWaNuuFBibtycypPdfHroZg4Nt6ryQgIqbGDAa+1eQiN4HK65jhfj5+9ONy0g1cYyzZNppACCDsAADC6VIbqk+CsjMgsSZxxOqFDQfx1BJYb0Gu563vD9xdM80k10A1Uq+URvHvx+QyyTtV5Q1OtFZpdiCLQAAAAABJRU5ErkJggg==',
+  angel_idle_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAANlJREFUOI3tkjEKwkAQRZ9iISjEJo2IxRaiiDdQ8AAWFkJCzmBtK/ZeJGBh4SEETSmIgVT2HiE2zrpJNhB7fzf7583Oh4G/ar80K6VSs06SpNao0ijNAPewB8DQewJQz4NKqTS+XYhvF+tQAUUNs8GEolcTgOu6DUB71rHGskYQ+BHurNDA2+pI9bwpsCiIRgTRKFObygzIw1VUiOBPJ8B3/X3//HEcXc/LNvCnE51N1HUduq6TqUs3MOFNawzAcbHS/vJ0KETQG+R/NkHxzDdR6Smb1ygDbG9vtoFL7Nt7JFcAAAAASUVORK5CYII=',
+  angel_idle_anim_f1:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAOFJREFUOI3tkTEKwkAURJ9iIShqYyPBYqsE8QYKHsDCQjDkDLbair0HMWBh4REsBE0lgihsZe8RYuMuuyYr2DtV/rAzf+YH/vgJQohUCJGaXMn18JOTUhYArrGHPyFVXDFvw/1y5H45ArDeny0jf/LgGnvZBEqokDzLAIS9rjOVs4ISn6ZVzVX7DSuF00CJAWr9WZ4/sNA3sW5gihWiJCBKAms2kUmgOt/ipWO7Dcsg7HWRUhbMg63ah/dXXc8Dl4HqZaLVrH+dtcGneF7pALAdjjU32m0yFTIbwf7npnEe/wL3kk2c6C1QQQAAAABJRU5ErkJggg==',
+  angel_idle_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAMBJREFUOI1jYBgFAw8YsQkqKSn9Rxe7d+8eI7r4vXv3GJnQNSopKf2/ffU0w+2rpxkYGBgYVhy5jGLQjZUyDDdWysD5TMiakTWefc/BwMDAwBBho4viKo3wJygGsmDzAkzzmRweuBiPrQA2pZgGwDQzMDAw8NmWYtWkFl7PcO/ePUYUL6BrhoGos5oMUWc1Ufh4XQDz862VjVhtRwcoBkTY6GJEV4/cCSiLH853wGUAzF/IQEqUHy+f6ISEDmCWAQAFOkH+mEFPpwAAAABJRU5ErkJggg==',
+  angel_idle_anim_f3:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAANJJREFUOI1jYBgFFANGUhQrKSn9R+bfu3ePkYUYhTDFDAwMDDdWyjAwMDAwaIQ/YWBgYGBgQteopKT0//bV0wy3r57GaihMIwywICtA1nT2PQcDAwMDw5kcHgYGBgYGHlsBrN7C6gWY5lsrG7FqUguvh3uJCV0SphkGos5qMkSd1UThIwMUA9A1EwMwvBBho8vAwIBwfo/cCagMP5zvgMsFETa6cL/BgJQoP4OUKD8KH6cLkDWXcWszMDAwMGzwCYHLB2xZg+EFrCkROSEhG4pNHABkDUQUDg5wogAAAABJRU5ErkJggg==',
+  angel_run_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAOBJREFUOI3VkjEKwkAURF/EQlCIjU0Qiy1EEW+g4AFSpBAScgZrW7H3IgGLFDmEoCkFMbCVvUfQxo2bZAMKNk43/Jlhhl34e1jfiIUQD51LKa3mJ0IlBrhEfQBG/g2ARtkohHhk5yPZ+WgMVUaFpi7QTem9BcBp1QGgM+8aZxknKPM12hpNQ3+TT2qUj8qsEKZjwnRc4DoKAWXzJ6hMCGZT4F1/Nzi8LnbOF3UNgtk036bg9Gycnl3gtQ1087o9ASB2l/ndS/aVCcafqN7cS/bE7hIppWX6hbUBeki52c/xBFwTSxWHbSRTAAAAAElFTkSuQmCC',
+  angel_run_anim_f1:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAANtJREFUOI1jYBhowEiKYiUlpf/I/Hv37jGyEKMQppiBgYHhxkoZBgYGBgaN8CcMDAwMDEzoGpWUlP7fvnqa4fbV01gNhWmEARZkBciazr7nYGBgYGA4k8PDwMDAwMBjK4DVW1i9ANN8a2UjVk1q4fVwLzGhS8I0w0DUWU2GqLOaKHxkgGIAumZiAIYXImx0GRgYEM7vkTsBleGH8x1wGQDTjAykRPnx8uEJSUlJ6f+9e/cYlZSU/gdsWQNXsMEnBM5GF0dJSLBQRdeILL7BJwQjgWEAWGIiqHDQAADVq0yV2GGT8QAAAABJRU5ErkJggg==',
+  angel_run_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAOxJREFUOI3FkrFKw1AUhr+IQ8FAXFxKcDggpISO3SL0ATo4iA0+Q6cO7u4+RyHg4OBDCDVu2tDCnbL7CHHJveTGXpvQwX+6h3P/7z/ncuG/5fW5LCKVPiulPICTvolFFlqw00NJ7cRoXlJkIdG85BdAG3efawCu4smfUAsgIpU2AuTfAwDeFz4A/vW56el05wravM0euc9HAKzYANT1nfsRtbmrrAn2mZ8u3+pTYOqpCwCQJmMzPsDwIrD67dpaIU3GZreusiZomh/OYgBeZremf/P67Aa0k5tGpZTn+ge9JCLV8uujOgomIhbgB9/kTQTsbamBAAAAAElFTkSuQmCC',
+  angel_run_anim_f3:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAO5JREFUOI3tkjFKxFAQhr8EC4tgbLZZgsWrTJEbJOABLCxkDTmDleABbMVziIEttvAIFkI2NrIaNjCVvUeIjS/kvbxgDuDfzT/z//MPDPzDc5FKqc7mRMSzeRHxfFuolOraXUW7qwB4enk3jJoyoimjvvaH4qGw/j4EIE8TI9Xp1ZdheOA6QYu310HPBdmxa3RsoMUAR9ktRR0D8MgnAEUds71fISKecYItnotRAn3zvrwD4OHk9bcT9vXZYN5IkKdJH01juQhZLkKjHsIwsMVz8OcjXTyvAdicXxozs5bpx7r5eOtc3zmZYCqNa+sPeC1P9VjkG/UAAAAASUVORK5CYII=',
+  pumpkin_dude_idle_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAXCAYAAAAC9s/ZAAAAAXNSR0IArs4c6QAAASlJREFUOI3FUktKxEAQfUlEDIx4gEGEhll0YMCF6+AV5gDZz0XmDu5zAK8gWWchDOiuQcUD+AFRCHEh1XZVV3pmN29TqeqqV68qBRwamRY0xoz07ZxTcwj51IPdLDBfLRnZ3gpIhd0s8N6f4PV2O6kkCoYdzy4uAQBvT/f+XRIxxxgztnUBW5V4fPhSlTXdwEhyrRiAam1Voq0LpjLftzPBViX69cyTHGkJVzef3u8reGL5xkaYQlggi1UFANCvZ76jjEuySAHtoOkGlhj6oZLkCJQobVsXnMA5lzXdwGSTXGnbumC3oB4SwDcfWnlIEUFqJEJIEP2F6+w0WXw3fjA/Ilie/6QJnrm/85B2IVKwfTn+6ySk/o/2nSag4nBRtFwZB5QRtKRU/BfkZZweTGi4NwAAAABJRU5ErkJggg==',
+  pumpkin_dude_idle_anim_f1:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAXCAYAAAAC9s/ZAAAAAXNSR0IArs4c6QAAARJJREFUOI3NVM0KQVEQ/i5St8gDSGrK4t5SFtbyCh7A3jtYewd7LyJrC6VYqFt4AlGidC0015k5DGXj25x75sx8881PF/hbEFFKROknv5z1GI0a+ERiEnwDk2A93KDaa5oqAm1wnSv1FgDgsF1k70mSiBhxIaJ00skjisOHgtUZURyKsz+7CZKcDrYQxSEmnbxQGejMnIUxH5SEmvb4JMrxmsjyGW6A+80ovJI6H5SyjNquyTwF69UZALIy2NG9u0rMPWBHfbrNftsDlqtPPalsnnoHuBy9B1wO78LLRbKgF8mbgrsD38Aj6AZlM2CaHm2CZu1qE+zk/ef/gadguS8+Mimpz9Iuwu5Ngb/dTr+zA8AdV9KEWwfY8E0AAAAASUVORK5CYII=',
+  pumpkin_dude_idle_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAXCAYAAAAC9s/ZAAAAAXNSR0IArs4c6QAAAR1JREFUOI3tUjtqw0AQfau4iEEhBwjGsOBCAoML1yFXyAHU6yI+gRv3OUCuEFRvEQhI3YANOUASg0hAKIU9y6x2ZcukzWvm//R2NMA//gwVSmqtW/aJKNjDiPoKyWqGu8e5QzZYAatIVjN8mmu8P7/1KlHdIRnfThcAgI/tqzMkyayjtW6f7q8O8tMxqrLulZ0VjSVRoWFGVdaWrJtnkuiSLzOSdAyTx9BatyOZZLvc7G2zSeGpkPXe38iQzaF4hA6qsobJY28gKxqY9KjqWF9u9lC8A5bHCxqKiIhUVjSoytq+0+QxeLFdK30iUsE7ANzFScvPce5AkgyRLS/RW+KDujk5/NJ+ObFHMJ/8nCbYufHZOzgHT8F6930RwS8uSYaBf/1kDAAAAABJRU5ErkJggg==',
+  pumpkin_dude_idle_anim_f3:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAXCAYAAAAC9s/ZAAAAAXNSR0IArs4c6QAAARFJREFUOI3tUjsKwkAQfTEiBiKeQIQFi10QLKyDF0nvRbyDfQ7gFSR1CkHQbkE9gR8QhRAL2bizn+gBnGZ4szNv3swO8LfAFWSMVTqWUjrzAKDte+CLES5F9w1WqHwkVlDv3h9OAADnw8arhgDGWJUlIbiIsN/dncrSvCQkLVcxAKfnIkKWhERl69fOyriIUMzjmsRaIhcRpstbjQuBmth8IyP4TC8wi50KAKCYx3VHM26SWQrUDtK8JIk61pU0jqASTZ8lISWQUgZpXhLZSq7psyQkt+A8JIBuXvfmIVkETSMp0wmsX5gFvcbidXUl2CIYD57NBEeKvx7SN7MUbE+ddydD6me0B4l7l6gvyhcHgBeDPIiShks8OQAAAABJRU5ErkJggg==',
+  pumpkin_dude_run_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAXCAYAAAAC9s/ZAAAAAXNSR0IArs4c6QAAASFJREFUOI3FVDFqw0AQHMvGRKDgF5jAQgoJAi5Sm3xEvT7iP6T3A/yFcPUVAYPUCRy/IIlBJCDOhZG8d7c6qwhkGjF7t7Nzu4uA/8ZEChKR4byua/EeAMyGDtLNI7703YXsYIZEvCCvvnhYAQA+D++DbixCRGa7niLNYlRlIzrLVWuJRFIyAPGbZjG266nlMhpbuUOaxdBF0otE0gVXJCQsTiFXLaBOAACd2WfPryeLew5c8AQ3WXRQlQ10kaAqm76BHXSReGKDDnLVWhc55076ebpjlOxydLsQ8UCuWlRl0z+D2+b2+SJ5mxgsKwh4TXyZ3AeT38y3xT2Bp+VvWODD5jf34BY8B/vj/FLJsXp92k9YoEv2fiBjGkxEZuwk/gxnsyV+bSCP6vkAAAAASUVORK5CYII=',
+  pumpkin_dude_run_anim_f1:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAXCAYAAAAC9s/ZAAAAAXNSR0IArs4c6QAAASdJREFUOI3VU0FKBDEQrMzswYEVHyAiNOwhAwsePA9+wQfMfT+yf/A+D/ALy5znsCDoLaDgA3QFQRjiKSHd6QxerUtPp7sqlZ7EQAER+fDtnDNaT0BVKtj9Bpf3WyamoahORN7uN/iczvD++FR0ki2mO15c3wAAPl6PsS6FWEJEfuhq2LbBy/O36qwfZyZSaWQAarRtg6GrmcvqrzsH2LbBtFtHkZXWcPvwFfOpRRSWNXaEElKCJKsOAGDareOOcl2KZQ7CDPpxZo1pnjpZPEJolHHoai7gnDP9ODPbwa6MQ1ezu6BeJIBPPo3yImUCS0cKSAWyv3BnzhfJB39ieSawvfpZFnjjOXsLi8wCTCBL69JqWj/4U5zDqkRKB0VEXgpmDjTi/8Av2ESYlbablBsAAAAASUVORK5CYII=',
+  pumpkin_dude_run_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAXCAYAAAAC9s/ZAAAAAXNSR0IArs4c6QAAASxJREFUOI2NVMFKxDAQfW29FHbxA0SEAQ8tLHjwXPYX/IDe9x88+w/e+yNLzz0IgnsQAuoXyAqiUOLFxMwkGfsuwyTz3rxJ0wAZEJElIpvbdyi1zebuEv+JqAJLoAocbp9xdrNRXRRyISw+vbgCALy/PPh9YwzjsISI7NBVaNoah6fPZMd+nJlImSIDSMamrTF0FXNZLu3s0LQ1pt3Ki5ykCq7vP3w+tfDCco+NkENIkOSkAwCYdivfUa5LsciBO4N+nFlhmIdO1BFcoYxDV3EBY0zRjzOz7ezKOHQVuwvJiwTwkw+jvEiRgDaSQygQfYVtsVbJe3tkeSSwOf/WBV55zv4FlZkBc7At1nh8++0krP6N9pUXCEnhQWnuvIB8KFLY22NUt/hNTJEB4AeZypR765P6bgAAAABJRU5ErkJggg==',
+  pumpkin_dude_run_anim_f3:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAXCAYAAAAC9s/ZAAAAAXNSR0IArs4c6QAAATNJREFUOI3VVLFqwzAQfXIzNODQDyilIMhgQ6BD5pJf6Ad494/kC7pk7wf0F4JnDYWCvQka6Ae0CZgWjDo0J06yLLtj36I73d3zu/Mh4N9DhC6llIZsrXUwh5AMBbLtEtcPK4dssgJSkW2X+FSXeH9+HVQi/CLuX93eAQA+3l6cIk5mDSmlebq/+JWfz9HU7aDsouosiQgVE5q6tWT+PZEkf/kyIcvnUGUKKaWZ8Us617uTTVY5eip4fPA3EnhyyJ/BQ1O3UGXaKyiqDio/qzrH17sTBM2A5NGApiLRWoui6tDUre1TlSlosP7Jba21CO4B4A6On9SOswecZIpsvom9IW7EIlq8N0fH7xGsbr7jBAfXH92DMfQUPB6+rE3t+LI5ou/BRiywN8foqxRtYawYAH4AqN6V0bSJ4A0AAAAASUVORK5CYII=',
+
   big_demon_idle_anim_f0:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAkCAYAAADo6zjiAAAAAXNSR0IArs4c6QAAAatJREFUWIXtVjFuwzAMpIsC/oEfoEKTvXryBwr0AX2Np7ymDyiQD2TK6kxG9QADnYsMhTsUdGiHpGjFQJYcYMiUafFEUSQBHnjggQ3gnBvvZpQzvobQ0y3GJUIhhMy6VlSRGsOFYzvclIBkcF8VAABw6P/Hxg+TvDt3V2QlUqs8wBF4+fgEAICv97dJ9mU909U8wsaAc27EB+favJqNMVj1WAKUMS7U+GHaNYUv69mO8b3xw4yE5En1CJxzY5tX0/ki8Jwl0H9eu8u/3FGIBDj3UyIYfByoHhKQ4uBZXEUxzskakoIQ39HVuJM1I3V/EuhtWD6/P9+mMZa01FQcQsgk9y3vuiTHsqI5ZaZUPEtKTipGW+LuBKJ5IISQ3dJwxIpSNBNq3/vT8Sr4tHkuJsQj0Iz3pyMrS/OScZXAErQa+rKGfVWoI+ppxgGMxWh37thKGMOyOeFg8kCbV3DoC7UAcbDUiygBWna5smyBFk/Ra2jtbGhPSOVYP8CW45R7v/TGRR7UXMJ6gPb2GIgUUjfE6W1SjCgJbVGrHsWqWmBd1Kq3ioDWhKboIf4AkdYr5pMiEsgAAAAASUVORK5CYII=',
   big_demon_idle_anim_f1:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAkCAYAAADo6zjiAAAAAXNSR0IArs4c6QAAAbhJREFUWIXtV8GtwjAMfXx9iQ0YoFJO7bWnLsAUbNJTB2ENFuCExKmcKmWAbsCJf0AObn/sOLTSl754EkocOfazk8YG+OCD/4CiKB5/5jTmPIfQ1xLnEiHv/cZqS1WMOfLeb1IRrkZAIgEAp2oHADgPz7FxY5C7e28mJB5BURQP7rzdVpORcLgecbgeJ/JcT8vYLwKS48aNIWoLGjeGvVkZ8N5v6EdrmmNX1nBlPZE5CUDPgMhMygIQP2eOdlsF3X0/hvVYJr5FK4JzmrdDJW2Z6EqOCcl3gCKlSGjs7j0aN0ZH0uPRSzAdQQzD7QJX1skRWJCB+WXk4JdNk1OPkunFerfYWF5Ecy3IeV5z9E0EuLGU4Vyib1VDyQmt55BYrRzz9VX6AW5EmueQkPapGchxnEPGRIDOUds83C7Jddov3QvTEaQckyytazBfQt6QuLLGqdqpI+kB+leR7AnbbYXu3mc1IwQq24uqIfCM+jzsQv9nhaUhSd4B3njM63wOIYlENDWxbigF3i1xed+P6hFEOyLLJzjHPBsvWW9KTP8L5lmQ+sGY3mr9ABnXjFr13iJAc82oVY/jB+ivK11ldlViAAAAAElFTkSuQmCC',
   big_demon_idle_anim_f2:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAkCAYAAADo6zjiAAAAAXNSR0IArs4c6QAAAapJREFUWIXtV8FqwzAMVcagf9APMOSUXHPaD/Qr+ic95UP6G/2BnQY9eaeCP6Cw88hhdIehVBaSJacbhdEHxZWjSE+SHcsADzzwHxBCuNzNqeS8hlDjdYRIKTWWg5SSaddFgDrarXoYpzg/O/RrAAB4Pf2ML+15lqmeRejJ45w62K36TG973MP2uM9krlfKmEgghHBJKTXIHI1h1B4gYascIgF8CZmPU5xTzdF2A7TdkMkUGIxGQH3A648RAch1pkD9Tby+o5FQS0DlcYqZMepIGgFg1q/ZERkBus+l39fnh2u0fKm7wGLOay3Jnuhd6Vn6qfUQUDOwxNgSfTeBv4KLAI1GiwznF616L/gJSHfLXaARqCFVtQaoYek/jjVlcBHgzqyofyUD3IjXaG1Jihm4ZYF5F6j5KS4ZOb2/mfMWCXcJSo5R1uYXEeCgR27bDXDo18UR9QDKu8JsSrEZrWnHENi43EyAgnZGHlhdkdoR0X5Qc671iRK0LJg9Ic+ABnovoPImnosleNYeeG5AFDwbV7lcMtfVjGdB64glPetccLdkaLxk1KtH8Q2JcynPPEn7rgAAAABJRU5ErkJggg==',
@@ -535,6 +568,13 @@ const MONSTERS = {
     spells:[{ id:'massue', name:'Coup de massue', pa:3, minR:1, maxR:1, los:true, dmg:[7,11], perTurn:2 },
             { id:'balayage', name:'Balayage', pa:3, minR:1, maxR:1, los:true, dmg:[5,8], push:2, cd:2 },
             { id:'appel', name:'Appel des gobelins', pa:2, self:true, summon:'gobelin', max:2, cd:4 }] },
+  // variantes des familles (retour 44) : même famille, autre couleur, autres attaques
+  gobarcher: { name:'Gobelin archer', xp:11, hp:20, pa:4, pm:3, sprite:'gobarcher_spr', ranged:true,
+    spells:[{ id:'flechegob', name:'Flèche', pa:3, minR:2, maxR:6, los:true, dmg:[4,6], perTurn:1, proj:'#d8c8a0' },
+            { id:'coupgob', name:'Coup de couteau', pa:1, minR:1, maxR:1, los:true, dmg:[2,3] }] },
+  orcberserk: { name:'Orc berserker', xp:24, hp:32, pa:4, pm:3, sprite:'berserk_spr',
+    spells:[{ id:'frenesie', name:'Frénésie', pa:2, minR:1, maxR:1, los:true, dmg:[4,6], perTurn:2 },
+            { id:'bond', name:'Bond sauvage', pa:0, minR:2, maxR:3, los:true, effect:'tp', needEmpty:true, charge:true, cd:3 }] },
   // Terres du Nord
   squelette: { name:'Squelette', xp:28, hp:55, pa:4, pm:3, sprite:'skelet',
     spells:[{ id:'os', name:"Coup d'os", pa:4, minR:1, maxR:1, los:true, dmg:[9,13] },
@@ -558,6 +598,14 @@ const MONSTERS = {
     spells:[{ id:'ecrase', name:'Écrasement', pa:3, minR:1, maxR:1, los:true, dmg:[12,16], perTurn:2 },
             { id:'vomi', name:'Vomi putride', pa:3, minR:2, maxR:4, los:true, dmg:[8,11], poison:[4,2], perTurn:1, proj:'#9be36a' },
             { id:'horde', name:'Appel de la horde', pa:2, self:true, summon:'zombie', max:1, cd:4 }] },
+  skelarcher: { name:'Squelette archer', xp:28, hp:42, pa:4, pm:3, sprite:'skelarcher_spr', ranged:true,
+    spells:[{ id:'flecheos', name:"Flèche d'os", pa:3, minR:2, maxR:6, los:true, dmg:[7,10], perTurn:1, proj:'#e8e0c8' },
+            { id:'griffeos', name:'Griffe osseuse', pa:1, minR:1, maxR:1, los:true, dmg:[3,5] }] },
+  zombiepest: { name:'Zombie pestilent', xp:34, hp:70, pa:4, pm:2, sprite:'pestzombie_spr', ranged:true,
+    spells:[{ id:'crachat', name:'Crachat pestilent', pa:4, minR:1, maxR:4, los:true, dmg:[7,10], poison:[3,2], perTurn:1, proj:'#9be36a' }] },
+  impfeu: { name:'Diablotin de feu', xp:32, hp:34, pa:6, pm:4, sprite:'impfeu_spr', ranged:true,
+    spells:[{ id:'brasier', name:'Brasier', pa:3, minR:2, maxR:5, los:true, dmg:[6,8], poison:[2,2], perTurn:2, proj:'#ff7a2a' },
+            { id:'sautfeu', name:'Saut de flammes', pa:1, minR:2, maxR:4, los:false, effect:'tp', needEmpty:true, cd:2 }] },
   // Vallée oubliée (acte III)
   ombre: { name:'Ombre', xp:48, hp:58, pa:4, pm:4, sprite:'ombre_spr',
     spells:[{ id:'griffe', name:"Griffe d'ombre", pa:4, minR:1, maxR:1, los:true, dmg:[11,15] },
@@ -571,6 +619,16 @@ const MONSTERS = {
   pretre: { name:'Prêtre du Soleil noir', xp:55, hp:56, pa:4, pm:2, sprite:'pretre_spr', ranged:true,
     spells:[{ id:'soleilnoir', name:'Rayon noir', pa:3, minR:2, maxR:5, los:true, dmg:[10,14], perTurn:1, proj:'#ff8a3a' },
             { id:'benediction', name:'Bénédiction noire', pa:2, minR:0, maxR:4, los:true, ally:true, heal:[9,13], cd:2 }] },
+  fanatique: { name:'Fanatique du Soleil noir', xp:52, hp:64, pa:4, pm:4, sprite:'fanatique_spr',
+    spells:[{ id:'fouet', name:'Fouet ardent', pa:2, minR:1, maxR:2, los:true, dmg:[6,8], perTurn:2 }] },
+  lezchaman: { name:'Chaman lézard', xp:54, hp:70, pa:4, pm:2, sprite:'lezchaman_spr', ranged:true,
+    spells:[{ id:'eaux', name:'Trait des marais', pa:3, minR:2, maxR:5, los:true, dmg:[9,12], perTurn:1, proj:'#5ad1c0', slowPm:1 },
+            { id:'soinlez', name:'Chant des marais', pa:2, minR:0, maxR:4, los:true, ally:true, heal:[14,18], cd:3 }] },
+  ombrehurle: { name:'Ombre hurlante', xp:50, hp:50, pa:4, pm:3, sprite:'ombrehurle_spr', ranged:true,
+    spells:[{ id:'hurlement', name:'Hurlement', pa:3, minR:1, maxR:4, los:false, dmg:[9,12], slowPm:1, perTurn:1, proj:'#c58bff' },
+            { id:'griffe2', name:"Griffe d'ombre", pa:1, minR:1, maxR:1, los:true, dmg:[4,6] }] },
+  arbaletrier: { name:'Arbalétrier du Soleil noir', xp:60, hp:58, pa:4, pm:2, sprite:'arbaletrier_spr', ranged:true,
+    spells:[{ id:'carreau', name:"Carreau d'arbalète", pa:4, minR:3, maxR:7, los:true, dmg:[15,19], perTurn:1, proj:'#ffcf6a' }] },
   lezard: { name:'Homme-lézard', xp:52, hp:92, pa:4, pm:3, sprite:'lizard_m',
     spells:[{ id:'lance', name:'Coup de lance', pa:4, minR:1, maxR:2, los:true, dmg:[12,16] },
             { id:'harpon', name:'Harpon', pa:0, minR:2, maxR:4, los:true, pull:2, cd:3, proj:'#c0c0c0' }] },
@@ -667,13 +725,13 @@ const MONSTERS = {
 const ZONES = [
   { id:'village', name:'Aubépine', x:115, y:420, icon:'village', desc:"Ton village natal, au cœur de la Plaine. Un marchand y vend de l'équipement." },
   { id:'lisiere', chapter:0, name:'Lisière de la plaine', x:255, y:360, tier:0, icon:'fight', foes:['gobelin','gobelin'], desc:"Quelques Gobelins rôdent à l'orée de la plaine. Idéal pour débuter." },
-  { id:'champs', chapter:1, name:'Champs du nord', x:350, y:215, tier:1, icon:'fight', foes:['gobelin','chaman','gobelin'], desc:'Un Chaman orc mène des Gobelins qui pillent les récoltes.' },
+  { id:'champs', chapter:1, name:'Champs du nord', x:350, y:215, tier:1, icon:'fight', foes:['gobelin','chaman','gobarcher'], desc:'Un Chaman orc mène des Gobelins qui pillent les récoltes.' },
   { id:'marais', chapter:2, name:'Marais gluant', x:420, y:455, tier:1, icon:'fight', foes:['gluant','chaman','gluant'], desc:'Des Gluants coriaces pataugent ici, protégés par un Chaman orc.' },
-  { id:'moulin', chapter:3, name:'Le vieux moulin', x:545, y:150, tier:2, icon:'fight', foes:['chaman','gobelin','chaman','gobelin'], desc:'Le moulin abandonné sert de repaire à une bande mixte.' },
-  { id:'bois', chapter:4, name:'Bois des murmures', x:620, y:345, tier:3, icon:'fight', foes:['gobelin','chaman','orc','chaman','gobelin'], desc:'Une forêt dense où un Orc guerrier a rassemblé sa bande.' },
-  { id:'antre', chapter:5, name:'Antre du Chef Ogre', x:790, y:215, tier:4, icon:'boss', foes:['ogre','gobelin','chaman','gobelin'], desc:"Le Chef Ogre t'attend avec sa garde rapprochée." },
+  { id:'moulin', chapter:3, name:'Le vieux moulin', x:545, y:150, tier:2, icon:'fight', foes:['chaman','gobelin','chaman','gobarcher'], desc:'Le moulin abandonné sert de repaire à une bande mixte.' },
+  { id:'bois', chapter:4, name:'Bois des murmures', x:620, y:345, tier:3, icon:'fight', foes:['gobelin','chaman','orc','orcberserk','gobarcher'], desc:'Une forêt dense où un Orc guerrier a rassemblé sa bande.' },
+  { id:'antre', chapter:5, name:'Antre du Chef Ogre', x:790, y:215, tier:4, icon:'boss', foes:['ogre','gobelin','chaman','gobarcher'], desc:"Le Chef Ogre t'attend avec sa garde rapprochée." },
   { id:'passage', chapter:6, name:'Passage du Nord', x:818, y:112, icon:'portal', to:'camp', desc:'Un sentier de montagne qui mène aux Terres du Nord.' },
-  { id:'sanctuaire', chapter:12, name:"Sanctuaire d'Aubépine", x:92, y:318, tier:9, icon:'fight', foes:['ombre','ombre','ombre','ombre'], desc:'Le Cristal est fissuré. Des Ombres en sortent et attaquent Aubépine !' },
+  { id:'sanctuaire', chapter:12, name:"Sanctuaire d'Aubépine", x:92, y:318, tier:9, icon:'fight', foes:['ombre','ombre','ombrehurle','ombre'], desc:'Le Cristal est fissuré. Des Ombres en sortent et attaquent Aubépine !' },
   { id:'est', chapter:18, name:"Route des Hauts de l'Aube", x:808, y:432, icon:'portal', to:'redescendre', desc:"Une route de montagne qui grimpe vers les Hauts de l'Aube, à l'est." },
   { id:'sylve', chapter:24, name:'Sentier de la Sylve', x:622, y:512, icon:'portal', to:'sortiesylve', desc:'Un sentier oublié qui mène à la Forêt ancienne.' },
   { id:'brasier', chapter:30, name:'Route du Mont Brasier', x:445, y:112, icon:'portal', to:'descendrebrasier', desc:'Une route poussiéreuse qui monte vers le Mont Brasier, un volcan au nord.' },
@@ -683,35 +741,35 @@ const ZONES = [
   { id:'camp', chapter:6, region:2, name:'Camp de Garrick', x:130, y:420, icon:'village', desc:"Le camp de base de Garrick. Un marchand ambulant s'y est installé." },
   { id:'givreval', chapter:42, region:2, name:'Sentier du Givreval', x:175, y:160, icon:'portal', to:'descendregivre', desc:'Un sentier enneigé qui monte vers le Mont Givreval.' },
   { id:'retour', chapter:6, region:2, name:'Retour vers la Plaine', x:95, y:300, icon:'portal', to:'passage', desc:'Le sentier qui redescend vers la Plaine et Aubépine, ton village.' },
-  { id:'col', chapter:6, region:2, name:'Col des brumes', x:265, y:330, tier:5, icon:'fight', foes:['squelette','squelette','zombie'], desc:'Un col noyé dans la brume, où rôdent des morts-vivants.' },
-  { id:'cimetiere', chapter:7, region:2, name:'Cimetière oublié', x:360, y:180, tier:6, icon:'fight', foes:['zombie','squelette','givre','zombie'], desc:'Chaque nuit, de nouveaux morts sortent de terre.' },
+  { id:'col', chapter:6, region:2, name:'Col des brumes', x:265, y:330, tier:5, icon:'fight', foes:['squelette','skelarcher','zombie'], desc:'Un col noyé dans la brume, où rôdent des morts-vivants.' },
+  { id:'cimetiere', chapter:7, region:2, name:'Cimetière oublié', x:360, y:180, tier:6, icon:'fight', foes:['zombie','squelette','givre','zombiepest'], desc:'Chaque nuit, de nouveaux morts sortent de terre.' },
   { id:'lac', chapter:8, region:2, name:'Lac gelé', x:430, y:420, tier:6, icon:'fight', foes:['givre','givre','squelette','orcmasque'], desc:'Des Zombies de givre gardent le lac où le Nécromancien puise sa magie.' },
-  { id:'forteresse', chapter:9, region:2, name:'Forteresse en ruine', x:565, y:250, tier:7, icon:'fight', foes:['orcmasque','diablotin','squelette','givre'], desc:"L'élite du Nécromancien, les Orcs masqués, tient la forteresse." },
+  { id:'forteresse', chapter:9, region:2, name:'Forteresse en ruine', x:565, y:250, tier:7, icon:'fight', foes:['orcmasque','diablotin','skelarcher','impfeu'], desc:"L'élite du Nécromancien, les Orcs masqués, tient la forteresse." },
   { id:'tour', chapter:10, region:2, name:'Tour du Nécromancien', x:655, y:420, tier:8, icon:'boss', foes:['zombiegeant','necro','squelette','givre'], desc:'Le Nécromancien et son Zombie géant préparent un terrible rituel.' },
   { id:'miroir', chapter:13, region:2, name:'Ruines de la tour', x:745, y:470, tier:10, icon:'fight', foes:['gardien','ombre','ombre'], desc:'Dans les ruines de la tour, un Gardien veille sur un étrange miroir noir.' },
   { id:'faille', chapter:11, region:2, name:'Faille démoniaque', x:790, y:300, tier:9, icon:'boss', foes:['demon','chort','diablotin'], desc:'Un Grand Démon tente de franchir la Faille. Dernier combat !' },
   // Vallée oubliée (région 3)
   { id:'remonter', chapter:14, region:3, name:'Retour vers la Plaine', x:110, y:150, icon:'portal', to:'sud', desc:'Le sentier qui remonte vers la Plaine et Aubépine, ton village.' },
   { id:'ermitage', chapter:14, region:3, name:"Ermitage d'Orwin", x:215, y:270, icon:'village', desc:"La cabane d'Orwin, l'ermite des ruines. Il échange volontiers de l'équipement." },
-  { id:'entree', chapter:14, region:3, name:'Porte des ruines', x:375, y:330, tier:10, icon:'fight', foes:['fidele','pretre','fidele','fidele'], desc:"Des membres de l'Ordre du Soleil noir fouillent déjà les ruines." },
-  { id:'bibliotheque', chapter:15, region:3, name:'Bibliothèque engloutie', x:505, y:455, tier:11, icon:'fight', foes:['lezard','limace','lezard','limace'], desc:'Des hommes-lézards et des limaces géantes ont envahi la bibliothèque à moitié noyée.' },
+  { id:'entree', chapter:14, region:3, name:'Porte des ruines', x:375, y:330, tier:10, icon:'fight', foes:['fidele','pretre','fanatique','fidele'], desc:"Des membres de l'Ordre du Soleil noir fouillent déjà les ruines." },
+  { id:'bibliotheque', chapter:15, region:3, name:'Bibliothèque engloutie', x:505, y:455, tier:11, icon:'fight', foes:['lezard','limace','lezchaman','limace'], desc:'Des hommes-lézards et des limaces géantes ont envahi la bibliothèque à moitié noyée.' },
   { id:'temple', chapter:16, region:3, name:'Temple du Soleil noir', x:625, y:215, tier:12, icon:'boss', foes:['pretresse','fidele','pretre','fidele'], desc:"Le temple caché de l'Ordre. La Grande Prêtresse y garde les pages volées." },
   { id:'coeur', chapter:17, region:3, name:'Cœur des ruines', x:790, y:350, tier:13, icon:'boss', foes:['eclipse','ombre','pretre'], desc:"L'Ordre invoque l'Éclipse pour détruire la légende. Dernier combat de l'acte III !" },
   // Hauts de l'Aube (région 4)
   { id:'redescendre', chapter:18, region:4, name:'Retour vers la Plaine', x:100, y:430, icon:'portal', to:'est', desc:'La route qui redescend vers la Plaine et Aubépine, ton village.' },
   { id:'pelerins', chapter:18, region:4, name:'Halte des pèlerins', x:205, y:350, icon:'village', desc:'Un vieux refuge de pèlerins. Un marchand y a posé son étal.' },
-  { id:'chemin', chapter:18, region:4, name:'Sentier des pèlerins', x:330, y:285, tier:14, icon:'fight', foes:['eclaireur','eclaireur','pretre','eclaireur'], desc:"Des éclaireurs de l'Ordre du Soleil noir barrent le sentier." },
-  { id:'templeoublie', chapter:19, region:4, name:'Temple oublié', x:475, y:215, tier:15, icon:'fight', foes:['ombre','ombre','ombre','ombre','pretre'], desc:'Le temple oublié est envahi par des Ombres.' },
+  { id:'chemin', chapter:18, region:4, name:'Sentier des pèlerins', x:330, y:285, tier:14, icon:'fight', foes:['eclaireur','arbaletrier','pretre','eclaireur'], desc:"Des éclaireurs de l'Ordre du Soleil noir barrent le sentier." },
+  { id:'templeoublie', chapter:19, region:4, name:'Temple oublié', x:475, y:215, tier:15, icon:'fight', foes:['ombre','ombre','ombrehurle','ombre','pretre'], desc:'Le temple oublié est envahi par des Ombres.' },
   { id:'epreuves', chapter:20, region:4, name:'Salle des épreuves', x:610, y:135, tier:15, icon:'fight', foes:['pierre','pierre','pierre'], desc:'Les Gardiens de pierre du temple se réveillent pour mettre le héros à l\'épreuve.' },
   { id:'forge', chapter:21, region:4, name:'Forge de lumière', x:650, y:330, tier:16, icon:'fight', foes:['fidele','pretre','eclaireur','pierre'], desc:"Une forge ancienne, déjà en partie pillée par l'Ordre." },
-  { id:'remparts', chapter:22, region:4, name:'Remparts du temple', x:790, y:245, tier:16, icon:'fight', foes:['eclaireur','eclaireur','pretre','fidele','fidele'], desc:"L'Ordre donne l'assaut au temple pour piller la forge." },
+  { id:'remparts', chapter:22, region:4, name:'Remparts du temple', x:790, y:245, tier:16, icon:'fight', foes:['eclaireur','arbaletrier','pretre','fidele','fanatique'], desc:"L'Ordre donne l'assaut au temple pour piller la forge." },
   // Forêt ancienne (région 5)
   { id:'sortiesylve', chapter:24, region:5, name:'Retour vers la Plaine', x:110, y:150, icon:'portal', to:'sylve', desc:'Le sentier qui ramène vers la Plaine et Aubépine, ton village.' },
   { id:'fees', chapter:24, region:5, name:'Village des fées', x:205, y:265, icon:'village', desc:'Un village minuscule caché dans les racines. Les fées y échangent de l\'équipement.' },
   { id:'oree', chapter:24, region:5, name:'Orée enchantée', x:330, y:350, tier:17, icon:'fight', foes:['feufollet','feufollet','feufollet','feufollet'], desc:'Des illusions égarent les voyageurs et des feux follets noirs attaquent.' },
   { id:'bosquet', chapter:25, region:5, name:'Bosquet sacré', x:455, y:215, tier:18, icon:'fight', foes:['fidele','pretre','eclaireur','feufollet'], desc:"L'Ordre a planté des totems du soleil noir dans le bosquet des dryades." },
   { id:'boiscorrompus', chapter:26, region:5, name:'Bois corrompus', x:500, y:430, tier:18, icon:'fight', foes:['treant','ombre','treant','bete'], desc:'Les Ombres corrompent les arbres, et les tréants deviennent fous.' },
-  { id:'licornes', chapter:27, region:5, name:'Clairière des licornes', x:645, y:300, tier:19, icon:'fight', foes:['eclaireur','eclaireur','bete','fidele'], desc:"Des chasseurs de l'Ordre traquent le Cerf d'argent." },
+  { id:'licornes', chapter:27, region:5, name:'Clairière des licornes', x:645, y:300, tier:19, icon:'fight', foes:['eclaireur','arbaletrier','bete','fidele'], desc:"Des chasseurs de l'Ordre traquent le Cerf d'argent." },
   { id:'racines', chapter:28, region:5, name:'Sanctuaire des racines', x:700, y:455, tier:19, icon:'fight', foes:['champignon','champignon','treant','pretre'], desc:"Les racines d'un arbre immense, envahies par l'Ordre." },
   { id:'coeursylve', chapter:29, region:5, name:'Cœur de la forêt', x:810, y:240, tier:20, icon:'boss', foes:['grandtreant','bete','feufollet'], desc:"Le Grand Tréant, gardien millénaire de la forêt, a été corrompu par l'Ordre. Dernier combat de l'acte V !" },
   // Mont Brasier (région 6)
@@ -720,7 +778,7 @@ const ZONES = [
   { id:'plainescendres', chapter:30, region:6, name:'Plaines de cendres', x:320, y:300, tier:21, icon:'fight', foes:['salamandre','salamandre','eclaireur','salamandre'], desc:"Des salamandres et des éclaireurs de l'Ordre rôdent dans les cendres." },
   { id:'portes', chapter:31, region:6, name:'Portes de Forgefeu', x:440, y:395, tier:21, icon:'fight', foes:['elemfeu','elemfeu','elemfeu','salamandre'], desc:'Des élémentaires de feu attaquent la cité naine.' },
   { id:'tunnels', chapter:32, region:6, name:'Tunnels de lave', x:560, y:450, tier:22, icon:'fight', foes:['pretre','fidele','elemfeu','chort'], desc:"L'Ordre plante des totems pour réveiller le volcan." },
-  { id:'grandeforge', chapter:33, region:6, name:'Grande forge', x:520, y:250, tier:22, icon:'fight', foes:['fidele','fidele','eclaireur','pretre'], desc:'Une embuscade de l\'Ordre au cœur de Forgefeu.' },
+  { id:'grandeforge', chapter:33, region:6, name:'Grande forge', x:520, y:250, tier:22, icon:'fight', foes:['fidele','fanatique','eclaireur','pretre'], desc:'Une embuscade de l\'Ordre au cœur de Forgefeu.' },
   { id:'forgeoubliee', chapter:34, region:6, name:'Forge oubliée', x:690, y:350, tier:23, icon:'fight', foes:['golem','golem','elemfeu','salamandre'], desc:'Une forge très ancienne, gardée par des golems de lave.' },
   { id:'cratere', chapter:35, region:6, name:'Cratère', x:690, y:170, tier:24, icon:'boss', foes:['ignarok','golem','pretre'], desc:"Ignarok, le dragon de lave, garde la Braise d'Aube. Dernier combat de l'acte VI !" },
   // Côte d'Écume (région 7)
@@ -1066,7 +1124,7 @@ ${pips}</b>
   ov.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { const o = order.map(s => s.id), i = +b.dataset.mv, j = i + +b.dataset.d;
     if (j < 0 || j >= o.length) return; [o[i], o[j]] = [o[j], o[i]]; p.order = o; play('equip'); redo(); });
   ov.querySelectorAll('[data-pv]').forEach(b => b.onclick = () => { const id = b.dataset.pv, k = +b.dataset.k; prev[id] = prev[id] === k ? 0 : k; redo(); });
-  if ($('#collarUp')) $('#collarUp').onclick = () => { const ok = upgradeCollar(); if (ok) play('buff'); redo(); if (ok) flashMsg(`Forest ronronne : il porte maintenant un ${COLLAR_NAMES[p.collar-1].toLowerCase()} (niveau ${p.collar}) !`); };
+  if ($('#collarUp')) $('#collarUp').onclick = () => { const ok = upgradeCollar(); if (ok) { play('buff'); checkEquipQuests(); } redo(); if (ok) flashMsg(`Forest ronronne : il porte maintenant un ${COLLAR_NAMES[p.collar-1].toLowerCase()} (niveau ${p.collar}) !`); };
   $('#ptAuto').onclick = () => { autoPoints(p); play('equip'); redo(); };
   $('#ptReset').onclick = () => { if (!Object.values(p.pts).some(v => v) || p.gold < resetCost(p)) return; p.gold -= resetCost(p); for (const k in p.pts) p.pts[k] = 0; redo(); };
   ov.dataset.menu = 'char';
@@ -1191,7 +1249,8 @@ function startFight(zoneId, room, group) {
   const f = group ? { ...base, icon:'fight', foes:group, extra:true } : G.dungeon && G.dungeon.room <= DUNGEON_ROOMS ? dungeonRoom(base, G.dungeon.room) : G.dungeon ? { ...base, name:`${base.name} · Salle du boss` } : base;
   G.zone = f; G.seed = rnd(1,1e6); G.mode = 'fight'; document.body.classList.remove('map'); setTimeout(renderDbg);
   setBoard(...FIGHT_BOARD); G.bgSize = null;
-  G.grid = genMap();
+  G.grid = genMap(); G.dunFight = !!G.dungeon;
+  if (G.dunFight) G.grid = G.grid.map(r => r.map(t => t===2 ? 1 : t)); // pas de mare dans un donjon : des blocs de pierre
   const st = heroStats(G.profile), c = CLASSES[G.profile.cls];
   jobFightStart(room);
   const hero = makeUnit(c, 'hero', HERO_SPAWN[0], HERO_SPAWN[1], { hp:st.hp, maxHp:st.hp, pa:st.pa, maxPa:st.pa, pm:st.pm, maxPm:st.pm, mul:st.mul, res:st.res, name:heroName() + ' niv. ' + G.profile.level, spells: heroSpells(G.profile).concat(potionSpells(G.profile)), crit:st.crit });
@@ -1750,14 +1809,17 @@ function buildExtraSprites() {
 const VARIANTS = [['wogol','ombre_spr','shadow'],['ogre','gardien_spr','shadow'],['big_demon','eclipse_spr','shadow'],['wizzard_f','pretre_spr','cult'],['wizzard_f','pretresse_spr','priestess'],
   ['elf_m','eclaireur_spr','cult'],['masked_orc','pierre_spr','stone'],['masked_orc','bourreau_spr','cult'],['chort','bete_spr','corrupt'],
   ['lizard_m','salamandre_spr','fire'],['big_zombie','golem_spr','lava'],['big_demon','ignarok_spr','lava'],
-  ['lizard_m','triton_spr','sea'],['orc_warrior','marin_spr','cult'],['skelet','pirate_spr','sea'],['big_zombie','yeti_spr','frost'],['ogre','golemglace_spr','ice'],['big_demon','hrimgar_spr','ice']];
+  ['lizard_m','triton_spr','sea'],['orc_warrior','marin_spr','cult'],['skelet','pirate_spr','sea'],['big_zombie','yeti_spr','frost'],['ogre','golemglace_spr','ice'],['big_demon','hrimgar_spr','ice'],
+  ['goblin','gobarcher_spr','tint:190,170,70'],['orc_warrior','berserk_spr','tint:220,70,50'],['skelet','skelarcher_spr','tint:150,180,230'],['tiny_zombie','pestzombie_spr','corrupt'],
+  ['imp','impfeu_spr','fire'],['doc','fanatique_spr','tint:230,90,60'],['lizard_m','lezchaman_spr','tint:120,90,200'],['wogol','ombrehurle_spr','tint:120,60,170'],['elf_m','arbaletrier_spr','tint:200,150,60']];
 function buildVariants() {
   for (const [base, name, mode] of VARIANTS) for (const k of Object.keys(IMG)) {
     if (!k.startsWith(base+'_')) continue;
     const img = IMG[k], c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
     const g = c.getContext('2d'); g.drawImage(img,0,0); const d = g.getImageData(0,0,c.width,c.height), a = d.data;
     for (let i=0;i<a.length;i+=4) { if (!a[i+3]) continue; const l = (a[i]+a[i+1]+a[i+2])/3;
-      if (mode==='fire') { if (l>190) { a[i]=255; a[i+1]=240; a[i+2]=150; } else { a[i]=120+l*.55; a[i+1]=30+l*.45; a[i+2]=10+l*.1; } }
+      if (mode.startsWith('tint:')) { const [r,g2,b] = mode.slice(5).split(',').map(Number); if (l<205) { a[i]=Math.min(255,r*l/140); a[i+1]=Math.min(255,g2*l/140); a[i+2]=Math.min(255,b*l/140); } } // teinte simple
+      else if (mode==='fire') { if (l>190) { a[i]=255; a[i+1]=240; a[i+2]=150; } else { a[i]=120+l*.55; a[i+1]=30+l*.45; a[i+2]=10+l*.1; } }
       else if (mode==='lava') { if (l>175) { a[i]=255; a[i+1]=110+(l-175)*1.5; a[i+2]=20; } else if (a[i] > a[i+1]+70 && l>80) { a[i]=200; a[i+1]=60; a[i+2]=10; } else { a[i]=30+l*.35; a[i+1]=24+l*.28; a[i+2]=22+l*.26; } }
       else if (mode==='sea') { if (l>190) { a[i]=220; a[i+1]=255; a[i+2]=240; } else { a[i]=20+l*.2; a[i+1]=60+l*.5; a[i+2]=80+l*.55; } }
       else if (mode==='frost') { if (a[i] > a[i+1]+60) { a[i]=90; a[i+1]=200; a[i+2]=255; } else if (l<50) { a[i]=40; a[i+1]=50; a[i+2]=70; } else { const v = 120+l*.55; a[i]=v*.92; a[i+1]=v*.97; a[i+2]=v; } }
@@ -1768,6 +1830,59 @@ function buildVariants() {
       else if (mode==='shadow') { if (l>190) { a[i]=230; a[i+1]=150; a[i+2]=255; } else { a[i]=30+l*.35; a[i+1]=14+l*.15; a[i+2]=58+l*.5; } }
       else { const red = a[i] > a[i+2]+30; if (l>200) { a[i]=255; a[i+1]=214; a[i+2]=120; } else if (red || l<90) { a[i]=a[i]; a[i+1]*=.75; a[i+2]*=.75; } else { a[i]=60+l*.45; a[i+1]=10+l*.12; a[i+2]=22+l*.18; } } }
     g.putImageData(d,0,0); IMG[name + k.slice(base.length)] = c;
+  }
+}
+// Personnages importants : chacun a son propre sprite (corps du pack recoloré + accessoire dessiné en pixels)
+// map : couleur du pack → nouvelle couleur ; add : [x, dy depuis le haut du sprite, lignes séparées par |, couleurs] ; clear : lignes du haut effacées
+const NPC_LOOKS = {
+  maela:   { base:'wizzard_f', map:{ '5956bd':'2e6a3a', '5698cc':'4f9a5c' },
+    add:[[15, 7, 'o|w|w|w|w|w|w|w|w|w|w|w|w', { o:'#7cf0a0', w:'#7a4a22' }]] },
+  ysolde:  { base:'wizzard_f', clear:7, map:{ '5698cc':'2a2a3a', '5956bd':'e0e0e8' },
+    add:[[5, 3, 'aaaaa', { a:'#222222' }], [4, 4, 'akkkkka|.', { a:'#222222', k:'#26263a' }], [3, 5, 'akkkkkkka', { a:'#222222', k:'#26263a' }],
+         [2, 6, 'akkkkkkkkka', { a:'#222222', k:'#26263a' }], [1, 7, 'awwwwwwwwwwwwa', { a:'#222222', w:'#f4f4f8' }], [7, 12, '.y.|yyy|.y.', { y:'#f0c040' }]] },
+  lune:    { base:'elf_f', map:{ 'ee8e2e':'b0b0d0', 'facb3e':'e8e8f8', 'da4e38':'9a7ac8', '4ba747':'6a5ab8', '3d734f':'3e3478' },
+    add:[[5, -1, '.p.w.p.', { p:'#ff8ac8', w:'#ffffff' }], [5, 0, 'lplwlpl', { p:'#ff8ac8', w:'#ffffff', l:'#5ab84a' }]] },
+  neria:   { base:'elf_f', map:{ 'ee8e2e':'3f8a3a', 'facb3e':'7cc860', 'da4e38':'2e6a2a', 'fccba3':'cfe0a8', '4ba747':'8a5a2e', '3d734f':'5a3a1e' },
+    add:[[4, -2, 't.l...l.t', { t:'#6a4a22', l:'#9ae070' }], [5, -1, 'tlglglt', { t:'#6a4a22', l:'#9ae070', g:'#2e6a2a' }]] },
+  garrick: { base:'elf_m', map:{ 'ee8e2e':'2e5a2a', 'facb3e':'4a8a3a', '4ba747':'6a7a3a', '3d734f':'4a3a22' },
+    add:[[12, 7, '.w|w.s|w.s|w.s|w.s|w.s|.w', { w:'#c08040', s:'#f0f0f0' }]] },
+  corwin:  { base:'elf_m', map:{ 'ee8e2e':'3a3a44', 'facb3e':'55556a', '4ba747':'4a3a5a', '3d734f':'2a2430', '314152':'1a1a22' },
+    add:[[3, 6, 'kkk..kkkkk', { k:'#8a1a1a' }]] },
+  elian:   { base:'elf_m', map:{ 'ee8e2e':'5a6a88', 'facb3e':'7a8aa8', '4ba747':'9aaac8', '3d734f':'6a7a98', '314152':'e0d0a0' },
+    add:[[8, 11, 'y', { y:'#f0c040' }]] },
+  bastien: { base:'dwarf_m', map:{ 'da4e38':'8a6a3a', 'e46e33':'a8843a', '7b8994':'4a6aa8' },
+    add:[[7, -2, 'aaaaaa', { a:'#222222' }], [6, -1, 'ahhhhhha', { a:'#222222', h:'#e8c860' }], [6, 0, 'ahrrrrha', { a:'#222222', h:'#e8c860', r:'#c84a3a' }],
+         [2, 1, 'aahhhhhhhhhhhaa', { a:'#222222', h:'#f0d878' }], [3, 2, 'aaaaaaaaaaaaa', { a:'#222222' }]] },
+  durgan:  { base:'dwarf_m', map:{ 'da4e38':'4a4a54', 'e46e33':'6a6a76', '7b8994':'5a3a22' },
+    add:[[0, 9, 'aaaa|mmma|mmma|aaaa|.w|.w|.w|.w|.w', { a:'#222222', m:'#d0d0dc', w:'#a86a32' }]] },
+  brenna:  { base:'dwarf_f', map:{ 'facb3e':'d0582a', 'ee8e2e':'e8803a' },
+    add:[[2, 9, 'r|o|r|o|r|y', { r:'#d0582a', o:'#e8803a', y:'#f0c040' }]] },
+  orwin:   { base:'wizzard_m', map:{ '5956bd':'5a4a3a', '5698cc':'7a6a52' },
+    add:[[1, 6, 'ww|.w|.w|.w|.w|.w|.w|.w|.w|.w|.w|.w|.w', { w:'#6a4a2a' }]] },
+  aldric:  { base:'knight_m', map:{ 'da4e38':'e8e8ff', 'ee8e2e':'b8c8ff', '72d6ce':'c8d8f0', '417089':'7a8aa8' }, filter:'opacity(.8)',
+    add:[[1, -1, '.pp|pp', { p:'#e8e8ff' }], [2, 5, 'c|c|c|c|c|c|c|c|c|c|c', { c:'#4a5a9a' }]] },
+  ilys:    { base:'knight_f', map:{ 'dc4a7b':'d8a83a', 'f78697':'f0d070', '72d6ce':'f0e8d0', '417089':'b8903a' }, filter:'opacity(.88)',
+    add:[[14, -2, 'y|y|w|w|w|w|w|w|w|w|w|w|w|w|w|w|w|w|w', { y:'#fff0a0', w:'#a87a3a' }]] },
+  fee:     { base:'angel', map:{ 'fdf7ed':'ffd8f8', 'cae6f5':'f0b8f0', 'facb3e':'ff9ad0', '72d6ce':'a070e0', '5698cc':'8a4ac8' },
+    add:[[12, -1, '.y.|ypy|.y.', { y:'#fff07a', p:'#ff5ab0' }]] },
+  coralie: { base:'lizard_f', map:{ '49a790':'3a8ab8', '9f294e':'f07a6a', 'da4e38':'ffa08a', '62232f':'2a4a8a', '8f4029':'d8b04a' },
+    add:[[3, -1, 'y.y.y', { y:'#f0c040' }], [0, 0, 'y.y|yyy|.w|.w|.w|.w|.w|.w|.w|.w|.w|.w|.w|.w', { y:'#f0c040', w:'#c8a060' }]] },
+};
+function buildNpcLooks() {
+  const hex = (a, i) => ((a[i]<<16)|(a[i+1]<<8)|a[i+2]).toString(16).padStart(6, '0');
+  for (const [id, L] of Object.entries(NPC_LOOKS)) {
+    if (!IMG[L.base+'_idle_anim_f0']) continue;
+    for (let f = 0; f < 4; f++) { const src = IMG[`${L.base}_idle_anim_f${f}`] || IMG[L.base+'_idle_anim_f0'];
+      const c = document.createElement('canvas'); c.width = src.width; c.height = src.height; const g = c.getContext('2d'); g.drawImage(src, 0, 0);
+      const d = g.getImageData(0, 0, c.width, c.height), a = d.data; let y0 = -1;
+      for (let i = 0; i < a.length; i += 4) { if (!a[i+3]) continue; if (y0 < 0) y0 = Math.floor(i/4/c.width);
+        const m = L.map[hex(a, i)]; if (m) { const v = parseInt(m, 16); a[i] = v>>16; a[i+1] = (v>>8)&255; a[i+2] = v&255; } }
+      if (L.clear) a.fill(0, y0*c.width*4, (y0+L.clear)*c.width*4);
+      g.putImageData(d, 0, 0);
+      for (const [x, dy, rows, col] of L.add || []) rows.split('|').forEach((r, j) => [...r].forEach((ch, i) => { if (col[ch]) { g.fillStyle = col[ch]; g.fillRect(x+i, y0+dy+j, 1, 1); } }));
+      IMG[`npc_${id}_idle_anim_f${f}`] = c; }
+    const n = NPCS[id], k = `npc_${id}_idle_anim_f0`; SPRITES[k] = IMG[k].toDataURL(); n.sprite = k;
+    if (L.filter) n.filter = L.filter; else delete n.filter;
   }
 }
 function loadSprites() {
@@ -1842,9 +1957,10 @@ function buildBg() {
   const L = document.createElement('canvas'); L.width = Math.ceil(BW/PX); L.height = Math.ceil(BH/PX);
   const c = L.getContext('2d'), R = seeded(G.seed || 1);
   const px = (x,y,col) => { c.fillStyle=col; c.fillRect(x,y,1,1); };
-  const bands = G.room && G.view==='scene' ? ['#120d0a','#140f0b','#16100c','#18120d','#1a130e','#1c140f'] : isVolcano() ? ['#1e1010','#261412','#2e1814','#361c16','#3e2018','#46241a'] : ['#1b2236','#1e263d','#212b45','#24304c','#273553','#2a3a5a'];
+  const dunBg = G.mode==='fight' && G.dunFight;
+  const bands = G.room && G.view==='scene' || dunBg ? ['#120d0a','#140f0b','#16100c','#18120d','#1a130e','#1c140f'] : isVolcano() ? ['#1e1010','#261412','#2e1814','#361c16','#3e2018','#46241a'] : ['#1b2236','#1e263d','#212b45','#24304c','#273553','#2a3a5a'];
   bands.forEach((col,i) => { c.fillStyle=col; c.fillRect(0, Math.floor(i*L.height/bands.length), L.width, Math.ceil(L.height/bands.length)); });
-  for (let i=0;i<(G.room && G.view==='scene' ? 0 : 70);i++) px(R()*L.width|0, R()*L.height|0, isVolcano() ? (R()<.5 ? '#7a3a1a' : '#5a2a14') : R()<.5 ? '#3a4a70' : '#33426a');
+  for (let i=0;i<(G.room && G.view==='scene' || dunBg ? 0 : 70);i++) px(R()*L.width|0, R()*L.height|0, isVolcano() ? (R()<.5 ? '#7a3a1a' : '#5a2a14') : R()<.5 ? '#3a4a70' : '#33426a');
   const hw = r => r < LTH/2 ? 2*(r+1) : 2*(LTH-r);
   for (let s=0; s<=W+H-2; s++) for (let x=0; x<W; x++) { const y=s-x; if (!inB(x,y)) continue;
     const tx = LOX + (x-y)*LTW/2, ty = LOY + (x+y)*LTH/2, t = G.grid[y][x];
@@ -1853,13 +1969,14 @@ function buildBg() {
     for (let i=-LTW/2; i<LTW/2; i++) {
       if (i<0 && !sideL || i>=0 && !sideR) continue;
       const ey = i<0 ? ty + LTH/2 + Math.floor((i+LTW/2)/2) : ty + LTH - 1 - Math.floor(i/2);
-      for (let k=1;k<=6;k++) px(tx+i, ey+k, k===1 ? (isVolcano() ? '#3a302c' : isDeep() ? '#2a4a5a' : isSea() ? '#d8c08a' : isNorth() ? '#c3d2dd' : '#3f7a2a') : (R()<.12 ? '#4a3020' : (i<0 ? '#7a5236' : '#5e3e28')));
+      for (let k=1;k<=6;k++) px(tx+i, ey+k, dunBg ? (k===1 ? '#2a2630' : i<0 ? '#3a3540' : '#2c2832') : k===1 ? (isVolcano() ? '#3a302c' : isDeep() ? '#2a4a5a' : isSea() ? '#d8c08a' : isNorth() ? '#c3d2dd' : '#3f7a2a') : (R()<.12 ? '#4a3020' : (i<0 ? '#7a5236' : '#5e3e28')));
     }
     const alt = (x+y)%2;
     for (let r=0;r<LTH;r++) for (let i=-hw(r); i<hw(r); i++) {
       let col;
       const v=R();
       if (t===5) col = r%3===0 ? '#b8952e' : v<.2 ? '#f0d878' : (alt ? '#e2c25a' : '#dcbb52');
+      else if (G.mode==='fight' && G.dunFight) col = r===0 || i===-hw(r) ? '#1e1b22' : v<.08 ? '#2a2630' : v<.14 ? '#4a4452' : alt ? '#3a3540' : '#36313c'; // dalles du donjon
       else if (t===6 && G.room) col = r===0 || i===-hw(r) ? '#4e3119' : v<.1 ? '#6b4524' : (r+i)%4===0 ? '#7a4f2a' : alt ? '#9a6a3a' : '#8a5a32';
       else if (t===6) col = r===0 || i===-hw(r) ? (isVolcano() ? '#221c1a' : '#6d675f') : isVolcano() ? (v<.1 ? '#2a2422' : alt ? '#4a403c' : '#443a36') : isNorth() ? (v<.1 ? '#a8b0b8' : alt ? '#c8d0d8' : '#bcc4cc') : (v<.1 ? '#7d776f' : alt ? '#a29c92' : '#97918a');
       else if (t===3) col = isDeep() ? (v<.15 ? '#3a5a68' : '#4a6a78') : isSea() ? (v<.15 ? '#a88a56' : '#b89a62') : isVolcano() ? (v<.15 ? '#3a302c' : '#5a4a40') : isNorth() ? (v<.15 ? '#a8a49a' : '#c2bcae') : (v<.12 ? '#8a6a3e' : v<.2 ? '#c09a62' : '#a8834f');
@@ -1879,6 +1996,7 @@ function buildBg() {
     else if (v>.7 && isDeep()) { px(tx-2,ty+3,'#ff7a9a'); px(tx-1,ty+2,'#ff7a9a'); px(tx+2,ty+5,'#f0a85a'); }
     else if (v>.7 && isSea()) { px(tx-2,ty+3,'#f4ead8'); px(tx-1,ty+3,'#f4ead8'); px(tx+2,ty+5,'#b89a62'); }
     else if (v>.7 && isVolcano()) { px(tx-2,ty+3,'#7a6a62'); px(tx+2,ty+5,'#1e1a18'); }
+    else if (dunBg) { if (v>.8) px(tx-2+(v*50|0)%5, ty+3+(v*70|0)%4, '#1e1b22'); } // dalle fendue
     else if (v>.7) { const tc = isNorth() ? '#9fb2c0' : '#3b7428'; const ox = tx-4+(v*40|0)%8, oy = ty+3+(v*70|0)%4; px(ox,oy,tc); px(ox+1,oy-1,tc); px(ox+2,oy,tc); px(ox+3,oy-1,tc); }
     else if (v<.08 && !isNorth() && !isVolcano() && !isSea()) { const col = v<.04 ? '#f4e36b' : '#f07aa0'; const ox = tx-3+(v*400|0)%6, oy = ty+4; px(ox,oy,col); px(ox+1,oy+1,'#fff4c8'); }
   }
@@ -1983,7 +2101,7 @@ function hpLabel(u, txt, col, skull, sub) {
 }
 
 function drawRock(x,y) {
-  const [cx,cy]=iso(x,y), v=hash(y,x), tree = v>.55 && !isVolcano() && !isDeep();
+  const [cx,cy]=iso(x,y), v=hash(y,x), tree = v>.55 && !isVolcano() && !isDeep() && !G.dunFight; // pas d'arbre dans un donjon
   const img = tree ? (isNorth() ? DECOR.snowTrees : DECOR.trees)[(v*30|0)%3] : DECOR.rocks[(v*30|0)%3];
   ctx.fillStyle='rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(cx,cy+3,tree?20:26,tree?8:10,0,0,7); ctx.fill();
   drawSprite(img, cx, cy + (tree ? 8 : 10), SC, v*100%2<1);
@@ -2033,7 +2151,7 @@ function frame(now) {
   const tick = Math.floor(now/140);
   if (tick !== lastTick) { lastTick = tick; dirty = true; } // animation des sprites (~7 images/s au repos)
   const fk = G.mode + '|' + (G.mode==='fight' ? G.seed : G.view + '|' + (G.profile && G.profile.pos) + '|' + !!G.mapAll); // nouvelle carte : fondu
-  if (fk !== fadeKey) { if (fadeKey) fadeT0 = now; fadeKey = fk; dirty = true; }
+  if (fk !== fadeKey) { if (fadeKey && !fk.includes('|world|') && !fadeKey.includes('|world|')) fadeT0 = now; fadeKey = fk; dirty = true; }
   const fxOn = fxActive(now);
   const drawMap = G.mode==='map' && (G.view==='scene' ? bg : mapBg) && (dirty || tweening || fxOn);
   const drawFight = !drawMap && G.mode==='fight' && bg && (dirty || tweening || floats.length || projs.length || fxOn);
@@ -2453,13 +2571,13 @@ function renderMap(now) {
     ctx.fillStyle = 'rgba(20,24,33,.85)'; ctx.fillRect(x0+RG.w/2-w/2, y0+10, w, 24);
     ctx.fillStyle = known ? (r===curRegion() ? '#e8b94a' : '#ece6d6') : '#8c8778'; ctx.fillText(label + (r===curRegion() ? ' (tu es ici)' : ''), x0+RG.w/2, y0+27);
     if (r===qr) { ctx.lineWidth = 3; ctx.setLineDash([8,5]); ctx.strokeStyle = '#ef6b5b'; ctx.strokeRect(x0+9, y0+9, RG.w-18, RG.h-18); ctx.setLineDash([]);
-      const t = '❗ Quête principale', tw = ctx.measureText(t).width + 18; ctx.fillStyle = 'rgba(20,24,33,.9)'; ctx.fillRect(x0+RG.w/2-tw/2, y0+RG.h-40, tw, 26);
+      const tq = trackedQuest(), t = tq && !tq.main ? '📍 Quête suivie' : '❗ Quête principale', tw = ctx.measureText(t).width + 18; ctx.fillStyle = 'rgba(20,24,33,.9)'; ctx.fillRect(x0+RG.w/2-tw/2, y0+RG.h-40, tw, 26);
       ctx.strokeStyle = '#ef6b5b'; ctx.lineWidth = 2; ctx.strokeRect(x0+RG.w/2-tw/2, y0+RG.h-40, tw, 26); ctx.fillStyle = '#ffb3a8'; ctx.fillText(t, x0+RG.w/2, y0+RG.h-22); } }
 }
 function renderRegion(R0, now, small) {
   ctx.drawImage(R0===2 ? (northBg || (northBg = buildNorthBg())) : R0===3 ? (valleyBg || (valleyBg = buildValleyBg())) : R0===4 ? (hautsBg || (hautsBg = buildHautsBg())) : R0===5 ? (sylveBg || (sylveBg = buildSylveBg())) : R0===6 ? (brasierBg || (brasierBg = buildBrasierBg())) : R0===7 ? (coteBg || (coteBg = buildCoteBg())) : R0===8 ? (givreBg || (givreBg = buildGivreBg())) : mapBg, 0, 0);
   // repère « ! » : zone de la quête principale, ou passage vers l'autre région
-  const qz = (activeQuests().find(q => q.main) || {}).goal?.zone;
+  const qz = guideZone();
   const markId = qz && (regionOf(qz)===R0 ? qz : (portalToward(R0, regionOf(qz)) || {}).id);
   const talks = talkMarks(R0);
   // chemins
@@ -2540,7 +2658,7 @@ function mapMove(e) {
   $('#hint').textContent = !z ? mapHintDefault() : isOpen(id) && !revealed(id) ? `Zone dans le brouillard : traverse ses ${nMaps(id)} cartes pour la révéler (${seenMaps(id)}/${nMaps(id)}). Tu peux t'y rendre depuis une zone voisine.` : !isOpen(id) ? (neighbors(id).some(isCleared) ? "L'histoire ne t'a pas encore mené ici : suis tes quêtes (touche Q)." : 'Zone verrouillée : libère une zone voisine pour y accéder.')
     : `${z.name} : ${z.desc}${z.foes ? (isCleared(id) ? ' (déjà libérée, tu peux y retourner)' : '') : ''}` + ((t => t ? ` · ${t.join(', ')} t'attend${t.length>1 ? 'ent' : ''} ici${z.icon==='portal' ? ' (de l\'autre côté)' : ''}.` : '')((talkMarks(viewRegion())[id]) && [...new Set(talkMarks(viewRegion())[id])]));
 }
-function mapHintDefault() { return (G.mapRegion ? `${REGION_NAMES[G.mapRegion]} : ` : 'Carte du monde : ') + 'clique sur une zone ouverte pour t\'y rendre directement. Le rond ! indique la zone de ta quête principale, la bulle ! un personnage qui t\'attend. Molette ou − : voir toutes les régions. M ou Échap : revenir à ta position.'; }
+function mapHintDefault() { return (G.mapRegion ? `${REGION_NAMES[G.mapRegion]} : ` : 'Carte du monde : ') + 'clique sur une zone ouverte pour t\'y rendre directement. Le rond ! indique la zone de ta quête suivie (la principale, sauf si tu en suis une autre dans le journal), la bulle ! un personnage qui t\'attend. Molette ou − : voir toutes les régions. M ou Échap : revenir à ta position.'; }
 // zones (de la région affichée) où un personnage attend le héros pour lui parler ; passage vers la région si c'est ailleurs
 function talkMarks(R0) {
   const out = {};
@@ -2563,6 +2681,7 @@ async function mapClick(e) {
   if (G.mapAll) { const r = regionAt(e); if (r && regionKnown(r)) setMapZoom(false, r); return; }
   const id = zoneAt(e);
   if (!id || G.travel || !isOpen(id)) return;
+  if (keyNeeded(id) && baseOf(G.profile.pos)!==id) return banner('Zone fermée à clé : trouve la clé sur les monstres de la zone voisine (🔑), puis passe à pied.');
   if (!revealed(id) && id!==baseOf(G.profile.pos) && !neighbors(baseOf(G.profile.pos)).includes(id)) return banner('Zone dans le brouillard : traverse-la à pied pour la révéler sur la carte.');
   // zone d'une autre région choisie depuis la vue dézoomée : on s'y rend directement
   if (regionOf(id)!==curRegion()) { if (zoneById(id).icon==='portal') return; G.mapRegion = null; return enterZone(id, null, false); }
@@ -3482,13 +3601,13 @@ const NPCS = {
   bastien: { name:'Bastien, le fermier', sprite:'dwarf_m_idle_anim_f0' },
   lune:    { name:"Lune, l'herboriste", sprite:'elf_f_idle_anim_f0' },
   garrick: { name:"Garrick, l'éclaireur", sprite:'elf_m_idle_anim_f0' },
-  ilys:    { name:'Ilys, la Gardienne du temple', sprite:'elf_f_idle_anim_f0', filter:'hue-rotate(170deg) saturate(.6) brightness(1.35) opacity(.85)' },
+  ilys:    { name:'Ilys, la Gardienne du temple', sprite:'knight_f_idle_anim_f0', filter:'hue-rotate(170deg) saturate(.6) brightness(1.35) opacity(.85)' },
   neria:   { name:'Néria, la reine des dryades', sprite:'elf_f_idle_anim_f0', filter:'hue-rotate(75deg) saturate(1.5)' },
   cerf:    { name:"Le Cerf d'argent", sprite:'elf_f_idle_anim_f0' },
-  fee:     { name:'Une fée de la forêt', sprite:'elf_f_idle_anim_f0', filter:'hue-rotate(290deg) brightness(1.25) saturate(1.3)' },
+  fee:     { name:'Une fée de la forêt', sprite:'angel_idle_anim_f0', filter:'hue-rotate(290deg) brightness(1.15) saturate(1.3)' },
   durgan:  { name:'Durgan, maître de la forge', sprite:'dwarf_m_idle_anim_f0', filter:'hue-rotate(-25deg) saturate(1.5) brightness(.9)' },
   brenna:  { name:'Brenna, la jeune forgeronne', sprite:'dwarf_f_idle_anim_f0' },
-  coralie: { name:'Coralie, la reine des tritons', sprite:'elf_f_idle_anim_f0', filter:'hue-rotate(150deg) saturate(1.4)' },
+  coralie: { name:'Coralie, la reine des tritons', sprite:'lizard_f_idle_anim_f0', filter:'hue-rotate(40deg) saturate(1.3)' },
   ysolde:  { name:'Mère Ysolde, supérieure du monastère', sprite:'wizzard_f_idle_anim_f0', filter:'hue-rotate(170deg) brightness(1.15)' },
   vision:  { name:'Une vision', sprite:'elf_f_idle_anim_f0' },
   corwin:  { name:'Corwin, le voleur repenti', sprite:'elf_m_idle_anim_f0', filter:'grayscale(.8) brightness(.8)' },
@@ -3501,19 +3620,29 @@ const PLURAL = { gobelin:'Gobelins', chaman:'Chamans orcs', gluant:'Gluants', or
   loup:'loups des neiges', yeti:'yétis', golemglace:'golems de glace', hrimgar:'géants des glaces' };
 // {héros} est remplacé par le nom choisi par le joueur
 const QUESTS = [
-  { id:'q1', main:true, title:'Les rôdeurs de la lisière', npc:'maela', goal:{ type:'clear', zone:'lisiere' },
+  { id:'q1', main:true, title:'Les rôdeurs de la lisière', npc:'maela',
+    steps:[{ goal:{ type:'clear', zone:'lisiere' }, say:{ npc:'maela', pages:["Les Gobelins détalent ! Mais que faisaient-ils si près de nos maisons ?",
+        "Avant de rentrer, fouille leur campement, sur cette dernière carte de la lisière. Je veux savoir ce qu'ils préparaient."] } },
+      { goal:{ type:'clue', label:'Fouiller le campement des Gobelins', clues:[
+        { zone:'lisiere~3', name:'Des sacs de blé volés', text:"Derrière une tente en peaux, une pile de sacs de blé marqués d'un épi doré : la marque des fermes des Champs du nord. Les Gobelins ne mangent pas de blé… alors pour qui l'amassaient-ils ?" },
+        { zone:'lisiere~3', name:'Un dessin sur un bout de cuir', text:"Des traits maladroits tracés au charbon : un épi de blé, une flèche vers le nord… et un énorme bonhomme coiffé d'une plume, entouré de petits Gobelins à genoux." }] } }],
     reward:{ xp:90, gold:30, item:{ slot:'anneau', rarity:0 } },
     intro:["Ah, te voilà enfin, {héros}. Et Forest est avec toi, bien sûr : ce chat noir ne te quitte jamais d'une patte. Aubépine a besoin de vous deux.",
       "Il y a trois lunes, le <b>Cristal de la Plaine</b> a disparu de notre sanctuaire. Depuis, plus rien ne protège nos terres et les monstres s'approchent chaque jour un peu plus.",
       "Des Gobelins rôdent déjà à la lisière de la plaine, à deux pas de nos maisons. Chasse-les, et nous verrons si tu es bien l'aventurier que la prophétie annonçait."],
-    outro:["Bien joué ! Les Gobelins ne reviendront pas de sitôt.",
-      "Mais regarde : ils transportaient des sacs de blé. Ce blé vient des Champs du nord… Va voir Bastien, notre fermier. Il a sûrement des choses à te raconter."] },
-  { id:'q2', main:true, title:'Les récoltes pillées', npc:'bastien', goal:{ type:'clear', zone:'champs' },
+    outro:["Bien joué ! Les Gobelins ne reviendront pas de sitôt. Et ce dessin… un géant à plume qui commande aux Gobelins ? Cela ne me plaît pas du tout.",
+      "Quant aux sacs de blé, ils viennent des fermes du nord. Ce blé vient des Champs du nord… Va voir Bastien, notre fermier. Il a sûrement des choses à te raconter."] },
+  { id:'q2', main:true, title:'Les récoltes pillées', npc:'bastien',
+    steps:[{ goal:{ type:'clear', zone:'champs' }, say:{ npc:'bastien', pages:["Ils détalent comme des lapins ! Mais le Chaman, lui, a filé avant la fin du combat.",
+        "Il plantait d'étranges totems au fond des champs, sur la dernière carte. Va voir ce qu'il a laissé : je n'ose pas y mettre les pieds."] } },
+      { goal:{ type:'clue', label:'Examiner le camp du Chaman', clues:[
+        { zone:'champs~3', name:"Un totem couvert de vase", text:"Un totem d'os planté au milieu du blé piétiné. Il est couvert d'une vase verte et gluante qui sent la pourriture… la même odeur que le marais, au sud de la lisière." },
+        { zone:'champs~3', name:'Des empreintes énormes', text:"Dans la terre molle, des traces de pieds deux fois plus grandes que les tiennes. Ce ne sont pas celles d'un Gobelin, ni même d'un Orc. Elles repartent vers le sud." }] } }],
     reward:{ xp:130, gold:50, item:{ slot:'bottes', rarity:1 } },
     intro:["Mes champs ! Mes pauvres champs ! Un Chaman orc a pris la tête d'une bande de Gobelins et ils volent toutes nos récoltes.",
       "Chasse-les, {héros}, je t'en prie. Pour ta peine, je te donnerai mes vieilles bottes de voyage. Elles valent bien mieux qu'elles n'en ont l'air !"],
     outro:["Merci, mille fois merci ! Tiens, ces bottes sont à toi.",
-      "En s'enfuyant, le Chaman a crié quelque chose à propos du marais et d'un « maître »… Lune, l'herboriste, connaît le marais mieux que personne. Va lui parler."] },
+      "De la vase du marais, et des empreintes de géant ? En s'enfuyant, le Chaman a crié quelque chose à propos d'un « maître »… Lune, l'herboriste, connaît le marais mieux que personne. Va lui parler."] },
   { id:'s1', title:'Chasseur de gobelins', npc:'bastien', startsWith:'q2', goal:{ type:'kill', monster:'gobelin', n:6 },
     reward:{ xp:120, gold:60 },
     intro:["Et pendant que tu y es… Ces Gobelins sont bien trop nombreux. Si tu en élimines six, je te paierai de ma poche !"],
@@ -3537,33 +3666,59 @@ const QUESTS = [
     reward:{ xp:100, gold:40 },
     intro:["Un conseil de vieux fermier : on ne part pas à l'aventure les mains vides. Équipe-toi d'une arme, d'une coiffe, d'un anneau et de bottes. Le marchand d'Aubépine pourra t'aider."],
     outro:["Te voilà équipé de la tête aux pieds ! Tu as fière allure, {héros}."] },
-  { id:'q3', main:true, title:'Le marais gluant', npc:'lune', goal:{ type:'clear', zone:'marais' },
+  { id:'q3', main:true, title:'Le marais gluant', npc:'lune',
+    steps:[{ goal:{ type:'clear', zone:'marais' }, say:{ npc:'lune', pages:["Les Gluants se calment déjà ! Le Chaman qui les appelait a pris la fuite, mais il a dû laisser tomber son sac dans la vase.",
+        "Cherche-le sur la dernière carte du marais, s'il te plaît. Ce qu'il contient nous dira peut-être qui est ce « maître »."] } },
+      { goal:{ type:'clue', label:'Retrouver le sac du Chaman', clues:[
+        { zone:'marais~3', name:"Une plume d'ogre", text:"Dans la vase, un sac de cuir déchiré. Dedans, une immense plume grise, longue comme ton bras, nouée à un cordon de dents. Aucun oiseau de la Plaine n'a des plumes pareilles." }] },
+        end:"Lune saura sûrement ce que c'est. Rapporte-lui la plume au village." },
+      { goal:{ type:'talk', npc:'lune', zone:'village', item:"la plume", lines:[
+        "Une plume d'ogre ! Je la reconnaîtrais entre mille : ma mère en gardait une, arrachée à un ogre qui avait attaqué le village quand j'étais petite.",
+        "Les ogres ne descendent jamais jusqu'ici… sauf si l'un d'eux est devenu assez fort pour commander aux autres. Un <b>Chef Ogre</b>.",
+        "C'est donc lui, le géant à plume du dessin, et le « maître » du Chaman."] } }],
     reward:{ xp:170, gold:70, item:{ slot:'coiffe', rarity:1 } },
     intro:["Bonjour, {héros}. Bastien m'a parlé de toi.",
       "Des Gluants ont envahi le marais où je cueille mes plantes. Ce n'est pas naturel : on dirait qu'une magie étrange les attire là-bas… comme si quelqu'un les avait appelés.",
-      "Débarrasse le marais de ces créatures et rapporte-moi ce que tu y trouveras."] },
+      "Débarrasse le marais de ces créatures et rapporte-moi ce que tu y trouveras."],
+    outro:["Merci, {héros}. Grâce à toi, nous savons enfin qui se cache derrière tout ça.",
+      "Tiens, prends cette coiffe : elle te protégera mieux que ce vieux bonnet."] },
   { id:'s3', title:'Le mucus des Gluants', npc:'lune', startsWith:'q3', goal:{ type:'kill', monster:'gluant', n:4 },
     reward:{ xp:150, gold:50, item:{ rarity:1 } },
     intro:["Oh, et si tu croises des Gluants, rapporte-moi leur mucus. Il m'en faut celui de quatre Gluants pour préparer un remède."],
     outro:["Parfait, ce mucus est d'une qualité rare ! Prends cet objet en échange, je n'en ai plus l'usage."] },
-  { id:'q4', main:true, title:'La piste du moulin', npc:'lune', goal:{ type:'clear', zone:'moulin' },
+  { id:'q4', main:true, title:'La piste du moulin', npc:'lune',
+    steps:[{ goal:{ type:'clear', zone:'moulin' }, say:{ npc:'garrick', pages:["(Garrick sort du moulin en se frottant les poignets.)",
+        "Tu m'as sauvé la vie ! Ces brutes me retenaient prisonnier depuis des jours.",
+        "J'ai entendu leurs plans, et le village doit les connaître. Mais je tiens à peine debout… Ramène-moi jusqu'aux Champs du nord : là-bas, je serai en sécurité."] } },
+      { goal:{ type:'escort', npc:'garrick', zone:'champs', foes:['gobelin','chaman','gobelin'], lines:[
+        "Attention, {héros}, une embuscade ! Le Chaman ne veut pas que je raconte ce que j'ai entendu…",
+        "Je n'ai que mon arc, mais je vais t'aider. Ne les laisse pas m'approcher !"] } }],
     reward:{ xp:210, gold:90, item:{ slot:'arme', rarity:1 } },
-    intro:["Regarde ce que portait le Chaman du marais : une plume d'ogre ! Le <b>Chef Ogre</b> est derrière tout ça, j'en suis sûre.",
+    intro:["Un Chef Ogre… Cette idée ne me laisse pas en paix. S'il commande aux Gobelins, aux Chamans et aux Gluants, il est bien plus dangereux que tout ce que la Plaine a connu.",
       "Son repaire se cache quelque part au-delà du Bois des murmures, mais personne n'en connaît le chemin. Garrick, notre éclaireur, est parti le chercher… et il n'est jamais revenu.",
       "On l'a vu pour la dernière fois près du vieux moulin. Retrouve-le, {héros} !"],
     outroNpc:'garrick',
-    outro:["(Garrick sort du moulin en se frottant les poignets.)",
-      "Tu m'as sauvé la vie ! Ces brutes me retenaient prisonnier. Prends cette arme, je l'ai prise à l'un d'eux."] },
-  { id:'s4', title:"Les chamans de l'Ogre", npc:'garrick', startsWith:'q5', goal:{ type:'kill', monster:'chaman', n:6 },
+    outro:["Ouf… Merci, {héros}. Sans toi, je serais encore pendu au-dessus de la meule du moulin.",
+      "Prends cette arme, je l'ai prise à l'un d'eux. Et maintenant, écoute bien ce que j'ai entendu là-bas."] },
+  { id:'s4', title:"Les chamans de l'Ogre", npc:'garrick', startsWith:'q5',
+    steps:[{ goal:{ type:'kill', monster:'chaman', n:4 }, say:{ npc:'garrick', pages:["Quatre Chamans de moins ! Mais ils se parlaient de loin, grâce à un <b>totem qui murmure</b> caché dans le Bois des murmures.",
+        "Trouve-le sur la deuxième carte du bois et brise-le : le Chef Ogre sera sourd en plus d'être aveugle."] } },
+      { goal:{ type:'clue', label:'Briser le totem des Chamans', clues:[
+        { zone:'bois~2', name:'Un totem qui murmure', text:"Un poteau couvert de crânes et de plumes grises. Quand tu t'approches, il chuchote dans une langue rauque. Un bon coup, et il se fend en deux : les murmures se taisent d'un coup." }] } }],
     reward:{ xp:180, gold:80 },
-    intro:["Les Chamans orcs sont les yeux et les oreilles du Chef Ogre. Élimine-en six, et il sera aveugle quand tu viendras frapper à sa porte."],
-    outro:["Six Chamans ! Le Chef Ogre ne verra pas le coup venir."] },
-  { id:'q5', main:true, title:'Le bois des murmures', npc:'garrick', goal:{ type:'clear', zone:'bois' },
+    intro:["Les Chamans orcs sont les yeux et les oreilles du Chef Ogre. Élimine-en quatre, et nous verrons comment ils lui transmettent leurs messages."],
+    outro:["Plus de Chamans, plus de totem ! Le Chef Ogre ne verra pas le coup venir."] },
+  { id:'q5', main:true, title:'Le bois des murmures', npc:'garrick',
+    steps:[{ goal:{ type:'clear', zone:'bois' }, say:{ npc:'garrick', pages:["L'Orc guerrier est tombé ! Ses hommes s'enfuient vers les montagnes.",
+        "Il gardait son campement sur la dernière carte du bois. Fouille-le : s'il connaissait le chemin de l'antre, il l'a forcément noté quelque part."] } },
+      { goal:{ type:'clue', label:"Fouiller le campement de l'Orc guerrier", clues:[
+        { zone:'bois~3', name:'Une carte de cuir', text:"Roulée dans une sacoche, une carte grossière : un sentier à travers les montagnes, jusqu'à une grotte marquée d'une grande plume. L'antre du Chef Ogre !" },
+        { zone:'bois~3', name:'Un éclat de cristal', text:"Au pied d'un arbre, un minuscule éclat de cristal, tiède et lumineux. Il vient du Cristal de la Plaine : le Chef Ogre en a déjà brisé des morceaux pour donner sa force à ses troupes. Il faut faire vite." }] } }],
     reward:{ xp:250, gold:120, item:{ rarity:2 } },
     intro:["Pendant ma captivité, j'ai entendu leurs plans. Le Chef Ogre se sert du Cristal pour rendre ses troupes plus fortes.",
       "Son armée se rassemble dans le Bois des murmures, sous les ordres d'un <b>Orc guerrier</b>. Abats-le, et nous trouverons sûrement le chemin de l'antre."],
-    outro:["L'Orc guerrier est tombé ! Et regarde : il portait une carte.",
-      "Elle mène à l'antre du Chef Ogre, dans les montagnes. Avant d'y aller, prépare-toi bien : passe voir le marchand, et n'hésite pas à refaire quelques combats."] },
+    outro:["Une carte de l'antre ! Et cet éclat… le Chef Ogre ronge le Cristal morceau par morceau. Chaque jour compte.",
+      "Cette carte mène à son antre, dans les montagnes. Avant d'y aller, prépare-toi bien : passe voir le marchand, et n'hésite pas à refaire quelques combats."] },
   { id:'q6', main:true, title:'Le Cristal de la Plaine', npc:'maela', goal:{ type:'clear', zone:'antre' },
     reward:{ xp:400, gold:300, item:{ rarity:2 } },
     intro:["Garrick m'a tout raconté. Tu as accompli des merveilles, {héros}.",
@@ -3571,6 +3726,13 @@ const QUESTS = [
       "Sois prudent. Tout Aubépine compte sur toi."],
     outro:["Tu l'as fait, {héros} ! Les monstres fuient déjà nos terres. Aubépine se souviendra de ton nom pour toujours.",
       "La Plaine est vaste, et d'autres aventures t'attendent peut-être. Continue à t'entraîner : on ne sait jamais ce que l'avenir nous réserve."] },
+  { id:'f1', title:'Le collier de Forest', npc:'lune', startsWith:'q7', goal:{ type:'collar', n:1 },
+    reward:{ xp:300, gold:60 },
+    intro:["Dis-moi, {héros}… Forest porte toujours ce vieux collier tout simple ? Il mérite bien mieux, après tout ce qu'il a affronté à tes côtés.",
+      "Autrefois, les chats noirs d'Aubépine portaient des colliers renforcés de trophées. On disait que la force des monstres vaincus passait dans le collier.",
+      "Ouvre ta fiche <b>Personnage (touche C)</b> : tout en bas, donne à Forest des récoltes et un trophée du Chef Ogre pour renforcer son collier."],
+    outro:["Regarde comme il est fier ! Il ne quitte plus ton ombre.",
+      "Continue à renforcer son collier au fil de tes voyages : plus il est solide, mieux Forest se battra."] },
   // ----- Acte II : les Terres du Nord -----
   { id:'q7', main:true, title:'Le passage du Nord', npc:'maela', goal:{ type:'clear', zone:'col' },
     reward:{ xp:350, gold:180, item:{ slot:'cape', rarity:1 } },
@@ -3664,6 +3826,13 @@ const QUESTS = [
     outro:["Tu l'as fait ! Tu as sauvé la Plaine ET le Nord. Ton nom sera chanté dans tous les villages, {héros}.",
       "Repose-toi bien… et continue à t'entraîner, on ne sait jamais ce que l'avenir nous réserve."] },
   // ----- Acte III : le Reflet -----
+  { id:'f2', title:'Un collier pour un héros', npc:'lune', startsWith:'q13', goal:{ type:'collar', n:4 },
+    reward:{ xp:800, gold:150 },
+    intro:["Forest a bien grandi depuis la Plaine, {héros}. Mais les monstres du Nord sont d'une autre trempe que nos Gobelins.",
+      "Un <b>collier de fer forgé</b>, voilà ce qu'il lui faut. Les trophées du Zombie géant et du Grand Démon feraient merveille.",
+      "Renforce son collier jusqu'au niveau 4 : je te promets qu'il te le rendra au combat."],
+    outro:["Ce collier lui va à ravir ! On dirait un petit chevalier.",
+      "Tu sais, les vieux contes disent que les chats noirs gardent les portes entre les mondes. Forest garde peut-être plus que toi…"] },
   { id:'q13', main:true, title:'Le Cristal fissuré', npc:'maela', goal:{ type:'clear', zone:'sanctuaire' },
     reward:{ xp:1300, gold:650, item:{ slot:'amulette', rarity:2 } },
     intro:["{héros} ! Reviens vite à Aubépine ! Le Cristal… il s'est <b>fissuré</b> pendant la nuit.",
@@ -3920,6 +4089,12 @@ const QUESTS = [
       "Merci, {héros}. La forêt ne t'oubliera jamais."] },
 
   // ----- Acte VI : la Braise d'Aube -----
+  { id:'f3', title:'Le collier des braises', npc:'garrick', startsWith:'q31', goal:{ type:'collar', n:8 },
+    reward:{ xp:2400, gold:300 },
+    intro:["Ton chat a l'air de trouver la chaleur des cendres à son goût, {héros}. Mais ici, les monstres ne pardonnent rien.",
+      "Les forgerons des braises disent qu'un <b>collier d'or serti</b> résiste à n'importe quelle flamme. Il faudra les trophées du Bourreau du Soleil noir pour y arriver.",
+      "Renforce le collier de Forest jusqu'au niveau 8. Un compagnon bien protégé, c'est un héros de plus sur le champ de bataille."],
+    outro:["Par tous les dieux, il brille comme une braise ! Les monstres vont y regarder à deux fois avant de s'approcher de lui."] },
   { id:'q31', main:true, title:'Le chemin des cendres', npc:'garrick', goal:{ type:'clear', zone:'plainescendres' },
     reward:{ xp:5600, gold:2700, item:{ slot:'cape', rarity:2 } },
     intro:["{héros}, Néria m'a raconté pour le Cœur de Sylve. Il paraît qu'il t'a montré quelque chose ?",
@@ -4004,6 +4179,13 @@ const QUESTS = [
     outro:["La Braise d'Aube est à toi, {héros}. Les nains l'ont gardée sans le savoir pendant des siècles. Il est temps qu'elle serve à ce pour quoi elle a été forgée.",
       "(Au bord du cratère, la silhouette masquée de l'Ordre a disparu avec Brenna, emportant un fragment d'inscription arraché à la forge des anciens. L'Ordre a désormais une piste vers la troisième relique.)"] },
   // ----- Acte VII : la Perle d'Aube -----
+  { id:'f4', title:"Le collier de l'Aube", npc:'garrick', startsWith:'q37', goal:{ type:'collar', n:12 },
+    reward:{ xp:3000, gold:400, item:{ rarity:2 } },
+    intro:["Tu te souviens du vieux collier de cuir de Forest, {héros} ? Il a fait bien du chemin depuis Aubépine.",
+      "On raconte qu'un seul collier a jamais porté la lumière de l'Aube : il faut pour cela le trophée d'Ignarok, le dragon de lave.",
+      "Renforce le collier de Forest jusqu'au dernier niveau. Ce chat mérite d'entrer dans les légendes avec toi."],
+    outro:["Le <b>Collier de l'Aube</b>… Il brille de la même lumière que toi, {héros}.",
+      "Je n'ai jamais vu un chat aussi fier. Forest et toi, vous êtes faits pour écrire la suite de l'histoire ensemble."] },
   { id:'q37', main:true, title:'Le port des naufrages', npc:'garrick', goal:{ type:'clear', zone:'quais' },
     reward:{ xp:7800, gold:3700, item:{ slot:'bottes', rarity:2 } },
     intro:["{héros}, j'ai suivi la piste de l'Ordre depuis le volcan. Le fragment d'inscription qu'ils ont volé les mène vers l'ouest, jusqu'à la mer.",
@@ -4188,7 +4370,9 @@ const QUESTS = [
 const MAIN = QUESTS.filter(q => q.main);
 const questById = id => QUESTS.find(q => q.id===id);
 // quêtes en plusieurs étapes : q.goal est l'objectif de l'étape en cours (qs(q).step)
-for (const q of QUESTS) if (q.steps) Object.defineProperty(q, 'goal', { get() { const st = G.profile && G.profile.quests[q.id]; return q.steps[Math.min(st && st.step || 0, q.steps.length-1)].goal; } });
+for (const q of QUESTS) if (q.steps) Object.defineProperty(q, 'goal', { get() { const st = G.profile && G.profile.quests[q.id]; return q.steps[st && st.state==='active' ? Math.min(st.step || 0, q.steps.length-1) : 0].goal; } });
+// zone d'une quête principale (son premier objectif : la zone à libérer), même pendant les étapes suivantes
+const mainZone = q => (q.steps ? q.steps[0].goal : q.goal).zone;
 const XP_MAX_LEVEL = 70;
 const xpNeed = lv => 70 + 70*lv; // x1,4 (06/10 : x2 bloquait le robot à l'acte II)
 const heroName = () => G.profile.name || CLASSES[G.profile.cls].name;
@@ -4231,7 +4415,7 @@ function levelUpHtml(ups) { if (!ups.length) return ''; setTimeout(updateCharBtn
 
 const equippedCount = g => Object.values(G.profile.equip).filter(Boolean).length + (g.pet ? 1 : 0);
 function goalText(q) {
-  const g = q.goal, st = qs(q), pre = q.steps ? `Étape ${Math.min(st && st.step || 0, q.steps.length-1) + 1}/${q.steps.length} · ` : '';
+  const g = q.goal, st = qs(q), pre = q.steps ? `Étape ${st && st.state==='active' ? Math.min(st.step || 0, q.steps.length-1) + 1 : 1}/${q.steps.length} · ` : '';
   if (g.type==='talk') return pre + `${g.item ? `Apporter ${g.item} à` : 'Parler à'} ${NPCS[g.npc].name.split(',')[0]} (${zoneById(g.zone).name})`;
   if (g.type==='escort') return pre + `Escorter ${NPCS[g.npc].name.split(',')[0]} jusqu'à : ${zoneById(g.zone).name}`;
   if (g.type==='clue') { const f = st && st.found || [], left = g.clues.filter((c,i) => !f.includes(i));
@@ -4244,6 +4428,7 @@ function goalHelp(q) {
   if (g.type==='clear' && z) t.push(z.icon==='boss' ? `Entre dans le donjon de ${z.name} et bats ${MONSTERS[z.foes[0]].name} dans la dernière salle.`
     : `Traverse les ${nMaps(g.zone)} cartes de ${z.name} et bats le chef de la zone : il t'attend sur la dernière carte, un ❗ rouge au-dessus de lui.`);
   if (g.type==='kill') { const at = ZONES.filter(z => z.foes && z.foes.includes(g.monster) && isOpen(z.id)).map(z => z.name); if (at.length) t.push(`On en trouve à : ${at.slice(0, 4).join(', ')}.`); }
+  if (g.type==='collar') t.push(`Ouvre Personnage (C) : tout en bas, donne à Forest des récoltes de la région et des trophées de monstres. Les trophées de boss s'obtiennent en battant les boss des donjons.`);
   const ask = !q.steps && q.intro && q.intro[q.intro.length-1];
   return (t.length ? `<small class="qhow">🧭 ${t.join(' ')}</small>` : '') + (ask ? `<small class="qask">« ${fillHero(ask)} »</small>` : '');
 }
@@ -4253,6 +4438,7 @@ function goalLine(q) {
   if (g.type==='kill') return `Vaincre ${g.n} ${g.label || PLURAL[g.monster]} (${n}/${g.n})`;
   if (g.type==='craft') { const r = RECIPES.find(r => r.id===g.recipe), j = jobs();
     return `Fabriquer : ${recipeName(r, G.profile.cls)} à l'atelier d'Aubépine (${n}/${g.n}). Il faut ${Object.entries(r.need).map(([id,k]) => `${ingName(id)} ${Math.min(k, j.res[id]||0)}/${k}`).join(', ')}`; }
+  if (g.type==='collar') return `Renforcer le collier de Forest jusqu'au niveau ${g.n} (${Math.min(G.profile.collar||0, g.n)}/${g.n})`;
   return g.pet ? `Équiper les ${g.n} emplacements, Forest compris (${equippedCount(g)}/${g.n})` : `Équiper ${g.n} objets (${equippedCount(g)}/${g.n})`;
 }
 function rewardText(r) {
@@ -4264,10 +4450,10 @@ function startQuest(q) {
   p.quests[q.id] = { state:'active', n:0 };
   if (q.main) p.story = MAIN.indexOf(q);
   save(); refreshMapTitle(); dirty = true;
-  if (q.goal.type==='equip') checkEquipQuests(); // déjà assez équipé : la quête se valide tout de suite
+  if (q.goal.type==='equip' || q.goal.type==='collar') checkEquipQuests(); // déjà assez équipé (ou collier déjà assez fort) : la quête se valide tout de suite
 }
 // quêtes « équiper N objets » déjà remplies (équipement porté avant d'accepter la quête, ou anciennes sauvegardes)
-function checkEquipQuests() { if (activeQuests().some(q => q.goal.type==='equip' && equippedCount(q.goal) >= q.goal.n)) progressQuests(); }
+function checkEquipQuests() { if (activeQuests().some(q => q.goal.type==='equip' && equippedCount(q.goal) >= q.goal.n || q.goal.type==='collar' && (G.profile.collar||0) >= q.goal.n)) progressQuests(); }
 function introScene(q) {
   return { npc:q.npc, title: (q.main ? 'Quête principale : ' : 'Quête secondaire : ') + q.title, pages:q.intro,
     last:`<p class="goal">🎯 ${goalText({ ...q, goal:q.goal })}<br><small>Récompense : ${rewardText(q.reward)}</small></p>`, btn:'Accepter la quête', onDone:() => startQuest(q), talk:true, quest:q.id };
@@ -4285,6 +4471,7 @@ function progressQuests(event={}) {
       : g.type==='clear' ? event.cleared===g.zone
       : g.type==='kill' ? st.n >= g.n
       : g.type==='craft' ? (st.n||0) >= g.n
+      : g.type==='collar' ? (p.collar||0) >= g.n
       : equippedCount(g) >= g.n;
     if (ok && q.steps && (st.step||0) < q.steps.length-1) nextStep(q);
     else if (ok) done.push(q);
@@ -4621,7 +4808,7 @@ const ACT_SHOTS = [
         const r = seeded(4); for (let i=0; i<18; i++) { const x = 120 + r()*720, y = 420 - ((now/1000*(18 + r()*14) + r()*400) % 420), w = 0.5+0.5*Math.sin(now/300+i); // lanternes qui s'envolent
           cineGlow(c, x, y, 16, `rgba(255,190,90,${0.35*w + 0.2})`); c.fillStyle = '#ffcf6a'; c.fillRect(x-3, y-4, 6, 8); }
         cineHero(c, 600, 418, 4.5, { flip: true });
-        cineFig(c, 'wizzard_f', 360, 418, 4.5, {}); cineFig(c, 'elf_m', 300, 418, 4.5, { off: 1 }); cineFig(c, 'elf_f', 250, 418, 4.5, { off: 2 }); } },
+        cineFig(c, 'npc_maela', 360, 418, 4.5, {}); cineFig(c, 'npc_garrick', 300, 418, 4.5, { off: 1 }); cineFig(c, 'npc_lune', 250, 418, 4.5, { off: 2 }); } },
     { lines: ["Mais dans l'antre de l'Ogre, des lettres attendent encore d'être lues…", "Elles sont scellées d'un crâne, et viennent du Nord."],
       draw(c, t, now, line) { c.fillStyle = '#0c0806'; c.fillRect(0, 0, CINE_W, CINE_H); cineGlow(c, 480, 300, 260, `rgba(255,150,60,${0.22 + 0.04*Math.sin(now/90)})`);
         c.save(); c.translate(480, 280); c.rotate(-0.06); c.fillStyle = '#d9c9a0'; c.fillRect(-170, -120, 340, 240); c.fillStyle = '#b9a67a'; c.fillRect(-170, 110, 340, 10);
@@ -4688,7 +4875,7 @@ const ACT_SHOTS = [
       draw(c, t, now, line, lt) { cineSky(c, '#2a0c08', '#7a3010'); cineGlow(c, 480, 540, 400, 'rgba(255,120,40,.35)'); cineParticles(c, now, 40, 'rgba(255,170,60,.8)', 9, { speed: 60, size: 2 });
         c.fillStyle = '#1a0806'; c.beginPath(); c.moveTo(0, 360); c.lineTo(380, 380); c.lineTo(600, 360); c.lineTo(CINE_W, 390); c.lineTo(CINE_W, CINE_H); c.lineTo(0, CINE_H); c.fill();
         const a = line ? Math.max(0, 1 - Math.max(0, lt - 3.5)/2) : easeIO(t/1.5);
-        cineFig(c, 'wizzard_m', 470, 372, 8, { shadow: '#0a0404', mask: true, alpha: a }); cineFig(c, 'dwarf_f', 560, 372, 7, { shadow: '#0a0404', alpha: a }); } },
+        cineFig(c, 'wizzard_m', 470, 372, 8, { shadow: '#0a0404', mask: true, alpha: a }); cineFig(c, 'npc_brenna', 560, 372, 7, { shadow: '#0a0404', alpha: a }); } },
     cineCard(5) ],
   // Acte VII : la Perle d'Aube, puis l'inscription de l'Ordre
   [ { lines: ["Le Kraken s'enfonce dans l'ombre des abysses.", "Sur l'autel, une perle nacrée brille d'une lumière douce : la Perle d'Aube."],
@@ -4768,14 +4955,16 @@ function showJournal() {
   const fl = treasure().flowers ? `<div class="quest"><b>🌸 Fleurs de lune</b><small>${NPCS.lune.name}</small>
     <div>💬 Tu as ${treasure().flowers} fleur${treasure().flowers>1 ? 's' : ''} de lune : va les offrir à Lune (${zoneById(lunePlace()).name}). Une enseigne bleue flotte au-dessus d'elle.</div><small>Récompense : amitié et +${Math.round(LUNE_XP*100)} % d'expérience par fleur, pour toujours</small></div>` : '';
   const zqs = Object.entries(G.profile.zq || {}).filter(([b,q]) => q.st==='on').map(([b,q]) => `<div class="quest"><b>🧭 ${zqTitle(b)}</b><small>${askerOf(b).name} · ${zoneById(b).name}</small>
-    <div>${zqGoal(b)} (${zqProgress(b)} / ${ZQ_N})${zqProgress(b) >= ZQ_N ? ` : retourne voir ${askerOf(b).name} sur la carte 2.` : ''}</div></div>`).join('');
-  const act = waiting + fl + zqs + activeQuests().map(q => `<div class="quest${q.main?' main':''}"><b>${q.main ? '★ ' : ''}${q.title}</b><small>${NPCS[q.npc].name}</small>
+    <div>${zqGoal(b)}${zqType(b)==='letter' ? '.' : ` (${zqProgress(b)} / ${ZQ_N})${zqProgress(b) >= ZQ_N ? ` : retourne voir ${askerOf(b).name} sur la carte 2.` : ''}`}</div></div>`).join('');
+  const tq = trackedQuest(), trk = q => !questTarget(q) ? '' : q===tq ? '<button class="btn sm trk" disabled>📍 Suivie</button>' : `<button class="btn alt sm trk" data-track="${q.id}">📍 Suivre</button>`;
+  const act = waiting + fl + zqs + activeQuests().map(q => `<div class="quest${q.main?' main':''}">${trk(q)}<b>${q.main ? '★ ' : ''}${q.title}</b><small>${NPCS[q.npc].name}</small>
     <div>🎯 ${goalText(q)}</div>${goalHelp(q)}<small>Récompense : ${rewardText(q.reward)}</small></div>`).join('') || '<p class="help">Aucune quête en cours.</p>';
   const done = QUESTS.filter(q => qs(q) && qs(q).state==='done').map(q => `<li>${q.title}</li>`).join('');
-  overlay(`<h2>Journal de quêtes</h2><p class="help">Chapitre ${Math.min(p.story+1, MAIN.length)}/${MAIN.length} · ${p.story>=MAIN.length ? 'Histoire terminée !' : 'Les quêtes principales (★) font avancer l\'histoire et ouvrent de nouvelles zones.'}</p>
+  overlay(`<h2>Journal de quêtes</h2><p class="help">Chapitre ${Math.min(p.story+1, MAIN.length)}/${MAIN.length} · ${p.story>=MAIN.length ? 'Histoire terminée !' : 'Les quêtes principales (★) font avancer l\'histoire et ouvrent de nouvelles zones.'} La quête suivie (📍) est montrée par la flèche dorée et sur la carte (M).</p>
     <h3>En cours</h3>${act}${done ? `<h3>Terminées</h3><ul class="help">${done}</ul>` : ''}
     <div style="text-align:center"><button class="btn" id="b1">Fermer</button></div>`, true);
   $('#overlay').dataset.menu = 'quests';
+  $('#overlay').querySelectorAll('[data-track]').forEach(b => b.onclick = () => { const q = questById(b.dataset.track); p.track = q.main ? null : q.id; save(); dirty = true; showJournal(); });
   $('#b1').onclick = () => { hideOverlay(); showNextScene(); };
 }
 // ---------- Hauts faits : défis permanents, avec points et titres à afficher ----------
@@ -5261,7 +5450,9 @@ const NPC_IDLE = { corwin:"Les ombres d'Aubépine veillent sur toi, {héros}.", 
   durgan:'Par ma barbe ! Un bon marteau et un bon héros, voilà ce qu\'il faut.', brenna:'Un jour, je forgerai une arme digne de toi !',
   coralie:"Notre chant tiendra Thalassar aussi longtemps qu'il le faudra. Merci, {héros}.", ysolde:'Que la lumière du sommet guide tes pas, {héros}.' };
 // Ce que dit le chef du groupe d'ennemis quand on lui parle
-const FOE_TALK = { gobelin:"Hé hé ! Encore un voyageur tout seul… Donne-nous ton or, et vite !", chaman:"Les esprits m'ont prévenu de ta venue, {héros}. Ils m'ont aussi dit que tu ne repartirais pas.",
+const FOE_TALK = { gobarcher:"Ma flèche est plus rapide que tes jambes !", orcberserk:"GRAAAH ! Du sang ! Du sang !", skelarcher:"(L'archer squelette encoche une flèche d'os sans un bruit.)",
+  zombiepest:"Grrr… pourrrriture…", impfeu:"Hi hi ! Tout brûle mieux quand ça hurle !", fanatique:"Le Soleil noir purifiera tout. Toi d'abord !", lezchaman:"Les marais chantent… et ils chantent ta fin.",
+  ombrehurle:"(L'Ombre pousse un hurlement qui glace le sang.)", arbaletrier:"Un carreau suffit. Je ne rate jamais.", gobelin:"Hé hé ! Encore un voyageur tout seul… Donne-nous ton or, et vite !", chaman:"Les esprits m'ont prévenu de ta venue, {héros}. Ils m'ont aussi dit que tu ne repartirais pas.",
   gluant:'Blop… blop… GLORP ! (Le Gluant ondule d\'un air menaçant.)', orc:'Un Orc ne recule jamais ! Approche, que je te montre ma hache.',
   ogre:'Ogre écraser petit héros ! Ogre manger chat noir au dîner !', squelette:'Clac… clac… Les vivants ne sont pas les bienvenus ici.', zombie:'Grrraaah… cerveau…',
   givre:'Le froid… il te gagnera… comme il nous a gagnés…', orcmasque:'Le maître a dit : personne ne passe. Et sous ce masque, je ne connais pas la pitié.',
@@ -5409,11 +5600,15 @@ function sceneOf(id) {
   if (K.lake) { const [dx,dy,rx,ry] = K.lake, lx = C[0]+dx, ly = C[1]+dy;
     for (let y=0;y<N;y++) for (let x=0;x<N;x++) { const d = ((x-lx)/rx)**2 + ((y-ly)/ry)**2;
       if (d < 1 - R()*.25 && man(x,y,...C) > 2) tryPut(x,y, () => g[y][x] = 2, () => g[y][x] = 0, 2); } }
-  for (const [kind, dx, dy] of (mapN(id)===1 && K.big) || []) {
-    const spots = [[0,0],[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[2,0],[-2,0],[0,2],[0,-2]].map(([a,b]) => [C[0]+dx+a, C[1]+dy+b]);
-    for (const [x,y] of spots) { const cells = [[x,y],[x+1,y],[x,y+1],[x+1,y+1]];
+  const bossZ = z.icon==='boss' && !z.dun; let bigDoor = null;
+  for (const [kind, dx, dy] of ((bossZ ? isLastMap(id) : mapN(id)===1) && K.big) || []) {
+    const spots = [[0,0],[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[2,0],[-2,0],[0,2],[0,-2],[2,2],[-2,-2],[1,-1],[-1,1]].map(([a,b]) => [C[0]+dx+a, C[1]+dy+b]);
+    for (const [x,y] of spots) { const cells = [[x,y],[x+1,y],[x,y+1],[x+1,y+1]], door = [x+2,y+2];
       if (!cells.every(([a,b]) => inS(a,b) && a>0 && b>0 && a<N-1 && b<N-1 && g[b][a]===0 && !nearExit(a,b,2) && man(a,b,...C) > 1)) continue;
-      cells.forEach(([a,b]) => g[b][a] = 7); if (connected()) { props.push({ kind, x, y, w:2 }); break; } cells.forEach(([a,b]) => g[b][a] = 0); } }
+      if (bossZ && !(inS(...door) && g[door[1]][door[0]]===0 && !nearExit(...door, 2))) continue;
+      cells.forEach(([a,b]) => g[b][a] = 7);
+      if (connected() && (!bossZ || reserve(...door))) { props.push({ kind, x, y, w:2 }); if (bossZ) bigDoor = door; break; }
+      cells.forEach(([a,b]) => g[b][a] = 0); } }
   // bâtiments où l'on entre (boutique, forge, auberge) : 2x2, porte devant ; un chemin mène de la porte à la place
   if (hub) for (const [kind, dx, dy] of [['shop',3,-8],['forge',6,5],['inn',-9,0]]) {
     const spots = [[0,0],[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[2,0],[-2,0],[0,2],[0,-2],[2,2],[-2,-2],[3,0],[0,3]].map(([a,b]) => [C[0]+dx+a, C[1]+dy+b]);
@@ -5480,7 +5675,7 @@ function sceneOf(id) {
   for (let i=0, k=0, n=K.rocks; i<n && k<n*20; k++) { const x = R()*N|0, y = R()*N|0; if (putTile(x,y,1)) i++; }
   if (K.dungeon) for (let y=0;y<N;y++) for (let x=0;x<N;x++) if (g[y][x]===0 || g[y][x]===3) g[y][x] = 6; // tout le sol est dallé
   // entrée du donjon : à la place du chef, dans les zones de boss
-  const dungeon = z.icon==='boss' && isLastMap(id) && homes[0] ? homes[0] : null;
+  const dungeon = z.icon==='boss' && isLastMap(id) ? bigDoor || homes[0] || null : null;
   return SCENES[id] = { dungeon, boss: z.icon==='boss', dark: !!K.dungeon, id, n:N, c:C, grid:g, exits, slots, shop, crystal, bench, nodes, homes, props, chest, herb, secret, smith, inn, folk, asker, lost, trader, tree: K.tree, dead: !!K.dead, foe: homes[0] || null };
 }
 // Intérieur d'un bâtiment : une petite pièce au plancher de bois, murs au fond, le commerçant contre le mur et la porte devant
@@ -5525,7 +5720,7 @@ function talkPlace(sc) { const q = questById(sc.quest), mq = q.main ? q : questB
 function lunePlace() { const sc = G.scenes.find(s => s.talk && s.npc==='lune'); return sc ? talkPlace(sc) : NPC_HOME.lune || storyHub(); }
 // zone dont les personnages se tiennent sur cette carte : la dernière carte d'une zone, rien sur les autres
 function npcZone(id) { return isLastMap(id) ? baseOf(id) : null; }
-function storyHub() { const q = MAIN[Math.min(G.profile.story, MAIN.length-1)]; return hubOf(regionOf(q.goal.zone)); }
+function storyHub() { const q = MAIN[Math.min(G.profile.story, MAIN.length-1)]; return hubOf(regionOf(mainZone(q))); }
 let npcCache = { k:'' };
 function sceneNpcs(id) {
   const k = [id, G.profile.story, Object.keys(G.profile.quests).length, activeQuests().map(q => q.id + (qs(q).step||0)).join('.'), treasure().flowers, ...G.scenes.map(s => s.talk ? s.npc : '')].join();
@@ -5575,7 +5770,9 @@ function sceneFoes() {
 function groupBeaten() {
   const g = G.fightGroup, p = G.profile; let note = '';
   if (g && !g.chief) g.dead = performance.now() + GROUP_RESPAWN; G.fightGroup = null;
-  if (g && !zoneById(p.pos).dun) { p.gates = p.gates || []; if (!p.gates.includes(p.pos)) { p.gates.push(p.pos); if (!isLastMap(p.pos) && !isCleared(baseOf(p.pos))) note += '<p class="goal">🪨 Le passage vers la carte suivante est dégagé !</p>'; }
+  if (g && !zoneById(p.pos).dun) { const kb = baseOf(p.pos);
+    if (nMaps(kb) > 1 && !hasKey(kb) && neighbors(kb).some(keyNeeded) && Math.random() < KEY_CHANCE) { (p.keys = p.keys || []).push(kb);
+      note += `<p class="goal">🔑 Les monstres ont laissé tomber la clé de ${zoneById(kb).name} : elle ouvre le passage vers la zone suivante !</p>`; }
     const b = baseOf(p.pos), q = zq(b); if (q && q.st==='on' && zqType(b)==='hunt' && q.kills < ZQ_N) { q.kills++; note += `<p class="goal">🧭 ${askerOf(b).name} : ${q.kills} / ${ZQ_N} groupes vaincus.</p>`; } }
   if (g && g.rare) { const z = zoneById(baseOf(p.pos)), tier = z.tier || 0, gold = rnd(50,80) * (1 + tier); let it = genItem(tier + 2, p.cls); if (it.rarity < 2) it = genItem(tier + 2, p.cls, it.slot, 2);
     const kept = addToBag(it); p.gold += gold; note += `<p class="goal" style="color:#ffd36a">✨ Groupe rare vaincu : +${gold} or et ${it.name}${kept ? '' : ' (sac plein : objet en attente)'} !</p>`; }
@@ -5642,7 +5839,7 @@ function enterZone(id, from, keepCell) {
   p.cell = c; save();
   buildBg(); refreshMapTitle(); dirty = true; cv.style.cursor = 'default';
   $('#hint').textContent = sceneHint();
-  if (from) banner(regionOf(id)!==oldRegion ? REGION_NAMES[regionOf(id)] : mapLabel(id));
+  if (from) banner(regionOf(id)!==oldRegion ? REGION_NAMES[regionOf(id)] : mapLabel(id) + (keyHunt(baseOf(id)) ? ' · 🔑 clé de la zone à trouver sur les monstres' : ''));
   const run = dunRun(z);
   if (run && z.dun.boss && !run.cine) { run.cine = true; return playCine(bossCine(z.dun.base), () => { dirty = true; showNextScene(); }); }
   const esc = escortGoal(); if (esc && esc.goal.zone===baseOf(id) && G.scenes.every(s => s.talk)) return showAmbush(esc);
@@ -5706,18 +5903,33 @@ function sceneCam() {
 function scenePoint(e) { const [mx,my] = mapPoint(e), c = G.cam || [0,0]; return [mx + c[0], my + c[1]]; }
 function sceneCell(mx, my) { const a = (mx-OX)/(TW/2), b = (my-OY)/(TH/2), x = Math.floor((a+b)/2), y = Math.floor((b-a)/2); return inB(x,y) ? [x,y] : null; }
 // Zone que le joueur doit rejoindre : le PNJ qui a une quête pour lui, sinon l'objectif de la quête principale
-function guideZone() {
-  const t = G.scenes.find(s => s.talk && questById(s.quest).main) || G.scenes.find(s => s.talk);
-  if (t) return talkPlace(t);
-  const q = activeQuests().find(q => q.main); return q ? q.goal.zone : null;
+// quête suivie (bouton « Suivre » du journal) ; par défaut, la quête principale
+function trackedQuest() { const a = activeQuests(), id = G.profile && G.profile.track; return a.find(q => q.id===id) || a.find(q => q.main) || null; }
+// où mène une quête : z = zone, k = carte de la zone (0 : n'importe laquelle)
+function questTarget(q) {
+  const g = q.goal, st = qs(q), f = st && st.found || [], pos = G.profile.pos, cur = baseOf(pos);
+  if (g.type==='clue') { const c = g.clues.find((c,i) => !f.includes(i)); return c ? { z:baseOf(c.zone), k:mapN(c.zone) } : null; }
+  if (g.type==='clear' || g.type==='talk') return { z:g.zone, k:nMaps(g.zone) };
+  if (g.type==='escort') return { z:g.zone, k:0 };
+  if (g.type==='kill') { const ms = [].concat(g.monster), at = ZONES.filter(z => z.foes && z.icon!=='portal' && ms.some(m => z.foes.includes(m)) && isOpen(z.id));
+    const z = at.find(z => z.id===cur) || at.find(z => regionOf(z.id)===regionOf(pos)) || at[at.length-1]; return z ? { z:z.id, k:0 } : null; }
+  if (g.type==='craft') return { z:hubOf(regionOf(pos)), k:0 };
+  return null;
 }
+function guideTarget() {
+  const tq = G.profile.track && trackedQuest(); if (tq && tq.id===G.profile.track) return questTarget(tq);
+  const t = G.scenes.find(s => s.talk && questById(s.quest).main) || G.scenes.find(s => s.talk);
+  if (t) { const z = talkPlace(t); return { z, k:nMaps(z) }; }
+  const q = trackedQuest(); return q ? questTarget(q) : null;
+}
+function guideZone() { const t = guideTarget(); return t ? t.z : null; }
 function guideExit() {
-  const tz = guideZone(), cur = G.profile.pos, cz = zoneById(cur);
+  const gt = guideTarget(), tz = gt && gt.z, cur = G.profile.pos, cz = zoneById(cur);
   if (cz && cz.dun) return sceneOf(cur).exits.find(e => e.fwd && isOpen(e.to)) || null;
   if (cz && cz.inside) return tz && tz!==cur ? sceneOf(cur).exits[0] : null;
   const bc = baseOf(cur), k = mapN(cur), M = nMaps(bc), s = sceneOf(cur), inner = d => s.exits.find(e => e.to===mapId(bc, k+d)) || null;
   if (!tz) return null;
-  if (tz===bc) return k < M ? inner(1) : null; // dans la zone visée : jusqu'à la dernière carte, celle du chef
+  if (tz===bc) { const kt = gt.k || k; return kt > k ? inner(1) : kt < k ? inner(-1) : null; } // dans la zone visée : jusqu'à la bonne carte (celle du chef pour la libérer)
   const r0 = regionOf(cur);
   let step = tz;
   if (regionOf(tz)!==r0) { const pz = portalToward(r0, regionOf(tz)); if (!pz) return null; if (pz.id===bc) return s.exits.find(e => e.portal); step = pz.id; }
@@ -5727,7 +5939,7 @@ function guideExit() {
 function sceneHint() {
   const t = G.scenes.find(s => s.talk);
   const base = 'Clique sur le sol pour te déplacer, sur un personnage pour lui parler. M : carte du monde, Q : quêtes, E : équipement, C : personnage, J : métiers, D : butins, H : histoire, G : guides.';
-  if (!t) return base;
+  if (!t) return keyHunt(baseOf(G.profile.pos)) ? `Le passage vers la zone suivante est fermé à clé : chaque groupe de monstres de cette zone a 1 chance sur 5 de laisser tomber la clé (🔑). ${base}` : base;
   return talkPlace(t)===npcZone(G.profile.pos) ? `${NPCS[t.npc].name} a quelque chose à te dire (point !). ${base}` : `${NPCS[t.npc].name} t'attend : suis la flèche dorée. ${base}`;
 }
 // ---- décors des scènes (pixel art généré une fois) : monuments 2x2 et petits éléments ----
@@ -5863,7 +6075,7 @@ function drawBang(x, y, now, col='#e8b94a', ch='!') {
 // +2 pour les grands monstres (chefs). Simple repère : il ne change pas leurs statistiques.
 let TIER_LEVEL = null;
 function monsterLevel(k, z) {
-  if (!TIER_LEVEL) { TIER_LEVEL = {}; MAIN.forEach((q,i) => { const b = ZONE_BASE[q.goal.zone] || zoneById(q.goal.zone); if (b.tier!=null && TIER_LEVEL[b.tier]==null) TIER_LEVEL[b.tier] = CHAPTER_LEVEL[i]; }); }
+  if (!TIER_LEVEL) { TIER_LEVEL = {}; MAIN.forEach((q,i) => { const b = ZONE_BASE[mainZone(q)] || zoneById(mainZone(q)); if (b.tier!=null && TIER_LEVEL[b.tier]==null) TIER_LEVEL[b.tier] = CHAPTER_LEVEL[i]; }); }
   let t = z.tier || 0; while (t > 0 && TIER_LEVEL[t]==null) t--;
   return (TIER_LEVEL[t] || 1) + (MONSTERS[k].big ? 2 : 0);
 }
@@ -5914,7 +6126,7 @@ function drawTag(text, x, y, col='#ece6d6') {
 function drawExit(e, now, guide, top) {
   const [cx,cy] = iso(e.x,e.y), open = isOpen(e.to), ox = e.x-e.ix, oy = e.y-e.iy;
   const sx = (ox-oy)*TW/2, sy = (ox+oy)*TH/2, L = Math.hypot(sx,sy), ux = sx/L, uy = sy/L;
-  if (top && gateLocked(G.profile.pos, e)) { drawSprite(propArt().wall, cx, cy+10, SC*.9); drawBubble('🔒', cx, cy-62, now); return; }
+  if (top && gateLocked(G.profile.pos, e)) { drawSprite(propArt().wall, cx, cy+10, SC*.9); drawSign('🔒 Il faut la clé de la zone (🔑)', cx, cy-62, now, '#ffb08a'); return; }
   if (e.door) { if (!top) { diamond(ctx,cx,cy,1); ctx.fillStyle = 'rgba(120,80,40,.5)'; ctx.fill(); } return; }
   diamond(ctx,cx,cy,1); ctx.fillStyle = !open ? 'rgba(60,60,70,.45)' : guide ? 'rgba(232,185,74,.55)' : 'rgba(255,240,200,.3)'; if (!top) { ctx.fill(); return; }
   if (e.portal) {
@@ -5931,7 +6143,7 @@ function drawExit(e, now, guide, top) {
 function renderScene(now) {
   sceneArt();
   ctx.imageSmoothingEnabled = false; ctx.fillStyle = '#141a28'; ctx.fillRect(0, 0, cv.width, cv.height);
-  const s = sceneOf(G.profile.pos), hv = G.sHover, ge = guideExit(), z = zoneById(s.id), [camx, camy] = sceneCam();
+  const s = sceneOf(G.profile.pos), hv = G.sHover, ge = guideExit(), z = zoneById(s.id), [camx, camy] = sceneCam(), gate = keyHunt(baseOf(s.id));
   ctx.save(); ctx.translate(-camx, -camy);
   ctx.drawImage(bg,0,0);
   for (const e of s.exits) drawExit(e, now, e===ge);
@@ -5953,7 +6165,7 @@ function renderScene(now) {
   drawClues(s, now, hv, ents, tags);
   if (s.dungeon) { const [x,y] = s.dungeon; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); drawDungeonGate(cx, cy, now);
     const q = activeQuests().find(q => q.main); if (q && q.goal.zone===z.id) drawBang(cx, cy-112, now, '#ef6b5b');
-    if (hv && hv.kind==='dungeon') tags.push([`🏰 Donjon : ${MONSTERS[z.foes[0]].name}`, cx, cy-92]); else drawSign('🏰 Donjon', cx, cy-92, now); } }); }
+    if (hv && hv.kind==='dungeon') tags.push([`🏰 Donjon : ${MONSTERS[z.foes[0]].name}`, cx, cy-92]); else drawSign('🏰 ' + zoneById(baseOf(s.id)).name, cx, cy-92, now); } }); }
   for (const n of sceneNpcs(s.id)) ents.push({ d:n.x+n.y, f:() => { const [cx,cy] = iso(n.x,n.y), d = NPCS[n.id], img = npcFrame(n.id, now, n.x);
     ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(cx,cy+2,17,7,0,0,7); ctx.fill();
     if (d.filter) ctx.filter = d.filter;
@@ -5976,6 +6188,7 @@ function renderScene(now) {
     const top = cy + 6 - (img ? img.height*fz : 60);
     if (f.chief) { const q = activeQuests().find(q => q.main); if (q && q.goal.zone===z.id) drawBang(cx, top-18, now, '#ef6b5b'); }
     else if (f.aggro) { ctx.font = 'bold 18px Segoe UI, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ff5a4a'; ctx.fillText('⚔', cx, top-8); }
+    else if (gate) drawBubble('🔑', cx, top-12, now); // chaque groupe peut laisser tomber la clé de la zone
     if (hv && hv.kind==='foe' && hv.g===f) foeAt = [cx, top-34, f]; } });
   const h = G.walker;
   ents.push({ d:h.rx+h.ry+.02, f:() => { const [cx,cy] = iso(h.rx,h.ry);
@@ -6061,7 +6274,7 @@ function sceneMove(e) {
     : t.kind==='asker' ? `${askerOf(baseOf(z.id)).name}, un voyageur égaré : clique pour lui parler.`
     : t.kind==='lost' ? 'Un sac abandonné… Clique pour le ramasser.'
     : t.kind==='trader' ? 'Un marchand ambulant, de passage dans la zone : clique pour voir ce qu\'il vend.'
-    : t.kind==='exit' && gateLocked(G.profile.pos, t.e) ? 'Un éboulement bloque le passage : bats un groupe de monstres de cette carte pour le dégager.'
+    : t.kind==='exit' && gateLocked(G.profile.pos, t.e) ? 'Une grille fermée à clé : chaque groupe de monstres de cette zone peut laisser tomber la clé (1 chance sur 5).'
     : t.kind==='folk' ? `${t.v.name}, un habitant : clique pour lui parler.`
     : t.kind==='bench' ? "L'atelier : clique pour fabriquer de l'équipement et des consommables avec tes ressources (J : métiers)."
     : t.kind==='node' ? `${nodeText(z.id, t.n)} : clique pour récolter (J : métiers).`
@@ -6102,7 +6315,7 @@ async function sceneClick(e) {
   const t = sceneTarget(e); if (!t) return;
   const from = G.profile.pos;
   if (t.kind==='ground') { if (sceneFree(...t.cell)) walkTo((x,y) => x===t.cell[0] && y===t.cell[1]); return; }
-  if (t.kind==='exit') { if (!isOpen(t.e.to)) return; if (gateLocked(G.profile.pos, t.e)) return banner('Passage bloqué : bats un groupe de monstres de cette carte pour le dégager.');
+  if (t.kind==='exit') { if (!isOpen(t.e.to)) return; if (gateLocked(G.profile.pos, t.e)) return banner('Fermé à clé : bats des groupes de monstres de cette zone, l\'un d\'eux finira par laisser tomber la clé (🔑).');
     if (await walkTo((x,y) => x===t.e.x && y===t.e.y) && G.profile.pos===from) { if (zoneById(from).dun && !zoneById(t.e.to).dun) G.dunRun = null; enterZone(t.e.to, from); } return; }
   if (t.kind==='foe') { // le groupe s'arrête le temps que le héros le rejoigne
     const g = t.g; G.foeTarget = g;
@@ -6193,10 +6406,10 @@ function talkFoe(g) {
   $('#b1').onclick = () => { G.fightGroup = g; if (z.dun) return startFight(z.dun.base, z.dun.n); startFight(z.id, null, extra ? g.foes : undefined); }; $('#b2').onclick = () => { hideOverlay(); showNextScene(); };
 }
 // ---- le Cristal de la Plaine : volé (acte I), au village, fissuré (actes III-IV), puis restauré ----
-const CRYSTAL_ZONES = ['village', 'antre', 'sanctuaire'];
+const CRYSTAL_ZONES = ['village', 'antre#3', 'sanctuaire'];
 function crystalState(id) {
   const st = G.profile.story;
-  if (id==='antre') return st < 6 ? 'stolen' : null;
+  if (id==='antre#3') return st < 6 ? 'stolen' : null;
   if (id==='village') return st < 6 ? 'empty' : st < 12 ? 'whole' : null;
   return st < 12 ? null : st < 24 ? 'cracked' : 'restored';
 }
@@ -6345,6 +6558,7 @@ function showSmith() {
 }
 // ---- auberge : repas chaud (bonus des prochains combats) et rumeurs sur les passages secrets ----
 function showInn() {
+  if (deliverLetter()) return;
   const p = G.profile, j = jobs(), t = Math.min(JOB_REQ.length-1, regionOf(p.pos)-1), c = CONS['repas'+t], cost = 40 + 80*t;
   const here = z => regionOf(z.id)===regionOf(p.pos) && isOpen(z.id), pick = l => l[Math.random()*l.length|0].name;
   const chests = ZONES.filter(z => here(z) && treasureZones().chest.has(z.id) && !chestDone(z.id)), secrets = ZONES.filter(z => here(z) && treasureZones().secret.has(z.id) && !secretDone(z.id));
@@ -6359,7 +6573,10 @@ function showInn() {
   $('#b1').onclick = () => { hideOverlay(); showNextScene(); };
 }
 // ---- habitants des villages ----
-const FOLK_LOOKS = [['doc',''],['elf_m','hue-rotate(200deg)'],['dwarf_f','hue-rotate(120deg)'],['wizzard_f','hue-rotate(60deg) saturate(.7)'],['elf_f','hue-rotate(320deg) brightness(1.1)'],['dwarf_m','hue-rotate(260deg)']];
+// apparence d'un habitant : un des 11 personnages, teinté d'une des 7 couleurs (77 combinaisons)
+const FOLK_SPRITES = ['doc','elf_m','elf_f','dwarf_f','dwarf_m','wizzard_f','wizzard_m','knight_m','knight_f','lizard_f','pumpkin_dude'];
+const FOLK_TINTS = ['', 'hue-rotate(40deg)', 'hue-rotate(110deg)', 'hue-rotate(200deg)', 'hue-rotate(280deg) brightness(1.1)', 'saturate(.55) brightness(1.1)', 'hue-rotate(320deg) saturate(1.3)'];
+const folkLook = (h, sprites = FOLK_SPRITES, i = 0) => { const m = Math.imul((h ^ (h >>> 7)) >>> 0, 0x5bd1e995) >>> 0; return [sprites[(m + i) % sprites.length], FOLK_TINTS[((m >>> 11) + i*3) % FOLK_TINTS.length]]; }; // i : habitants d'un même lieu tous différents
 const FOLK_NAMES = ['Tobias','Elna','Brune','Odile','Fenn','Gaspard','Margot','Ivo','Rosalie'];
 const FOLK_TALK = {
   0: ['Les rochers fendus cachent parfois des trésors, à ce qu\'on dit.', 'Le forgeron peut renforcer ton équipement, avec de l\'or et un peu de minerai.', 'À l\'auberge, un bon repas te donne des forces pour tes prochains combats.',
@@ -6374,8 +6591,8 @@ const FOLK_TALK = {
 const folkLine = () => { const r = regionOf(G.profile.pos), l = [...(FOLK_TALK[r]||[]), ...FOLK_TALK[0]]; return fillHero(l[Math.random()*l.length|0]); };
 // habitants selon le lieu : l'ermite vit seul, les fées sont peu nombreuses, les nains tiennent la halte des caravanes…
 // et quand les Ombres attaquent Aubépine, les villageois se cachent chez eux.
-const HUB_FOLK = { village:{ n:5 }, camp:{ n:3, looks:[0,2,5] }, ermitage:{ n:0 }, pelerins:{ n:3, looks:[0,3,4] }, fees:{ n:2, looks:[1,4] },
-  haltecendres:{ n:4, looks:[2,5] }, portecume:{ n:4 }, refuge:{ n:2, looks:[0,2,5] } };
+const HUB_FOLK = { village:{ n:5 }, camp:{ n:3, looks:['doc','dwarf_f','dwarf_m','knight_m','knight_f'] }, ermitage:{ n:0 }, pelerins:{ n:3, looks:['doc','wizzard_f','wizzard_m','elf_f','elf_m'] }, fees:{ n:2, looks:['elf_m','elf_f','angel'] },
+  haltecendres:{ n:4, looks:['dwarf_f','dwarf_m'] }, portecume:{ n:4 }, refuge:{ n:2, looks:['doc','dwarf_f','dwarf_m','knight_m'] } };
 function folkCount(id) {
   if (id==='village' && activeQuests().some(q => q.main && q.goal.zone==='sanctuaire')) return 0;
   return (HUB_FOLK[id] || { n:3 }).n;
@@ -6383,7 +6600,7 @@ function folkCount(id) {
 function sceneFolk() {
   const s = sceneOf(G.profile.pos), n = folkCount(s.id);
   if (!G.folk || G.folk.zone!==s.id || G.folk.n!==n) { const h = strHash(s.id), lk = (HUB_FOLK[s.id] || {}).looks;
-    G.folk = { zone:s.id, n, chat:0, list: (s.folk||[]).slice(0, n).map(([x,y], i) => ({ look: lk ? FOLK_LOOKS[lk[(h+i) % lk.length]] : FOLK_LOOKS[(h+i*7) % FOLK_LOOKS.length], name: FOLK_NAMES[(h+i*5) % FOLK_NAMES.length],
+    G.folk = { zone:s.id, n, chat:0, list: (s.folk||[]).slice(0, n).map(([x,y], i) => ({ look: folkLook(h, lk, i), name: FOLK_NAMES[(h+i*5) % FOLK_NAMES.length],
       x, y, rx:x, ry:y, hx:x, hy:y, face:1, next: performance.now() + Math.random()*3000, off: i*1.3 })) }; }
   return G.folk.list;
 }
@@ -6518,8 +6735,13 @@ function findClue(c) {
 }
 // ---------- Exploration : passages à dégager, quêtes de zone, événements, brouillard ----------
 const RARE_GROUP = 0.03, TRADER_CHANCE = 0.08; // chance qu'un groupe errant soit rare ; qu'un marchand ambulant soit là en arrivant sur une carte
-// passage vers la carte suivante d'une zone : bloqué tant qu'aucun groupe de la carte n'est battu (ouvert pour de bon une fois la zone libérée)
-const gateLocked = (cur, e) => !!e && nMaps(baseOf(cur)) > 1 && e.to===mapId(baseOf(cur), mapN(cur)+1) && !isCleared(baseOf(cur)) && !(G.profile.gates || []).includes(cur);
+// clé de zone : chaque groupe vaincu a 20 % de chances de la laisser ; elle ouvre le passage vers une zone suivante encore jamais visitée
+// (les cartes d'une même zone ne sont jamais bloquées)
+const KEY_CHANCE = 0.2;
+const hasKey = b => (G.profile.keys || []).includes(b);
+const keyNeeded = n => { const z = ZONES.find(z => z.id===n); return !!z && !!z.foes && z.icon!=='portal' && !isCleared(n) && !seenMaps(n) && !neighbors(n).some(hasKey); };
+const keyHunt = b => nMaps(b) > 1 && !hasKey(b) && neighbors(b).some(n => keyNeeded(n) && isOpen(n)); // la clé de cette zone est nécessaire maintenant
+const gateLocked = (cur, e) => !!e && !e.portal && !e.door && nMaps(baseOf(cur)) > 1 && baseOf(e.to)!==baseOf(cur) && isOpen(baseOf(e.to)) && keyNeeded(baseOf(e.to));
 // brouillard : une zone de combat apparaît sur la carte du monde une fois toutes ses cartes traversées (ou la zone libérée)
 const seenMaps = b => { const s = G.profile.seen || []; let n = 0; for (let k=1; k<=nMaps(b); k++) if (s.includes(mapId(b, k))) n++; return n; };
 const revealed = b => { const z = zoneById(b); return !z.foes || z.icon==='portal' || isCleared(b) || seenMaps(b) >= nMaps(b); };
@@ -6530,28 +6752,49 @@ function drawFog(x, y, r, now) {
 }
 // quêtes de zone : un voyageur égaré sur la 2e carte de chaque zone de combat demande un service
 const ZQ_N = 3;
-const zqType = b => strHash(b + 'quête') % 2 ? 'lost' : 'hunt';
+// type : à tour de rôle d'une zone à l'autre (les quêtes déjà acceptées sans type gardent l'ancien tirage)
+const ZQ_TYPES = ['hunt', 'lost', 'letter'];
+const zqType = b => { const q = zq(b); if (q) return q.t || (strHash(b + 'quête') % 2 ? 'lost' : 'hunt');
+  return ZQ_TYPES[Math.max(0, ZONES.filter(z => z.foes && z.icon!=='portal').findIndex(z => z.id===b)) % ZQ_TYPES.length]; };
 const zq = b => (G.profile.zq = G.profile.zq || {})[b];
-const askerOf = b => { const h = strHash(b + 'voyageur'); return { name: FOLK_NAMES[h % FOLK_NAMES.length], look: FOLK_LOOKS[(h >> 3) % FOLK_LOOKS.length] }; };
-const zqProgress = b => { const q = zq(b); return !q ? 0 : zqType(b)==='lost' ? q.got.length : q.kills; };
-const zqTitle = b => zqType(b)==='lost' ? 'Les affaires perdues' : 'La route dangereuse';
-const zqGoal = b => zqType(b)==='lost' ? `Retrouve les ${ZQ_N} sacs perdus, un sur chaque carte de la zone` : `Bats ${ZQ_N} groupes de monstres dans la zone`;
+const zqHub = b => zoneById(hubOf(regionOf(b))).name;
+const LETTER_FOR = ['ma sœur', 'mon vieux père', 'ma fiancée', 'mon frère', 'ma mère', 'mon meilleur ami'];
+const askerOf = b => { const h = strHash(b + 'voyageur'); return { name: FOLK_NAMES[h % FOLK_NAMES.length], look: folkLook(h >> 3) }; };
+const zqProgress = b => { const q = zq(b), t = zqType(b); return !q ? 0 : t==='lost' ? q.got.length : t==='letter' ? (q.sent ? ZQ_N : 0) : q.kills; };
+const zqTitle = b => ({ lost:'Les affaires perdues', hunt:'La route dangereuse', letter:'La lettre du voyageur' })[zqType(b)];
+const zqGoal = b => ({ lost:`Retrouve les ${ZQ_N} sacs perdus, un sur chaque carte de la zone`, hunt:`Bats ${ZQ_N} groupes de monstres dans la zone`,
+  letter:`Porte la lettre de ${askerOf(b).name} à l'aubergiste de ${zqHub(b)}` })[zqType(b)];
 const lostVisible = s => { const b = baseOf(s.id), q = zq(b); return !q || (q.st==='on' && !q.got.includes(s.id)); };
 function talkAsker() {
   const b = baseOf(G.profile.pos), z = zoneById(b), a = askerOf(b), q = zq(b), p = G.profile, done = q && q.st==='on' && zqProgress(b) >= ZQ_N;
   const say = !q ? (zqType(b)==='lost' ? `Ah, enfin quelqu'un ! Des monstres m'ont attaqué et j'ai perdu mes ${ZQ_N} sacs en fuyant à travers ${z.name}. Tu pourrais les retrouver ? Il y en a un sur chaque carte de la zone.`
+      : zqType(b)==='letter' ? `J'ai promis à ${LETTER_FOR[strHash(b + 'lettre') % LETTER_FOR.length]} de lui écrire, mais je suis à bout de forces et ${z.name} grouille de monstres. Tu veux bien porter ma lettre à l'auberge de ${zqHub(b)} ? L'aubergiste la fera suivre, et te paiera la course de ma part.`
       : `Je n'ose plus avancer : ${z.name} grouille de monstres. Si tu pouvais battre ${ZQ_N} de leurs groupes, je pourrais enfin reprendre la route…`)
     : done ? 'Tu as réussi ! Merci mille fois. Tiens, prends ceci, tu l\'as bien mérité.'
-    : q.st==='on' ? `${zqGoal(b)} : ${zqProgress(b)} / ${ZQ_N}. Bon courage, ${heroName()} !` : 'Merci encore pour ton aide ! Je vais pouvoir rentrer chez moi.';
+    : q.st==='on' ? (zqType(b)==='letter' ? `Ma lettre est entre de bonnes mains. L'auberge de ${zqHub(b)} est la grande maison à l'enseigne dorée.` : `${zqGoal(b)} : ${zqProgress(b)} / ${ZQ_N}. Bon courage, ${heroName()} !`) : 'Merci encore pour ton aide ! Je vais pouvoir rentrer chez moi.';
   overlay(`<div class="scene">${portraitOf(spriteSrc(a.look[0]), a.look[1])}<div class="say"><small class="who">Un voyageur égaré</small><h2>${a.name}</h2>
     <p>« ${say} »</p>${!q ? `<p class="help">🧭 Quête de zone : ${zqGoal(b)}. Récompense : de l'or et un objet rare.</p>` : ''}
     <div style="text-align:right">${!q ? '<button class="btn alt" id="b2">Plus tard</button><button class="btn" id="b1">J\'accepte</button>' : '<button class="btn" id="b1">Au revoir</button>'}</div></div></div>`, true);
-  if (!q) { $('#b1').onclick = () => { p.zq[b] = { st:'on', got:[], kills:0 }; save(); hideOverlay(); dirty = true; banner(`Quête de zone : ${zqTitle(b)}`); showNextScene(); };
+  if (!q) { $('#b1').onclick = () => { p.zq[b] = { st:'on', got:[], kills:0, t:zqType(b) }; save(); hideOverlay(); dirty = true; banner(`Quête de zone : ${zqTitle(b)}`); showNextScene(); };
     $('#b2').onclick = () => { hideOverlay(); showNextScene(); }; return; }
   $('#b1').onclick = () => { hideOverlay(); showNextScene(); };
-  if (done) { q.st = 'done'; const tier = z.tier || 0, gold = rnd(40,60) * (1 + tier); let it = genItem(tier + 1, p.cls); if (it.rarity < 1) it = genItem(tier + 1, p.cls, it.slot, 1);
-    const kept = addToBag(it); p.gold += gold; play('piece'); save(); refreshMapTitle(); dirty = true;
-    $('#b1').onclick = () => treasureBox('Quête de zone accomplie !', `<img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> +${gold} or`, it, kept, `${a.name} te remercie et reprend la route.`); }
+  if (done && zqType(b)!=='letter') $('#b1').onclick = () => zqReward(b, `${a.name} te remercie et reprend la route.`);
+}
+function zqReward(b, thanks) {
+  const p = G.profile, q = zq(b), tier = zoneById(b).tier || 0, gold = rnd(40,60) * (1 + tier); q.st = 'done';
+  let it = genItem(tier + 1, p.cls); if (it.rarity < 1) it = genItem(tier + 1, p.cls, it.slot, 1);
+  const kept = addToBag(it); p.gold += gold; play('piece'); save(); refreshMapTitle(); dirty = true;
+  treasureBox('Quête de zone accomplie !', `<img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> +${gold} or`, it, kept, thanks);
+}
+// lettre du voyageur : l'aubergiste du village de la région la reçoit et paie la course
+function deliverLetter() {
+  const p = G.profile, b = Object.keys(p.zq || {}).find(b => p.zq[b].st==='on' && zqType(b)==='letter' && regionOf(b)===regionOf(p.pos));
+  if (!b) return false;
+  zq(b).sent = true;
+  overlay(`<h2>La lettre du voyageur</h2><p>« Une lettre de ${askerOf(b).name} ! Enfin des nouvelles, on s'inquiétait depuis des jours… Je la ferai suivre, promis. Et voilà pour ta peine : c'est ce que demande la lettre. »</p>
+    <div style="text-align:center"><button class="btn" id="b1">Continuer</button></div>`, true);
+  $('#b1').onclick = () => zqReward(b, `L'aubergiste range précieusement la lettre de ${askerOf(b).name}.`);
+  return true;
 }
 function pickLost(at) {
   const b = baseOf(G.profile.pos), q = zq(b);
@@ -6581,6 +6824,15 @@ function jumpToChapter(n, withLevel, withGear) {
   p.shop = null; G.scenes = [];
   hideOverlay(); openMap(); talkAll(); renderDbg();
   dbgMsg(q ? `chapitre ${n+1} : ${q.title}` : 'histoire terminée');
+}
+// termine les étapes sans combat (indices, paroles, escorte) de la quête principale en cours
+function dbgSteps() {
+  for (let k = 0; k < 9; k++) { const q = activeQuests().find(q => q.main && q.steps && (qs(q).step || 0) > 0); if (!q) return;
+    const g = q.goal;
+    if (g.type==='clue') { qs(q).found = g.clues.map((c,i) => i); progressQuests(); }
+    else if (g.type==='talk') progressQuests({ talked:g.npc, at:g.zone });
+    else if (g.type==='escort') progressQuests({ escorted:g.zone });
+    else return; }
 }
 function dbgWin(win) {
   if (G.mode!=='fight' || G.over) return;
@@ -6619,8 +6871,8 @@ function bindDbg() {
   on('#dbgGo', () => jumpToChapter(+$('#dbgCh').value, $('#dbgLv').checked, $('#dbgGear').checked));
   d.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => { p.level = Math.max(1, Math.min(XP_MAX_LEVEL, p.level + +b.dataset.lv)); p.xp = 0; dbgAfterChange(); });
   on('#dbgGold', () => { p.gold += 1000; dbgAfterChange(); });
-  d.querySelectorAll('[data-gear]').forEach(b => b.onclick = () => { const z = MAIN[Math.min(p.story, MAIN.length-1)].goal.zone; giveGear(zoneById(z).tier, +b.dataset.gear); dbgAfterChange(); dbgMsg('équipement remplacé'); });
-  on('#dbgLeg', () => { if (p.inv.length >= BAG_MAX) return dbgMsg('sac plein'); const z = MAIN[Math.min(p.story, MAIN.length-1)].goal.zone; const it = genItem(zoneById(z).tier, p.cls, null, 3); p.inv.push(it); dbgAfterChange(); dbgMsg(it.name); });
+  d.querySelectorAll('[data-gear]').forEach(b => b.onclick = () => { const z = mainZone(MAIN[Math.min(p.story, MAIN.length-1)]); giveGear(zoneById(z).tier, +b.dataset.gear); dbgAfterChange(); dbgMsg('équipement remplacé'); });
+  on('#dbgLeg', () => { if (p.inv.length >= BAG_MAX) return dbgMsg('sac plein'); const z = mainZone(MAIN[Math.min(p.story, MAIN.length-1)]); const it = genItem(zoneById(z).tier, p.cls, null, 3); p.inv.push(it); dbgAfterChange(); dbgMsg(it.name); });
   on('#dbgRes', () => { const j = jobs(); for (const id of JOB_IDS) for (let t=0; t<JOB_REQ.length; t++) j.res[id+t] = (j.res[id+t]||0) + 20; for (const k in MONSTER_DROPS) j.res['m_'+k] = (j.res['m_'+k]||0) + 20; dbgAfterChange(); dbgMsg('ressources +20'); });
   on('#dbgWin', () => dbgWin(true));
   on('#dbgLose', () => dbgWin(false));
@@ -6631,7 +6883,7 @@ function bindDbg() {
 
 buildDecor();
 CAT_ICON = buildCat();
-loadSprites().then(() => { buildVariants(); buildExtraSprites(); showMenu(); requestAnimationFrame(frame); initSaveFile(); initPersist(); showTitle(); });
+loadSprites().then(() => { buildVariants(); buildExtraSprites(); buildNpcLooks(); showMenu(); requestAnimationFrame(frame); initSaveFile(); initPersist(); showTitle(); });
 // ---- écran de démarrage : ciel d'aube animé, les trois héros et Forest ; un clic, une touche ou un toucher mène au choix du personnage ----
 function showTitle() {
   const el = document.getElementById('title'); if (!el) return;
