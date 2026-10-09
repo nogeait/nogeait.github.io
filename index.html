@@ -516,7 +516,7 @@ const CLASSES = {
       { id:'fracas', icon:'weapon_big_hammer', name:'Fracas', pa:4, minR:1, maxR:1, los:true, dmg:[15,21], perTurn:1, combo:{ dot:'epee', mul:1.3, slow:1, label:'Combo Entaille' }, desc:'Corps à corps, 15-21 dégâts. 1 fois par tour. Combo : +30 % de dégâts et -1 PM sur une cible entaillée (Coup d\'épée).' },
       { id:'cri', icon:'flask_big_yellow', lvl:4, name:'Cri de guerre', pa:1, self:true, effect:'pm', val:2, cd:4, desc:'+2 PM ce tour-ci. Recharge 4 tours. Débloqué au niveau 4. Combo : lancé le même tour que Rage, déclenche la Fureur (la Rage dure aussi au tour suivant).' },
       { id:'tourb', icon:'weapon_double_axe', name:'Tourbillon', lvl:8, pa:4, self:true, zone:'around', dmg:[10,14], perTurn:1, combo:{ mark:'desequ', mul:1.25, label:'Combo Bond' }, desc:'Frappe toutes les cases autour de toi, 10-14 dégâts. 1 fois par tour. Débloqué au niveau 8. Combo : +25 % de dégâts sur les ennemis déséquilibrés (Bond).' },
-      { id:'rage', icon:'skull', name:'Rage', lvl:14, pa:2, self:true, effect:'rage', val:40, cd:4, desc:"+40 % de dégâts jusqu'à la fin du tour. Recharge 4 tours. Débloqué au niveau 14. Combo : lancée le même tour que Cri de guerre, déclenche la Fureur (la Rage dure aussi au tour suivant)." },
+      { id:'rage', icon:'skull', name:'Rage', lvl:14, pa:2, self:true, effect:'rage', val:40, cd:4, desc:"+40 % de dégâts pendant ce tour et le suivant. Recharge 4 tours. Débloqué au niveau 14. Combo : lancée le même tour que Cri de guerre, déclenche la Fureur (la Rage dure un tour de plus)." },
       { id:'hachejet', modR:true, icon:'weapon_axe', name:'Hache de jet', lvl:30, pa:4, minR:2, maxR:5, los:true, dmg:[16,22], perTurn:1, proj:'#c0c0c0', desc:'Portée 2-5, 16-22 dégâts. 1 fois par tour. Débloqué au niveau 30.' },
       { id:'execution', icon:'weapon_cleaver', name:'Exécution', lvl:45, pa:5, minR:1, maxR:1, los:true, dmg:[30,40], cd:3, desc:'Corps à corps, 30-40 dégâts. Recharge 3 tours. Débloqué au niveau 45.' },
     ] },
@@ -718,7 +718,7 @@ const MONSTERS = {
             { id:'nuit', name:'Nuit sans fin', pa:3, minR:2, maxR:5, los:true, dmg:[12,16], perTurn:1, proj:'#7a3fd0', slowPm:1 },
             { id:'ombres', name:'Ombres dévorantes', pa:2, self:true, summon:'ombre', max:1, cd:4 }] },
   demon: { name:'Grand Démon', xp:260, hp:290, pa:6, pm:3, sprite:'big_demon', big:1.6,
-    spells:[{ id:'flammes', name:'Flammes infernales', pa:3, minR:1, maxR:2, los:true, dmg:[15,20], perTurn:2, poison:[5,2], burn:true },
+    spells:[{ id:'flammes', name:'Flammes infernales', pa:3, minR:1, maxR:2, los:true, dmg:[15,20], perTurn:2 }, // la brûlure passe par l'Aura infernale seulement (09/10)
             { id:'diablotins', name:'Appel des diablotins', pa:2, self:true, summon:'diablotin', max:2, cd:4 }] },
 };
 // Carte du monde : chaque zone libérée débloque ses voisines
@@ -1016,7 +1016,6 @@ const CARACS = {
   agi: { name:'Agilité', per:0.5, desc:'+0,5 % de chance de coup critique par point (30 % au plus, 40 % pour le Roublard)' },
   sag: { name:'Sagesse', per:0.5, desc:'+1 % de résistance tous les 2 points (50 % au plus, équipement compris)' },
 };
-const resetCost = p => 50 * p.level;            // réinitialiser ses points de caractéristiques ou de sorts (06/10 : dépense d'or)
 // les sorts montent de rang tout seuls avec le niveau (08/10, demande de Quentin : plus de points de sort)
 const RANK_LEVELS = { 1:[10,20,30,40], 4:[10,20,30,40], 8:[20,30,40,50], 14:[20,30,40,50], 30:[38,46,54,62], 45:[50,55,60,65] };
 const rankLevels = sp => RANK_LEVELS[sp.lvl || 1] || [1,2,3,4].map(k => Math.round((sp.lvl||1) + k*(65-(sp.lvl||1))/4));
@@ -1117,7 +1116,7 @@ ${pips}</b>
     <h3>Caractéristiques : ${c.free} point${c.free>1?'s':''} à répartir</h3><div class="pts">${Object.keys(CARACS).map(row).join('')}</div>
     <h3>Sorts</h3><p class="help">Tes sorts montent de rang avec ton niveau : les premiers aux niveaux 10, 20, 30 et 40, ceux appris plus tard un peu après. Chaque rang donne +8 % de dégâts ou de soins. Selon le sort, certains rangs ajoutent aussi de la portée, réduisent la relance ou donnent un lancer de plus par tour. Clique sur les chiffres 1 à 5 à côté d'un sort pour voir ses effets à ce rang. Les flèches ↑ ↓ changent l'ordre des sorts dans la barre de combat et leurs raccourcis.</p>
     <div class="pts one">${order.map(srow).join('')}</div>
-    <p><button class="btn alt" id="ptAuto"${c.free || c.sfree ? '' : ' disabled'}>Répartir automatiquement</button><button class="btn alt" id="ptReset"${p.gold < resetCost(p) ? ' disabled' : ''}>Réinitialiser les caractéristiques · ${resetCost(p)} or</button></p>
+    <p><button class="btn alt" id="ptAuto"${c.free || c.sfree ? '' : ' disabled'}>Répartir automatiquement</button><button class="btn alt" id="ptReset">Réinitialiser les caractéristiques</button></p>
     <button class="btn" id="b1">${back ? 'Retour' : 'Fermer'}</button>`, true);
   const ov = $('#overlay'), redo = () => { save(); refreshMapTitle(); updateCharBtn(); const sc = ov.querySelector('.box').scrollTop; showCharacter(back); ov.querySelector('.box').scrollTop = sc; };
   ov.querySelectorAll('[data-pt]').forEach(b => b.onclick = () => { const k = b.dataset.pt, n = +b.dataset.n; p.pts[k] = Math.max(0, p.pts[k] + (n > 0 ? Math.min(n, charPoints(p).free) : n)); play('equip'); redo(); });
@@ -1126,7 +1125,7 @@ ${pips}</b>
   ov.querySelectorAll('[data-pv]').forEach(b => b.onclick = () => { const id = b.dataset.pv, k = +b.dataset.k; prev[id] = prev[id] === k ? 0 : k; redo(); });
   if ($('#collarUp')) $('#collarUp').onclick = () => { const ok = upgradeCollar(); if (ok) { play('buff'); checkEquipQuests(); } redo(); if (ok) flashMsg(`Forest ronronne : il porte maintenant un ${COLLAR_NAMES[p.collar-1].toLowerCase()} (niveau ${p.collar}) !`); };
   $('#ptAuto').onclick = () => { autoPoints(p); play('equip'); redo(); };
-  $('#ptReset').onclick = () => { if (!Object.values(p.pts).some(v => v) || p.gold < resetCost(p)) return; p.gold -= resetCost(p); for (const k in p.pts) p.pts[k] = 0; redo(); };
+  $('#ptReset').onclick = () => { for (const k in p.pts) p.pts[k] = 0; redo(); };
   ov.dataset.menu = 'char';
   wireTitleSelect(p); wireFxPick(p, redo);
   $('#cardBtn').onclick = () => showShareCard(() => showCharacter(back));
@@ -1349,7 +1348,7 @@ async function cast(u,sp,tx,ty) {
     if (sp.markAdj) for (const [a,b] of DIRS) { const t = unitAt(tx+a, ty+b); if (t && t.team!==u.team) markUnit(t, sp.markAdj, G.round); }
     if (sp.elan) { u.pa += sp.elan; addFloat(u.x,u.y,`+${sp.elan} PA`,'#4aa3ff'); log(`Élan arcanique : ${u.name} gagne ${sp.elan} PA.`); }
   } else if (sp.effect==='rage') {
-    u.turnBonus = sp.val/100; play('buff'); addFloat(u.x,u.y,`+${sp.val} % dégâts`,'#ff9a3c');
+    u.turnBonus = sp.val/100; u.rageVal = u.turnBonus; u.rageNext = 1; play('buff'); addFloat(u.x,u.y,`+${sp.val} % dégâts`,'#ff9a3c');
     if (u.uses.cri) fury(u, sp.val);
   } else if (sp.effect==='crit') {
     u.turnCrit = sp.val/100; play('buff'); addFloat(u.x,u.y,`+${sp.val} % critique`,'#ffd04a');
@@ -1407,7 +1406,7 @@ const condMul = (sp, t) => (sp.vsPoison && t.dots && t.dots.length ? sp.vsPoison
 // Assassinat : tous les dégâts de poison restants d'un coup
 const dotsLeft = (sp, t) => sp.consumeDots ? (t.dots||[]).filter(d => d.name==='Poison').reduce((a,d) => a + d.v*d.n, 0) : 0;
 // états posés par les combos : marque valable jusqu'à la fin du tour (rond) indiqué
-function fury(u, val) { if (u.furyNext) return; u.furyNext = val/100; addFloat(u.x, u.y-.8, 'Fureur !', '#ff9a3c'); log(`Fureur : la Rage de ${u.name} durera aussi au tour suivant.`); }
+function fury(u, val) { if (u.furyNext) return; u.furyNext = val/100; u.rageVal = u.rageVal || val/100; u.rageNext = (u.rageNext||0) + 1; addFloat(u.x, u.y-.8, 'Fureur !', '#ff9a3c'); log(`Fureur : la Rage de ${u.name} durera un tour de plus.`); }
 function markUnit(t, k, until) { t.marks = t.marks || {}; t.marks[k] = Math.max(t.marks[k] || 0, until);
   addFloat(t.x, t.y-.4, { desequ:'Déséquilibré', gel:'Gelé' }[k] || k, k==='gel' ? '#9fe3ff' : '#ffd04a'); }
 function dmgRange(u,sp,t,f,m=1) {
@@ -1463,7 +1462,8 @@ async function runTurns(token) {
 }
 function beginTurn(u) {
   u.pa = u.maxPa; u.pm = u.maxPm; u.uses = {}; u.turnBonus = 0; u.turnCrit = 0; u.tempRes = 0;
-  if (u.furyNext) { u.turnBonus = u.furyNext; addFloat(u.x,u.y,'Fureur','#ff9a3c'); log(`Fureur : ${u.name} garde +${Math.round(u.furyNext*100)} % de dégâts ce tour.`); u.furyNext = 0; }
+  if (u.rageNext > 0) { u.turnBonus = u.rageVal; u.rageNext--; addFloat(u.x,u.y,'Rage','#ff9a3c'); log(`Rage : ${u.name} garde +${Math.round(u.rageVal*100)} % de dégâts ce tour.`); }
+  if (!u.rageNext) u.furyNext = 0;
   if (u.malus) { u.pm = Math.max(0, u.pm - u.malus); addFloat(u.x,u.y,`-${u.malus} PM`,'#9fe3ff'); log(`${u.name} est ralenti : -${u.malus} PM ce tour.`); u.malus = 0; u.slowFree = G.round; } // pas de nouveau ralentissement avant le tour suivant
   if (u.dots && u.dots.length) { for (const d of u.dots) { if (!u.alive) break; log(`${d.name} sur ${u.name}.`); hurt(u, d.v); d.n--; } u.dots = u.dots.filter(d => d.n > 0); }
   for (const k in u.cds) { u.cds[k]--; if (u.cds[k]<=0) delete u.cds[k]; }
@@ -2927,7 +2927,7 @@ const RARITIES = [
   { name:'Rare', color:'#4aa3ff', mult:1.35, suffix:' du soldat' },
   { name:'Épique', color:'#c06bff', mult:1.7, suffix:' du héros' },
   { name:'Légendaire', color:'#ff9a3c', mult:2.1, suffix:' des anciens rois' },
-  { name:'Unique', color:'#ff5c8a', mult:2.1, suffix:'' }, // butin rare des boss
+  { name:'Mythique', color:'#ff5c8a', mult:2.6, suffix:'' }, // butin rare des boss (09/10 : au-dessus des Légendaires)
 ];
 const STATS = { vie:['PV',6,1], puissance:['% dégâts',4,2], resistance:['% résistance',3,2.5], pa:['PA',0,40], pm:['PM',0,30], portee:['Portée',0,40] }; // libellé, valeur de base, prix par point
 const ARMOR_NAMES = {
@@ -2999,6 +2999,9 @@ function itemIcon(it) {
   return iconCache[k];
 }
 
+// Nom des objets (09/10) : épithète selon la stat principale (PV, dégâts, résistance) et la rareté, pour distinguer les objets d'un coup d'œil
+const ITEM_EPITHETS = { vie:['de vigueur','du colosse','de longue vie',"de l'immortel"], puissance:['de force','de fureur','du carnage','du fléau'],
+  resistance:['de garde','du rempart','de la forteresse',"de l'invincible"] };
 function genItem(tier, cls, slot, forcedRarity) {
   slot = slot || Object.keys(SLOTS)[rnd(0, Object.keys(SLOTS).length-1)];
   const r = Math.random() + Math.min(tier,24)*0.035; // rareté progressive (06/10) : pas de Légendaire avant le Cœur de Sylve, 34 % au plus
@@ -3015,11 +3018,13 @@ function genItem(tier, cls, slot, forcedRarity) {
   else if (slot==='cape') { add('vie', roll(4)); add('resistance', roll(1)); icon = 'cape'; name = ARMOR_NAMES.cape[lvl]; }
   else { add('resistance', roll(2)); icon = 'bottes'; name = ARMOR_NAMES.bottes[lvl]; }
   for (let i=0; i<Math.min(rar,2); i++) { const s = ['vie','puissance','resistance'][rnd(0,2)]; add(s, roll(STATS[s][1]/2)); }
-  if (rar===3) { if (slot==='arme') add('pa',1); else if (slot==='bottes') add('pm',1); else add('vie', roll(4)); } // équipement complet : au plus +1 PA et +1 PM
+  if (rar===3) { if (slot==='arme') add('pa',1); else if (slot==='bottes') add('pm',1); else add('vie', roll(4)); }
+  if (rar===4) add(slot==='arme' ? 'pa' : slot==='bottes' ? 'pm' : Math.random()<.5 ? 'pa' : 'pm', 1); // Mythique : toujours +1 PA ou +1 PM // équipement complet : au plus +1 PA et +1 PM
   if (rar===2 && tier>=13) { if (slot==='arme') add('pa',1); else if (slot==='bottes') add('pm',1); } // Épiques de haut niveau : PA/PM comme les Légendaires
   if (rar>=2 && (slot==='amulette' || slot==='coiffe') && Math.random()<.25) add('portee',1);
   const value = Math.round(Object.entries(st).reduce((a,[s,v]) => a + v*STATS[s][2], 0) * 1.2);
-  return { id: G.profile.nextId++, slot, cls: (slot==='arme'||slot==='coiffe') ? cls : null, name: name + RARITIES[rar].suffix, rarity: rar, icon, stats: st, value };
+  const main = ['vie','puissance','resistance'].reduce((a,b) => (st[b]||0)*STATS[b][2] > (st[a]||0)*STATS[a][2] ? b : a);
+  return { id: G.profile.nextId++, slot, cls: (slot==='arme'||slot==='coiffe') ? cls : null, name: name + ' ' + ITEM_EPITHETS[main][Math.min(rar,3)], rarity: rar, icon, stats: st, value };
 }
 function statText(st) { return Object.entries(st).filter(([s,v]) => v && STATS[s]).map(([s,v]) => `${v>0?'+':''}${v} ${STATS[s][0]}`).join(' · '); }
 // Forest, le chat noir du héros : familier unique dont les bonus grandissent avec l'histoire.
@@ -3145,7 +3150,7 @@ const BOSS_DROPS = {
 };
 function genBossItem(z, p) {
   const b = BOSS_DROPS[z.foes[0]]; if (!b) return null;
-  const it = genItem(z.tier+2, p.cls, b.slot, 3);
+  const it = genItem(z.tier+2, p.cls, b.slot, 4);
   for (const k of Object.keys(it.stats)) if (STATS[k][1]) it.stats[k] = Math.round(it.stats[k]*1.25);
   for (const [k,v] of Object.entries(b.extra || {})) it.stats[k] = Math.max(it.stats[k] || 0, v);
   it.value = Math.round(Object.entries(it.stats).reduce((a,[k,v]) => a + v*STATS[k][2], 0) * 1.2);
@@ -3153,12 +3158,13 @@ function genBossItem(z, p) {
 }
 function rollLoot(z, first) {
   const p = G.profile, items = [];
-  const gold = Math.round(rnd(8,14) * (1 + z.tier) * 0.7); // -30 % (06/10)
+  const gold = Math.round(rnd(8,14) * (1 + z.tier) * 0.5); // -50 % (09/10)
   p.gold += gold;
-  const n = first ? 2 : (Math.random()<.35 ? 2 : 1);
+  const n = first ? 1 : (Math.random()<.6 ? 1 : 0); // 09/10 : environ 2 fois moins d'objets
   for (let i=0;i<n;i++) items.push(Math.random() < SET_DROP ? genSetItem(z, p) : genItem(z.tier, p.cls));
   if (z.icon==='boss' && first) { let it; do { it = genItem(z.tier+2, p.cls); } while (it.rarity<2); items.push(it); }
   if (z.icon==='boss' && Math.random() < BOSS_DROP) { const it = genBossItem(z, p); if (it) items.push(it); }
+  items.sort((a,b) => b.rarity - a.rarity);
   const sold = items.filter(it => !addToBag(it));
   return { gold, items, sold };
 }
@@ -3167,8 +3173,8 @@ function rollLoot(z, first) {
 // équipement, la chance de l'obtenir par combat dans chaque zone et les monstres qu'on y affronte
 const LOOT_ICONS = { anneau:'anneau', bottes:'bottes', amulette:'amulette', cape:'cape' };
 const lootPct = x => x < 0.001 ? '< 0,1 %' : (x*100).toLocaleString('fr-FR', { maximumFractionDigits: x < 0.1 ? 1 : 0 }) + ' %';
-const lootPerFight = q => 0.65*q + 0.35*(1 - (1-q)*(1-q)); // zone déjà libérée : 1 objet, 2 dans 35 % des cas
-const lootMaxRarity = (t, set) => { const b = Math.min(t,9)*0.06 + Math.max(0,t-9)*0.03; return b > 0.25 ? 3 : b > 0 ? 2 : set ? 1 : b + 1 > 0.7 ? 1 : 0; };
+const lootPerFight = q => 0.6*q; // zone déjà libérée : 1 objet dans 60 % des combats
+const lootMaxRarity = (t, set) => { const b = Math.min(t,24)*0.035; return b > 0.5 ? 3 : b > 0 ? 2 : 1; }; // même formule que genItem
 function lootSources() {
   const out = [];
   for (const z of FIGHT_ZONES) { const base = ZONE_BASE[z.id] || z;
@@ -3202,14 +3208,15 @@ function lootBookHtml() {
   const cat = {};
   for (const s of srcs) for (const e of lootTable(s, p.cls)) { const key = e.slot + '|' + e.name;
     (cat[key] = cat[key] || { ...e, src:[] }).src.push({ s, q: e.boss ? e.q : lootPerFight(e.q) }); }
+  const bestRar = e => e.boss ? 4 : Math.max(...e.src.map(x => lootMaxRarity(x.s.tier, e.set)));
   const order = Object.keys(SLOTS), list = Object.values(cat).filter(e => !f.slot || e.slot===f.slot)
     .filter(e => match(e.name, SLOTS[e.slot], ...(e.set ? [setById(e.set).name] : []), ...e.src.flatMap(x => [x.s.name, foeNames(x.s)])))
-    .sort((a,b) => order.indexOf(a.slot) - order.indexOf(b.slot) || Math.min(...a.src.map(x => x.s.tier)) - Math.min(...b.src.map(x => x.s.tier)) || !!a.set - !!b.set);
+    .sort((a,b) => bestRar(b) - bestRar(a) || order.indexOf(a.slot) - order.indexOf(b.slot) || Math.min(...a.src.map(x => x.s.tier)) - Math.min(...b.src.map(x => x.s.tier)) || !!a.set - !!b.set);
   return list.map(e => { const src = e.src.sort((a,b) => b.q - a.q), top = src.slice(0, 4);
     const lines = top.map(x => { const r = RARITIES[e.boss ? 4 : lootMaxRarity(x.s.tier, e.set)];
       return `<small>• <b style="display:inline;color:var(--text)">${foeNames(x.s)}</b> (${x.s.name}) : <b style="display:inline;color:var(--gold)">${lootPct(x.q)}</b> par combat · jusqu'à <span style="color:${r.color}">${r.name}</span></small>`; }).join('');
     return `<div class="item" style="border-color:${e.boss ? '#ff5c8a66' : e.set ? '#7fe08a66' : '#3a4459'}"><img src="${itemIcon({ slot:e.slot, icon:e.icon, rarity:e.boss ? 4 : e.set ? 1 : 0 })}" alt=""><div class="txt">
-      <b${e.boss ? ' style="color:#ff5c8a"' : e.set ? ' style="color:#7fe08a"' : ''}>${e.name}</b><small>${SLOTS[e.slot]}${e.set ? ' · ' + setById(e.set).name + ' (au moins Rare)' : ''}${e.boss ? ' · Unique, butin rare de ' + MONSTERS[e.boss].name + ' (salle du boss)' : ''}</small>${lines}
+      <b${e.boss ? ' style="color:#ff5c8a"' : e.set ? ' style="color:#7fe08a"' : ''}>${e.name}</b><small>${SLOTS[e.slot]}${e.set ? ' · ' + setById(e.set).name + ' (au moins Rare)' : ''}${e.boss ? ' · Mythique, butin rare de ' + MONSTERS[e.boss].name + ' (salle du boss)' : ''}</small>${lines}
       ${src.length > top.length ? `<small>… et ${src.length - top.length} autre${src.length - top.length > 1 ? 's' : ''} zone${src.length - top.length > 1 ? 's' : ''} avec moins de chance</small>` : ''}</div></div>`; }).join('')
     || '<p class="help">Aucun équipement ne correspond à ces filtres.</p>';
 }
@@ -3217,7 +3224,7 @@ function showLootBook() {
   const p = G.profile; if (!p) return;
   const f = lootFilter(), fb = (k, v, label) => `<button class="btn sm alt${f[k]===v ? ' on' : ''}" data-lf="${k}" data-val="${v}">${label}</button>`;
   overlay(`<h2>Répertoire du butin</h2>
-    <p class="help">Le butin dépend de la zone : chaque combat gagné donne 1 objet (2 dans 35 % des cas, 2 au premier combat d'une zone). Les chances sont données par combat dans une zone déjà libérée, pour un ${CLASSES[p.cls].name}. Premier combat contre un boss : un objet Épique ou mieux en plus.</p>
+    <p class="help">Le butin dépend de la zone : un combat gagné donne 1 objet dans 60 % des cas (toujours 1 au premier combat d'une zone). Les chances sont données par combat dans une zone déjà libérée, pour un ${CLASSES[p.cls].name}. Premier combat contre un boss : un objet Épique ou mieux en plus.</p>
     <div class="filters"><span class="lbl">Afficher</span>${fb('kind','eq','Équipements')}${fb('kind','res','Ressources de monstres')}</div>
     ${f.kind==='eq' ? `<div class="filters"><span class="lbl">Type</span>${fb('slot','','Tous')}${Object.keys(SLOTS).map(s => fb('slot',s,SLOTS[s])).join('')}</div>` : ''}
     <div class="filters"><input id="lootQ" type="search" placeholder="Rechercher un objet, un monstre, une zone…" value="${f.q.replace(/"/g,'&quot;')}" style="font:inherit;font-size:13px;background:var(--panel2);color:var(--text);border:1px solid #444;border-radius:6px;padding:5px 8px;min-width:320px">
@@ -3345,7 +3352,7 @@ function refreshMapTitle() {
 // qui repousse après quelques combats) et on fabrique à l'atelier des villages. Ressources et consommables sont rangés à part
 // (p.jobs) : ils ne prennent pas de place dans le sac. Les PV remontent après chaque combat : les repas donnent donc un bonus
 // pour les prochains combats, et les potions se boivent pendant le combat.
-const JOB_MAX = 25, JOB_REGROW = 3, MEAL_FIGHTS = 5;   // niveau max d'un métier ; combats avant repousse ; durée d'un repas
+const JOB_MAX = 25, JOB_REGROW = 5, MEAL_FIGHTS = 5;   // niveau max d'un métier ; combats avant repousse ; durée d'un repas
 const JOB_REQ = [1,4,8,12,16,20];                       // niveau de métier demandé pour chaque palier (un palier par région)
 const CRAFT_TIER = [3,7,11,15,19,23];                   // force (tier) des objets fabriqués à chaque palier
 const jobXpNeed = lv => 10*lv;
@@ -3440,7 +3447,7 @@ function harvest(n) {
   const p = G.profile, j = jobs(), J = JOBS[n.job], id = p.pos;
   if (j.lv[n.job] < JOB_REQ[n.t]) { banner(`${J.name} niveau ${JOB_REQ[n.t]} requis`); return; }
   const w = nodeWait(id, n.job); if (w) { banner(`Repousse dans ${w} combat${w>1?'s':''}`); return; }
-  const q = rnd(2,4) + Math.floor(j.lv[n.job]/10), xp = harvestXp(n.t), rid = n.job + n.t;
+  const q = rnd(1,2) + Math.floor(j.lv[n.job]/15), xp = harvestXp(n.t), rid = n.job + n.t;
   j.res[rid] = (j.res[rid]||0) + q; j.cut[nodeKey(id, n.job)] = j.fights;
   const ups = jobXp(n.job, xp);
   play('swing'); if (ups.length) setTimeout(() => play('niveau'), 300);
@@ -4442,7 +4449,7 @@ function goalLine(q) {
   return g.pet ? `Équiper les ${g.n} emplacements, Forest compris (${equippedCount(g)}/${g.n})` : `Équiper ${g.n} objets (${equippedCount(g)}/${g.n})`;
 }
 function rewardText(r) {
-  return [`${r.xp} XP`, `${r.gold} or`, r.item ? `un objet ${RARITIES[r.item.rarity].name.toLowerCase()}${r.item.slot ? ` (${SLOTS[r.item.slot].toLowerCase()})` : ''}` : null, r.cons ? Object.entries(r.cons).map(([k,n]) => `${n} × ${CONS[k].name}`).join(', ') : null].filter(Boolean).join(' · ');
+  return [`${r.xp} XP`, `${questGold(r)} or`, r.item ? `un objet ${RARITIES[r.item.rarity].name.toLowerCase()}${r.item.slot ? ` (${SLOTS[r.item.slot].toLowerCase()})` : ''}` : null, r.cons ? Object.entries(r.cons).map(([k,n]) => `${n} × ${CONS[k].name}`).join(', ') : null].filter(Boolean).join(' · ');
 }
 function startQuest(q) {
   const p = G.profile;
@@ -4490,17 +4497,18 @@ function nextStep(q) {
   st.step = (st.step||0) + 1; st.n = 0; st.found = [];
   stepScene(q, s, true); play('quete'); npcCache.k = '';
 }
+const questGold = r => Math.round(r.gold * 0.7); // or des quêtes -30 % (09/10)
 function completeQuest(q) {
   const p = G.profile, r = q.reward;
   p.quests[q.id].state = 'done';
   play('quete');
-  p.gold += r.gold;
+  p.gold += questGold(r);
   if (r.cons) { const j = jobs(); for (const [k,n] of Object.entries(r.cons)) j.cons[k] = (j.cons[k]||0) + n; }
   const ups = addXp(r.xp);
   let item = null;
   if (r.item) { const tier = Math.min(9, MAIN.indexOf(q)>=0 ? MAIN.indexOf(q) : p.story); item = genItem(tier, p.cls, r.item.slot, r.item.rarity); if (r.item.name) item.name = r.item.name; if (r.item.names && r.item.names[p.cls]) item.name = r.item.names[p.cls]; if (!addToBag(item)) item.sold = true; }
   G.scenes.push({ npc:q.outroNpc || q.npc, title:'Quête accomplie : ' + q.title, pages: q.outro || ['Merci pour ton aide, {héros} !'],
-    last:`<div class="reward"><b>Récompenses :</b> +${r.xp} XP · <img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> +${r.gold} or</div>${levelUpHtml(ups)}
+    last:`<div class="reward"><b>Récompenses :</b> +${r.xp} XP · <img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> +${questGold(r)} or</div>${levelUpHtml(ups)}
       ${item ? `<div class="items">${itemCard(item, { diff:true, btns: item.sold ? WAIT_BTNS(item) : [['equip','Équiper']] })}</div>${waitNote(item.sold ? 1 : 0)}` : ''}`, btn:'Continuer' });
   if (q.main) {
     const fb = FOREST_STEPS[MAIN.indexOf(q)+1];
@@ -5421,7 +5429,7 @@ function showVictory() {
   const zn = zoneById(z.id).name, msg = first ? `${zn} est libérée !` : z.extra && !isCleared(z.id) ? `Groupe vaincu ! Le chef de ${zn} t'attend encore.` : `${zn} : encore une victoire !`;
   overlay(`<h2>${title}</h2><p>${msg} <b>+${xp} XP</b>${first ? ' (bonus de première victoire)' : ''}</p>${xpBarHtml(from)}${levelUpHtml(ups)}${extraNote}
     ${done.length ? `<p class="goal">📜 Quête accomplie : <b>${done.map(q => q.title).join(', ')}</b>. Retourne sur la carte pour recevoir ta récompense.</p>` : ''}
-    ${loot.items.some(it => it.boss) ? `<p class="goal" style="color:#ff5c8a">✨ Objet unique ! ${MONSTERS[z.foes[0]].name} a laissé tomber son trésor.</p>` : ''}
+    ${loot.items.some(it => it.boss) ? `<p class="goal" style="color:#ff5c8a">✨ Objet mythique ! ${MONSTERS[z.foes[0]].name} a laissé tomber son trésor.</p>` : ''}
     <h3>Butin</h3>${dropsHtml(drops)}${lootHtml(loot)}
     <div style="text-align:center"><button class="btn alt" id="b2">Mon équipement</button><button class="btn" id="b1">Reprendre l'exploration</button></div>`, true);
   bindItemButtons();
@@ -6490,7 +6498,7 @@ function openChest() {
   const p = G.profile, z = zoneById(baseOf(p.pos)), t = treasure(), tier = z.tier || 0;
   if (chestDone(z.id)) { banner('Coffre vide : tu l\'as déjà ouvert.'); return; }
   const rar = regionOf(z.id)===1 ? 1 : 2; let it = genItem(tier + 2, p.cls); if (it.rarity < rar) it = genItem(tier + 2, p.cls, it.slot, rar);
-  const gold = rnd(40,60) * (1 + tier), kept = addToBag(it);
+  const gold = rnd(24,36) * (1 + tier), kept = addToBag(it);
   p.gold += gold; t.opened.push(z.id); play('piece'); save(); refreshMapTitle(); dirty = true;
   const r = regionOf(z.id), mine = [...treasureZones().chest].filter(id => regionOf(id)===r), left = mine.filter(id => !chestDone(id)).length;
   treasureBox('Un coffre !', `<img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> +${gold} or`, it, kept,
@@ -6500,7 +6508,7 @@ function openSecret() {
   const p = G.profile, z = zoneById(baseOf(p.pos)), t = treasure(), tier = z.tier || 0;
   if (t.secrets.includes(z.id)) { banner('La cache est vide : tu l\'as déjà fouillée.'); return; }
   let it = genItem(tier + 1, p.cls); if (it.rarity < 1) it = genItem(tier + 1, p.cls, it.slot, 1);
-  const gold = rnd(25,40) * (1 + tier), kept = addToBag(it);
+  const gold = rnd(15,24) * (1 + tier), kept = addToBag(it);
   p.gold += gold; t.secrets.push(z.id); play('piece'); save(); refreshMapTitle(); dirty = true;
   treasureBox('Un passage secret !', `Tu écartes les pierres fendues : derrière, une cache oubliée ! <img class="coin" src="${SPRITES.coin_anim_f0}" alt=""> +${gold} or`, it, kept,
     `Passages secrets trouvés : ${t.secrets.length} / ${SECRET_TOTAL()}. Les aubergistes connaissent des rumeurs sur les autres.`);
