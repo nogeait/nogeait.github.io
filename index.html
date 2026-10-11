@@ -2791,7 +2791,7 @@ function mapMove(e) {
   $('#hint').textContent = !z ? mapHintDefault() : isOpen(id) && !revealed(id) ? `Zone dans le brouillard : traverse ses ${nMaps(id)} cartes pour la révéler (${seenMaps(id)}/${nMaps(id)}). Tu peux t'y rendre depuis une zone voisine.` : !isOpen(id) ? (neighbors(id).some(isCleared) ? "L'histoire ne t'a pas encore mené ici : suis tes quêtes (touche Q)." : 'Zone verrouillée : libère une zone voisine pour y accéder.')
     : `${z.name} : ${z.desc}${z.foes ? (isCleared(id) ? ' (déjà libérée, tu peux y retourner)' : '') : ''}` + ((t => t ? ` · ${t.join(', ')} t'attend${t.length>1 ? 'ent' : ''} ici${z.icon==='portal' ? ' (de l\'autre côté)' : ''}.` : '')((talkMarks(viewRegion())[id]) && [...new Set(talkMarks(viewRegion())[id])]));
 }
-function mapHintDefault() { return (G.mapRegion ? `${REGION_NAMES[G.mapRegion]} : ` : 'Carte du monde : ') + (stelesAwake() ? 'clique sur une zone voisine pour y aller, ou sur une stèle activée (◆) pour t\'y rendre directement. ' : 'clique sur une zone voisine pour y aller (sans stèle royale, on voyage à pied). ') + 'Le rond ! indique la zone de ta quête suivie (la principale, sauf si tu en suis une autre dans le journal), la bulle ! un personnage qui t\'attend. Molette ou − : voir toutes les régions. M ou Échap : revenir à ta position.'; }
+function mapHintDefault() { return (G.mapRegion ? `${REGION_NAMES[G.mapRegion]} : ` : 'Carte du monde : ') + (FREE_TRAVEL ? 'clique sur une zone ouverte pour t\'y rendre directement. ' : stelesAwake() ? 'clique sur une zone voisine pour y aller, ou sur une stèle activée (◆) pour t\'y rendre directement. ' : 'clique sur une zone voisine pour y aller (sans stèle royale, on voyage à pied). ') + 'Le rond ! indique la zone de ta quête suivie (la principale, sauf si tu en suis une autre dans le journal), la bulle ! un personnage qui t\'attend. Molette ou − : voir toutes les régions. M ou Échap : revenir à ta position.'; }
 // zones (de la région affichée) où un personnage attend le héros pour lui parler ; passage vers la région si c'est ailleurs
 function talkMarks(R0) {
   const out = {};
@@ -2817,7 +2817,7 @@ async function mapClick(e) {
   const cur = baseOf(G.profile.pos), near = id===cur || neighbors(cur).includes(id);
   if (near && relicBlock(id)) return banner(relicGateText(id));
   if (keyNeeded(id) && cur!==id && !steleOn(id)) return banner('Passage fermé : ouvre-le depuis la zone voisine (clé, leviers, garde ou gardien), puis passe à pied.');
-  if (!near) { // loin : seulement par une stèle royale activée
+  if (!near && !FREE_TRAVEL) { // loin : seulement par une stèle royale activée
     if (!stelesAwake()) return banner('Sans stèle royale, on voyage à pied : la carte du monde ne mène qu\'aux zones voisines.');
     if (!steleOn(id)) return banner(steleZone(id) ? 'La stèle de ce lieu n\'est pas encore activée : va la toucher une fois sur place.' : 'Pas de stèle ici : le voyage rapide mène aux villages et aux donjons dont tu as touché la stèle.');
     return steleTravel(id); }
@@ -6587,7 +6587,7 @@ const questWants = k => activeQuests().some(q => q.goal.type==='kill' && [].conc
 // Au survol d'un groupe : liste des monstres, 🎯 sur ceux qu'une quête demande
 function drawFoePanel(z, x, yb, grp) {
   const counts = {}; grp.foes.forEach(k => counts[k] = (counts[k]||0)+1);
-  const q = grp.chief && activeQuests().find(q => q.goal.type==='clear' && q.goal.zone===z.id);
+  const q = grp.chief && activeQuests().find(q => q.goal.type==='clear' && q.goal.zone===baseOf(z.id));
   const lines = Object.entries(counts).map(([k,c]) => [`${c} × ${MONSTERS[k].name} niv. ${monsterLevel(k, z)}`, questWants(k)]);
   const sub = grp.chief ? null : grp.aggro ? '⚔ Agressif : il t\'attaque si tu t\'approches' : 'Groupe errant : il reviendra plus tard';
   ctx.font = 'bold 13px Segoe UI, sans-serif'; ctx.textAlign = 'left';
@@ -6670,7 +6670,7 @@ function renderScene(now) {
   drawTreasures(s, now, hv, ents, tags);
   drawClues(s, now, hv, ents, tags); drawAccess(s, now, hv, ents, tags);
   if (s.dungeon) { const [x,y] = s.dungeon; ents.push({ d:x+y, f:() => { const [cx,cy] = iso(x,y); drawDungeonGate(cx, cy, now);
-    const q = activeQuests().find(q => q.main); if (q && q.goal.zone===z.id) drawBang(cx, cy-112, now, '#ef6b5b');
+    const q = activeQuests().find(q => q.main); if (q && q.goal.zone===baseOf(z.id)) drawBang(cx, cy-112, now, '#ef6b5b');
     if (hv && hv.kind==='dungeon') tags.push([`🏰 Donjon : ${MONSTERS[z.foes[0]].name}`, cx, cy-92]); else drawSign('🏰 ' + zoneById(baseOf(s.id)).name, cx, cy-92, now); } }); }
   for (const n of sceneNpcs(s.id)) ents.push({ d:n.x+n.y, f:() => { const [cx,cy] = iso(n.x,n.y), d = NPCS[n.id], img = npcFrame(n.id, now, n.x);
     ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(cx,cy+2,17,7,0,0,7); ctx.fill();
@@ -6689,10 +6689,10 @@ function renderScene(now) {
     const oth = f.foes.filter((k,i) => i!==f.foes.indexOf(f.kind)).slice(0, 2), flip = f.face ? f.face < 0 : f.x > G.walker.x;
     oth.forEach((k,i) => drawSprite(animFrame(MONSTERS[k].sprite, f.moving, now, f.off+1+i), cx + (i ? 20 : -20)*b, cy - 4, SC*.72, flip));
     ctx.strokeStyle = f.aggro ? `rgba(255,50,40,${.7+.3*Math.sin(now/180)})` : '#e2554a'; ctx.lineWidth = f.aggro ? 3 : 2; ctx.beginPath(); ctx.ellipse(cx,cy+2,24*b,10*b,0,0,7); ctx.stroke();
-    const fz = SC*(m.sz || 1); if (m.halo && img) drawSunHalo(cx, cy + 6 - img.height*fz*0.85, 15*fz/SC, now);
+    const fz = SC*(m.sz || 1)*(f.chief && !m.big ? 1.25 : 1); if (m.halo && img) drawSunHalo(cx, cy + 6 - img.height*fz*0.85, 15*fz/SC, now);
     drawSprite(img, cx, cy+6, fz, flip);
     const top = cy + 6 - (img ? img.height*fz : 60);
-    if (f.chief) { const q = activeQuests().find(q => q.main); if (q && q.goal.zone===z.id) drawBang(cx, top-18, now, '#ef6b5b'); }
+    if (f.chief) { const q = activeQuests().find(q => q.main); if (q && q.goal.zone===baseOf(z.id)) drawBang(cx, top-18, now, '#ef6b5b'); else if (!isCleared(baseOf(z.id))) drawBubble('👑', cx, top-12, now); }
     else if (f.aggro) { ctx.font = 'bold 18px Segoe UI, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ff5a4a'; ctx.fillText('⚔', cx, top-8); }
     else if (gate) drawBubble('🔑', cx, top-12, now); // chaque groupe peut laisser tomber la clé de la zone
     if (hv && hv.kind==='foe' && hv.g===f) foeAt = [cx, top-34, f]; } });
@@ -7251,6 +7251,7 @@ function findClue(c) {
 // Une stèle dans chaque village et devant chaque donjon. Elles ne répondent qu'au sang d'Auréon : Orwin les réveille avec la quête
 // « Le sang d'Auréon » (après « La loi des dieux »). Ensuite, chaque stèle touchée une fois s'active, et la carte du monde (M) mène
 // directement aux stèles activées. Avant cela, la carte du monde ne mène qu'aux zones voisines : on voyage à pied. État : p.steles.
+const FREE_TRAVEL = true; // temporaire (11/10) : la carte du monde mène partout comme avant, sans les stèles. Mettre false pour revenir aux stèles.
 const steleZone = b => { const z = ZONES.find(z => z.id===b); return !!z && (z.icon==='village' || z.icon==='boss'); };
 const stelesAwake = (p = G.profile) => !!(p && p.quests && p.quests.st1 && p.quests.st1.state==='done');
 const steleOn = b => stelesAwake() && (G.profile.steles || []).includes(b);
